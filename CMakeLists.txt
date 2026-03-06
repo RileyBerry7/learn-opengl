@@ -30,7 +30,7 @@ FetchContent_MakeAvailable(glfw)
 # Executable
 # =========================================================
 add_executable(learn-opengl
-        main.cpp
+        src/main.cpp
 )
 
 # =========================================================
