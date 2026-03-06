@@ -22,9 +22,9 @@ FetchContent_MakeAvailable(glfw)
 
 
 # =========================================================
-# Vulkan
+# OpenGL
 # =========================================================
-#find_package(Vulkan REQUIRED)
+find_package(OpenGL REQUIRED)
 
 # =========================================================
 # Executable
@@ -38,4 +38,5 @@ add_executable(learn-opengl
 # =========================================================
 target_link_libraries(learn-opengl PRIVATE
         glfw
+        OpenGL::GL
 )
