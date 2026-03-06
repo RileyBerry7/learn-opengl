@@ -31,7 +31,15 @@ find_package(OpenGL REQUIRED)
 # =========================================================
 add_executable(learn-opengl
         src/main.cpp
+        src/glad.c
 )
+
+
+# =========================================================
+# INCLUDE DIRECTORIES
+# =========================================================
+target_include_directories(learn-opengl PRIVATE include)
+
 
 # =========================================================
 # Link Libraries

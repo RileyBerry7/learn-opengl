@@ -1,18 +1,35 @@
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
-// #include <glad/glad.h>
 #include <GL/gl.h>
 
 // std
 #include <iostream>
+#include <string>
+
+constexpr int  WIDTH  = 800;
+constexpr int  HEIGHT = 600;
+constexpr char WINDOW_NAME[] = "Hello Window";
+
 
 int main() {
     std::cout << "Hello world!" << "!\n";
 
-    // initialize the glfw
+    // GLFW Initialization
     if (!glfwInit()) return -1;
 
+    // GLFW Configuration
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Core -> deprecated functions removed
+
     // create window
-    GLFWwindow *window = glfwCreateWindow(640, 480, "Test", nullptr, nullptr);
+    GLFWwindow *window = glfwCreateWindow(
+        WIDTH,
+        HEIGHT,
+        WINDOW_NAME,
+        nullptr,
+        nullptr);
+
     if (!window) {
         glfwTerminate();
         return -1;
@@ -25,12 +42,12 @@ int main() {
     while (!glfwWindowShouldClose(window)) {
 
         /* render here */
-        glClear(GL_COLOR_BUFFER_BIT);
-        glBegin(GL_TRIANGLES);
-        glVertex2f(-0.5f, -0.5f);
-        glVertex2f(0.0f, 0.5f);
-        glVertex2f(0.5f, -0.5f);
-        glEnd();
+        // glClear(GL_COLOR_BUFFER_BIT);
+        // glBegin(GL_TRIANGLES);
+        // glVertex2f(-0.5f, -0.5f);
+        // glVertex2f(0.0f, 0.5f);
+        // glVertex2f(0.5f, -0.5f);
+        // glEnd();
 
 
 
