@@ -40,8 +40,18 @@ const char* fragmentShaderSource = "#version 330 core\n"
 GLfloat vertices[] = {
     -0.5f, -0.5f * float(sqrt(3))/3, 0.0f,
     0.5f, -0.5f * float(sqrt(3))/3, 0.0f,
-    0.0f, 0.5f * float(sqrt(3)) * 2/3, 0.0f
+    0.0f, 0.5f * float(sqrt(3)) * 2/3, 0.0
 };
+
+
+// ----------------------------------------------------
+// Process Input
+void processInput (GLFWwindow *window) {
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)  {
+        std::cout << "User pressed ESC\n";
+        glfwSetWindowShouldClose(window, true);
+    }
+}
 
 // =======================================================================================================
 int main() {
@@ -128,6 +138,7 @@ int main() {
     // Main Render Loop
     // --------------------------------------------------------------------------------------------------
     while (!glfwWindowShouldClose(window)) {
+        processInput(window);
 
         /* render here */
         glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
