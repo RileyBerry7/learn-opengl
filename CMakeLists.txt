@@ -32,6 +32,14 @@ find_package(OpenGL REQUIRED)
 add_executable(learn-opengl
         src/main.cpp
         src/glad.c
+        src/shaderClass.h
+        src/shaderClass.cpp
+        src/vbo.cpp
+        src/vbo.h
+        src/ebo.cpp
+        src/ebo.h
+        src/vao.cpp
+        src/vao.h
 )
 
 
@@ -48,3 +56,8 @@ target_link_libraries(learn-opengl PRIVATE
         glfw
         OpenGL::GL
 )
+
+# =========================================================
+# COPY SHADERS
+# =========================================================
+file(COPY shaders DESTINATION ${CMAKE_BINARY_DIR})
