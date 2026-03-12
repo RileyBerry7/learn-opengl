@@ -140,6 +140,10 @@ int main() {
     shaderProgram.Activate();
     glUniform1i(tex0Uni, 0);
 
+    // 3D transformations
+    float rotation = 0.0f;
+    double prevTime = glfwGetTime();
+
     // Main Render Loop
     // --------------------------------------------------------------------------------------------------
     while (!glfwWindowShouldClose(window)) {
@@ -148,7 +152,30 @@ int main() {
         /* render here */
         glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        glUniform1f(uniID, 0.0f);
+        shaderProgram.Activate();
+
+        double crnTime = glfwGetTime();
+        if (crnTime - prevTime >= 1.0f / 60.0f) {
+            rotation += 0.5f;
+            prevTime = crnTime;
+        }
+
+        glm::mat4 model = glm::mat4(1.0f); // Identity Matrix
+        glm::mat4 view = glm::mat4(1.0f); // Identity Matrix
+        glm::mat4 proj = glm::mat4(1.0f); // Identity Matrix
+
+        model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 1.0f, 0.0f));
+        view = glm::translate(view, glm::vec3(0.0f, -0.5f, -2.0f));
+        proj = glm::perspective(glm::radians(45.0f), (float)(800/800), 0.1f, 100.0f);
+
+        int modelLoc = glGetUniformLocation(shaderProgram.ID, "model");
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        int viewLoc = glGetUniformLocation(shaderProgram.ID, "view");
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(model));
+        int projLoc = glGetUniformLocation(shaderProgram.ID, "proj");
+        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+        glUniform1f(uniID, 0.5f);
         glBindTexture(GL_TEXTURE_2D, texture);
         VAO1.Bind();
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
