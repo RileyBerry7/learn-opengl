@@ -7,8 +7,8 @@
 
 #include "shaderClass.h"
 #include "vbo.h"
-#include "ebo.h"
 #include "vao.h"
+#include "ebo.h"
 
 // std
 #include <iostream>
@@ -51,7 +51,7 @@ void processInput (GLFWwindow *window) {
 
 // =======================================================================================================
 int main() {
-    std::cout << "Hello OpenGL!";
+    std::cout << "Hello OpenGL!\n";
     // GLFW Initialization
     if (!glfwInit()) return -1;
 
@@ -95,7 +95,7 @@ int main() {
     VAO1.LinkVBO(VBO1, 0);
     VAO1.Unbind();
     VBO1.Unbind();
-    EBO1.Unbind();
+    // EBO1.Unbind();
 
 
     // Main Render Loop

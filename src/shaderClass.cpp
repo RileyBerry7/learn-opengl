@@ -19,6 +19,8 @@ std::string get_file_contents(const char* filename)
 		in.read(&contents[0], contents.size());
 
 		in.close();
+		// #include <iostream>
+		std::cout << contents;
 		return contents;
 	}
 
@@ -44,12 +46,22 @@ Shader::Shader(const char* vertexFile, const char* fragmentFile)
 	// Compile the Vertex Shader into machine code
 	glCompileShader(vertexShader);
 
+	//DEBUG
+	int success; char infoLog[512];
+	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+	if(!success){ glGetShaderInfoLog(vertexShader,512,NULL,infoLog); std::cout<<infoLog<<std::endl; }
+
 	// Create Fragment Shader Object and get its reference
 	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 	// Attach Fragment Shader source to the Fragment Shader Object
 	glShaderSource(fragmentShader, 1, &fragmentSource, NULL);
 	// Compile the Vertex Shader into machine code
 	glCompileShader(fragmentShader);
+
+	//DEBUG
+	// int success; char infoLog[512];
+	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+	if(!success){ glGetShaderInfoLog(fragmentShader,512,NULL,infoLog); std::cout<<infoLog<<std::endl; }
 
 	// Create Shader Program Object and get its reference
 	ID = glCreateProgram();

@@ -58,6 +58,12 @@ target_link_libraries(learn-opengl PRIVATE
 )
 
 # =========================================================
-# COPY SHADERS
+# COPY SHADERS DIR TO BUILD FILE
 # =========================================================
-file(COPY shaders DESTINATION ${CMAKE_BINARY_DIR})
+# Copy all shaders reliably on every build
+add_custom_target(copy_shaders ALL
+        COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/shaders
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/shaders ${CMAKE_BINARY_DIR}/shaders
+        COMMENT "Copying all shaders..."
+)
+add_dependencies(learn-opengl copy_shaders)
