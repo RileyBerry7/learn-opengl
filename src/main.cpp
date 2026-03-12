@@ -4,6 +4,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 // #include <GL/gl.h>
+# include <stb/stb_image.h>
 
 #include "shaderClass.h"
 #include "vbo.h"
@@ -26,18 +27,17 @@ constexpr char WINDOW_NAME[] = "Window";
 // ----------------------------------------------------
 // Vertex Data
 GLfloat vertices[] = {
-    -0.5f,     -0.5f * float(sqrt(3))  / 3, 0.0f,  0.1f, 0.13f,  0.6f, // outer-left
-     0.5f,     -0.5f * float(sqrt(3))  / 3, 0.0f,  0.8f, 0.33f,  0.02f, // outer-right
-     0.0f,      0.5f * float(sqrt(3))*2/ 3, 0.0f,  1.0f, 0.01f,  0.32f,  // outer-top
-    -0.5f / 2,  0.5f * float(sqrt(3))  / 6, 0.0f,  0.09f, 0.75f, 0.17f,  // inner-left
-     0.5f / 2,  0.5f * float(sqrt(3))  / 6, 0.0f,  0.9f, 0.45f, 0.27f,  // inner-right
-     0.0f,     -0.5f * float(sqrt(3))  / 3, 0.0f,  1.0f, 0.3f,  0.12f   // inner-btm
+
+    //  COORDINATES  //   //     COLORS     //
+    -0.5f, -0.5f, 0.0f,   1.00f, 0.01f, 0.12f,  // Lower left
+    -0.5f,  0.5f, 0.0f,   0.09f, 0.95f, 0.17f,  // Upper left
+     0.5f,  0.5f, 0.0f,   0.90f, 0.45f, 0.70f,  // Lower right
+     0.5f, -0.5f, 0.0f,   0.10f, 0.30f, 0.93f   // Upper right
 };
 
 GLuint indices[] = {
-    0, 3, 5, // lower-left triangle
-    3, 2, 4, // lower-right triangle
-    5, 4, 1  // upper triangle
+    0, 2, 1, // Upper triangle
+    0, 3, 2  // Lower triangle
 };
 
 // ----------------------------------------------------
@@ -111,9 +111,9 @@ int main() {
         /* render here */
         glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        glUniform1f(uniID, 0.9f);
+        glUniform1f(uniID, 0.5f);
         VAO1.Bind();
-        glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glfwSwapBuffers(window);
 
         // Detect and Handle any GLFW events
