@@ -26,12 +26,12 @@ constexpr char WINDOW_NAME[] = "Window";
 // ----------------------------------------------------
 // Vertex Data
 GLfloat vertices[] = {
-    -0.5f,     -0.5f * float(sqrt(3))  / 3, 0.0f, // outer-left
-     0.5f,     -0.5f * float(sqrt(3))  / 3, 0.0f, // outer-right
-     0.0f,      0.5f * float(sqrt(3))*2/ 3, 0.0f,  // outer-top
-    -0.5f / 2,  0.5f * float(sqrt(3))  / 6, 0.0f,  // inner-left
-     0.5f / 2,  0.5f * float(sqrt(3))  / 6, 0.0f,  // inner-right
-     0.0f,     -0.5f * float(sqrt(3))  / 3, 0.0f  // inner-btm
+    -0.5f,     -0.5f * float(sqrt(3))  / 3, 0.0f,  0.1f, 0.13f,  0.6f, // outer-left
+     0.5f,     -0.5f * float(sqrt(3))  / 3, 0.0f,  0.8f, 0.33f,  0.02f, // outer-right
+     0.0f,      0.5f * float(sqrt(3))*2/ 3, 0.0f,  1.0f, 0.01f,  0.32f,  // outer-top
+    -0.5f / 2,  0.5f * float(sqrt(3))  / 6, 0.0f,  0.09f, 0.75f, 0.17f,  // inner-left
+     0.5f / 2,  0.5f * float(sqrt(3))  / 6, 0.0f,  0.9f, 0.45f, 0.27f,  // inner-right
+     0.0f,     -0.5f * float(sqrt(3))  / 3, 0.0f,  1.0f, 0.3f,  0.12f   // inner-btm
 };
 
 GLuint indices[] = {
@@ -92,7 +92,10 @@ int main() {
     VBO VBO1(vertices, sizeof(vertices));
     EBO EBO1(indices, sizeof(indices));
 
-    VAO1.LinkVBO(VBO1, 0);
+    // Links VBO to VAO
+    VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 6 * sizeof(float), (void*)0);;
+    VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 6 * sizeof(float), (void*)(3*sizeof(float)));;
+
     VAO1.Unbind();
     VBO1.Unbind();
     // EBO1.Unbind();
