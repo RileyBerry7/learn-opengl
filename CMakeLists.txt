@@ -26,6 +26,7 @@ FetchContent_MakeAvailable(glfw)
 # =========================================================
 find_package(OpenGL REQUIRED)
 
+
 # =========================================================
 # Executable
 # =========================================================
@@ -40,6 +41,7 @@ add_executable(learn-opengl
         src/ebo.h
         src/vao.cpp
         src/vao.h
+        src/stb.cpp
 )
 
 
