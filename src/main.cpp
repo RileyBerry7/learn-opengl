@@ -100,6 +100,8 @@ int main() {
     VBO1.Unbind();
     // EBO1.Unbind();
 
+    GLuint uniID = glGetUniformLocation(shaderProgram.ID, "scale");
+
 
     // Main Render Loop
     // --------------------------------------------------------------------------------------------------
@@ -109,6 +111,7 @@ int main() {
         /* render here */
         glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+        glUniform1f(uniID, 0.9f);
         VAO1.Bind();
         glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
         glfwSwapBuffers(window);
