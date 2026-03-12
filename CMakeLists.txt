@@ -60,7 +60,7 @@ target_link_libraries(learn-opengl PRIVATE
 )
 
 # =========================================================
-# COPY SHADERS DIR TO BUILD FILE
+# COPY SHADERS DIR TO BUILD DIR
 # =========================================================
 # Copy all shaders reliably on every build
 add_custom_target(copy_shaders ALL
@@ -69,3 +69,17 @@ add_custom_target(copy_shaders ALL
         COMMENT "Copying all shaders..."
 )
 add_dependencies(learn-opengl copy_shaders)
+
+
+
+# =========================================================
+# COPY TEXTURES DIR TO BUILD DIR
+# =========================================================
+set(TEXTURE_DIR "${CMAKE_SOURCE_DIR}/resources/textures")
+
+add_custom_command(TARGET learn-opengl POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${TEXTURE_DIR}"
+    $<TARGET_FILE_DIR:learn-opengl>/resources/textures
+    COMMENT "Copying textures..."
+)
