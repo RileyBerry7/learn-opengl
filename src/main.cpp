@@ -29,18 +29,45 @@ constexpr char WINDOW_NAME[] = "Window";
 
 // ----------------------------------------------------
 // Vertex Data
+// Vertex Data
 GLfloat vertices[] = {
 
-    //  COORDINATES  //   //     COLORS     //
-    -0.5f, -0.5f, 0.5f,   1.0f, 0.00f, 0.0f,   0.0f, 0.0f, // Lower left
-    -0.5f,  0.5f, 0.5f,   0.0f, 1.0f, 0.0f,    0.0f, 1.0f, // Upper left
-     0.5f,  0.5f, 0.5f,   0.0f, 0.0f, 1.0f,    1.0f, 1.0f, // Lower right
-     0.5f, -0.5f, 0.5f,   1.0f, 1.0f, 1.0f,    1.0f, 0.0f,  // Upper right
+    //  COORDINATES  //   //     COLORS        // UV COORDINATES
+    // Front
+    -0.5f, -0.5f,  0.5f,   1.0f, 0.00f, 0.0f,   0.0f, 0.0f, // Lower left
+    -0.5f,  0.5f,  0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // Upper left
+     0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, // Upper right
+     0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // Lower right
 
+    // Back
     -0.5f, -0.5f, -0.5f,   1.0f, 0.00f, 0.0f,   0.0f, 0.0f, // Lower left
-    -0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,    0.0f, 1.0f, // Upper left
-     0.5f,  0.5f, -0.5f,   0.0f, 0.0f, 1.0f,    1.0f, 1.0f, // Lower right
-     0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,    1.0f, 0.0f  // Upper right
+    -0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // Upper left
+     0.5f,  0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, // Upper right
+     0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // Lower right
+
+    // Left
+    -0.5f, -0.5f, -0.5f,   1.0f, 0.00f, 0.0f,   0.0f, 0.0f, // Lower left
+    -0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // Upper left
+    -0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, // Upper right
+    -0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // Lower right
+
+    // Right
+     0.5f, -0.5f, -0.5f,   1.0f, 0.00f, 0.0f,   0.0f, 0.0f, // Lower left
+     0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // Upper left
+     0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, // Upper right
+     0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // Lower right
+
+    // Top
+    -0.5f,  0.5f,  0.5f,   1.0f, 0.00f, 0.0f,   0.0f, 0.0f, // Lower left
+    -0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // Upper left
+     0.5f,  0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, // Upper right
+     0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // Lower right
+
+    // Bottom
+    -0.5f, -0.5f,  0.5f,   1.0f, 0.00f, 0.0f,   0.0f, 0.0f, // Lower left
+    -0.5f, -0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // Upper left
+     0.5f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, // Upper right
+     0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f  // Lower right
 };
 
 GLuint indices[] = {
@@ -49,24 +76,24 @@ GLuint indices[] = {
     0, 2, 3,  // Lower triangle
 
     // Back
-    4, 6, 5, // Upper triangle
-    4, 7, 6,  // Lower triangle
+    4, 5, 6, // Upper triangle
+    4, 6, 7,  // Lower triangle
 
     // Left
-    0, 5, 1, // Upper triangle
-    0, 4, 5,  // Lower triangle
+    8, 9, 10, // Upper triangle
+    8, 10, 11,  // Lower triangle
 
     // Right
-    3, 2, 6, // Upper triangle
-    3, 6, 7,  // Lower triangle
+    12, 13, 14, // Upper triangle
+    12, 14, 15,  // Lower triangle
 
     // Top
-    1, 5, 6,  // Upper triangle
-    1, 6, 2,  // Lower triangle
+    16, 17, 18,  // Upper triangle
+    16, 18, 19,  // Lower triangle
 
     // Bottom
-    0, 7, 3, // Upper triangle
-    0, 4, 7,  // Lower triangle
+    20, 21, 22, // Upper triangle
+    20, 22, 23  // Lower triangle
 };
 
 // ----------------------------------------------------
@@ -136,7 +163,7 @@ int main() {
 
     int widthImg, heightImg, numColorCh;
     stbi_set_flip_vertically_on_load(true);
-    std::string fileName = "resources/textures/osaka.png";
+    std::string fileName = "resources/textures/yuuri.png";
     unsigned char* bytes = stbi_load(fileName.c_str(), &widthImg, &heightImg, &numColorCh, 0);
     if (!bytes) {
         std::cerr << "Failed to load texture: " + fileName + "\n";
@@ -166,7 +193,7 @@ int main() {
     shaderProgram.Activate();
     glUniform1i(tex0Uni, 0);
 
-    // 3D transformations
+    // 3D TRANSFORMATIONS ------------------------------
     float rotation = 0.0f;
     double prevTime = glfwGetTime();
 
@@ -194,16 +221,22 @@ int main() {
         glm::mat4 view = glm::mat4(1.0f); // Identity Matrix
         glm::mat4 proj = glm::mat4(1.0f); // Identity Matrix
 
-        model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 1.0f, 0.0f));
-        view = glm::translate(view, glm::vec3(0.0f, -0.5f, -2.0f));
+        // Rotate Towards and Down
+        model = glm::translate(model, glm::vec3(0.0f, -0.3f, 0.5f));
+        // model = glm::rotate(model, glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.1f));
+
+        model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.3f, 1.06, 0.7f));
+        view = glm::translate(view, glm::vec3(0.0f, 0.3f, -6.0f));
+        // view = glm::rotate(view, glm::radians(30.0f), glm::vec3(0.0f, -0.5, 0.5f));
         proj = glm::perspective(glm::radians(45.0f), (float)(800/800), 0.1f, 100.0f);
+
 
         int modelLoc = glGetUniformLocation(shaderProgram.ID, "model");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
         int viewLoc = glGetUniformLocation(shaderProgram.ID, "view");
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
         int projLoc = glGetUniformLocation(shaderProgram.ID, "proj");
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj));
 
         glUniform1f(uniID, 0.5f);
         glBindTexture(GL_TEXTURE_2D, texture);
