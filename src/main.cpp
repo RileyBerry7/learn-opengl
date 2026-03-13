@@ -13,6 +13,7 @@
 #include "vbo.h"
 #include "vao.h"
 #include "ebo.h"
+#include "texture.h"
 
 // std
 #include <iostream>
@@ -28,7 +29,6 @@ constexpr char WINDOW_NAME[] = "Window";
 
 
 // ----------------------------------------------------
-// Vertex Data
 // Vertex Data
 GLfloat vertices[] = {
 
@@ -161,37 +161,20 @@ int main() {
 
     // Textures ---------------
 
-    int widthImg, heightImg, numColorCh;
-    stbi_set_flip_vertically_on_load(true);
-    std::string fileName = "resources/textures/yuuri.png";
-    unsigned char* bytes = stbi_load(fileName.c_str(), &widthImg, &heightImg, &numColorCh, 0);
-    if (!bytes) {
-        std::cerr << "Failed to load texture: " + fileName + "\n";
-    }
+    int numColorCh;
 
-    GLuint texture;
-    glGenTextures(1, &texture);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture);
+    std::string filePath = "resources/textures/yuuri.png";
+    GLenum texType = GL_TEXTURE_2D;
+    GLenum texSlot = GL_TEXTURE0;
+    GLenum pixelType = GL_UNSIGNED_BYTE;
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    // Instantiate Object
+    Tex texture = Tex(filePath.c_str(), texType, texSlot, pixelType);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    // float flatColor[] = {1.0f, 1.0f, 1.0f, 1.0f};
-    // glParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, flatColor);
-    GLenum format = (numColorCh == 4) ? GL_RGBA : GL_RGB;
-    glTexImage2D(GL_TEXTURE_2D, 0, format, widthImg, heightImg, 0, format, GL_UNSIGNED_BYTE, bytes);
-
-    glGenerateMipmap(GL_TEXTURE_2D);
-    stbi_image_free(bytes);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    GLuint tex0Uni = glGetUniformLocation(shaderProgram.ID, "tex0");
-    shaderProgram.Activate();
-    glUniform1i(tex0Uni, 0);
+    // Tex Unit
+    const char* texUniform = "tex0";
+    constexpr GLuint unit = 0;
+    texture.texUnit(shaderProgram, texUniform, unit);
 
     // 3D TRANSFORMATIONS ------------------------------
     float rotation = 0.0f;
@@ -238,8 +221,10 @@ int main() {
         int projLoc = glGetUniformLocation(shaderProgram.ID, "proj");
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj));
 
+        // Texture
         glUniform1f(uniID, 0.5f);
-        glBindTexture(GL_TEXTURE_2D, texture);
+        texture.Bind();
+
         VAO1.Bind();
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
         glfwSwapBuffers(window);
@@ -254,7 +239,7 @@ int main() {
     VBO1.Delete();
     EBO1.Delete();
     shaderProgram.Delete();
-    glDeleteTextures(1, &texture);
+    texture.Delete();
 
     glfwDestroyWindow(window);
     glfwTerminate();
