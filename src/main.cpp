@@ -32,15 +32,41 @@ constexpr char WINDOW_NAME[] = "Window";
 GLfloat vertices[] = {
 
     //  COORDINATES  //   //     COLORS     //
-    -0.5f, -0.5f, 0.0f,   1.0f, 0.00f, 0.0f,   0.0f, 0.0f, // Lower left
-    -0.5f,  0.5f, 0.0f,   0.0f, 1.0f, 0.0f,    0.0f, 1.0f, // Upper left
-     0.5f,  0.5f, 0.0f,   0.0f, 0.0f, 1.0f,    1.0f, 1.0f, // Lower right
-     0.5f, -0.5f, 0.0f,   1.0f, 1.0f, 1.0f,    1.0f, 0.0f  // Upper right
+    -0.5f, -0.5f, 0.5f,   1.0f, 0.00f, 0.0f,   0.0f, 0.0f, // Lower left
+    -0.5f,  0.5f, 0.5f,   0.0f, 1.0f, 0.0f,    0.0f, 1.0f, // Upper left
+     0.5f,  0.5f, 0.5f,   0.0f, 0.0f, 1.0f,    1.0f, 1.0f, // Lower right
+     0.5f, -0.5f, 0.5f,   1.0f, 1.0f, 1.0f,    1.0f, 0.0f,  // Upper right
+
+    -0.5f, -0.5f, -0.5f,   1.0f, 0.00f, 0.0f,   0.0f, 0.0f, // Lower left
+    -0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,    0.0f, 1.0f, // Upper left
+     0.5f,  0.5f, -0.5f,   0.0f, 0.0f, 1.0f,    1.0f, 1.0f, // Lower right
+     0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,    1.0f, 0.0f  // Upper right
 };
 
 GLuint indices[] = {
-    0, 2, 1, // Upper triangle
-    0, 3, 2  // Lower triangle
+    // Front
+    0, 1, 2, // Upper triangle
+    0, 2, 3,  // Lower triangle
+
+    // Back
+    4, 6, 5, // Upper triangle
+    4, 7, 6,  // Lower triangle
+
+    // Left
+    0, 5, 1, // Upper triangle
+    0, 4, 5,  // Lower triangle
+
+    // Right
+    3, 2, 6, // Upper triangle
+    3, 6, 7,  // Lower triangle
+
+    // Top
+    1, 5, 6,  // Upper triangle
+    1, 6, 2,  // Lower triangle
+
+    // Bottom
+    0, 7, 3, // Upper triangle
+    0, 4, 7,  // Lower triangle
 };
 
 // ----------------------------------------------------
@@ -144,6 +170,10 @@ int main() {
     float rotation = 0.0f;
     double prevTime = glfwGetTime();
 
+    // DEPTH -----------------------------
+    glEnable(GL_DEPTH_TEST);
+
+
     // Main Render Loop
     // --------------------------------------------------------------------------------------------------
     while (!glfwWindowShouldClose(window)) {
@@ -151,7 +181,7 @@ int main() {
 
         /* render here */
         glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         shaderProgram.Activate();
 
         double crnTime = glfwGetTime();
@@ -178,7 +208,7 @@ int main() {
         glUniform1f(uniID, 0.5f);
         glBindTexture(GL_TEXTURE_2D, texture);
         VAO1.Bind();
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
         glfwSwapBuffers(window);
 
         // Detect and Handle any GLFW events
