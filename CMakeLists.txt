@@ -46,6 +46,7 @@ add_executable(learn-opengl
         src/texture.h
         src/obj_parser.h
         src/obj_parser.c
+        src/obj_parser.c
 )
 
 

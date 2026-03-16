@@ -130,7 +130,7 @@ void processInput (GLFWwindow *window) {
 
 // =======================================================================================================
 int main() {
-    std::cout << "Hello OpenGL!\n";
+    std::cout << "\nHello OpenGL!\n";
     // GLFW Initialization
     if (!glfwInit()) return -1;
 
@@ -253,7 +253,7 @@ int main() {
         texture.Bind();
 
         VAO1.Bind();
-        glDrawElements(GL_TRIANGLES, INDICES_COUNT, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
         glfwSwapBuffers(window);
 
         // Detect and Handle any GLFW events

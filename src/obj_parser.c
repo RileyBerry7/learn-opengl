@@ -109,14 +109,13 @@ ObjParse parse(char* file_path) {
         else if (line_buffer[0] == 'v') {
 
             // Scan vertex coordinates
-            Vec3 newVertex;
-            int count = sscanf(line_buffer, "v %f %f %f ", &newVertex.x, &newVertex.y, &newVertex.z);
+            Vec3 new_vertex;
+            int count = sscanf(line_buffer, "v %f %f %f ", &new_vertex.x, &new_vertex.y, &new_vertex.z);
             if (count != 3) printf("Error: Vertex has non 3 values");
-            printf("Vertex: %f, %f, %f\n", newVertex.x, newVertex.y, newVertex.z);
+            printf("Vertex: %f, %f, %f\n", new_vertex.x, new_vertex.y, new_vertex.z);
 
             // Add vertex to vertex list
-            v_list[v_count] = newVertex;
-            v_count++;
+            v_list[v_count++] = new_vertex;
         }
 
         // 3. Face Declaration ------------------------------------------------------------------
@@ -166,14 +165,14 @@ ObjParse parse(char* file_path) {
                     printf("vvt pair: %f, %f\n", pair.u, pair.v);
 
                     // 4. Add to Vertices list
-                    vertices[vert_index++] = v_list[(int)pair.u].x;
-                    vertices[vert_index++] = v_list[(int)pair.u].y;
-                    vertices[vert_index++] = v_list[(int)pair.u].z;
+                    vertices[vert_index++] = v_list[(int)pair.u - 1].x;
+                    vertices[vert_index++] = v_list[(int)pair.u - 1].y;
+                    vertices[vert_index++] = v_list[(int)pair.u - 1].z;
                     vertices[vert_index++] = 0.0f;
                     vertices[vert_index++] = 0.0f;
                     vertices[vert_index++] = 0.0f;
-                    vertices[vert_index++] = uv_list[(int)pair.v].u;
-                    vertices[vert_index++] = uv_list[(int)pair.v].v;
+                    vertices[vert_index++] = uv_list[(int)pair.v - 1].u;
+                    vertices[vert_index++] = uv_list[(int)pair.v - 1].v;
 
                     // Add Pair-Vertices Mapping
                     v_mapping[map_count++] = vert_count++;
