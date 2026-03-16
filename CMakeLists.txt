@@ -44,6 +44,8 @@ add_executable(learn-opengl
         src/stb.cpp
         src/texture.cpp
         src/texture.h
+        src/obj_parser.h
+        src/obj_parser.c
 )
 
 
@@ -77,11 +79,11 @@ add_dependencies(learn-opengl copy_shaders)
 # =========================================================
 # COPY TEXTURES DIR TO BUILD DIR
 # =========================================================
-set(TEXTURE_DIR "${CMAKE_SOURCE_DIR}/resources/textures")
+set(RESOURCE_DIR "${CMAKE_SOURCE_DIR}/resources")
 
 add_custom_command(TARGET learn-opengl POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-    "${TEXTURE_DIR}"
-    $<TARGET_FILE_DIR:learn-opengl>/resources/textures
-    COMMENT "Copying textures..."
+    "${RESOURCE_DIR}"
+    $<TARGET_FILE_DIR:learn-opengl>/resources
+    COMMENT "Copying resources..."
 )

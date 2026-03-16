@@ -1,6 +1,10 @@
 // main.cpp
 // Created 3/5/26
 
+// -------------------------------------------------------------------------------
+// LIBRARIES
+
+// External
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 // #include <GL/gl.h>
@@ -9,6 +13,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+// Internal
 #include "shaderClass.h"
 #include "vbo.h"
 #include "vao.h"
@@ -20,6 +25,11 @@
 #include <string>
 #include <cmath>
 
+// C
+extern "C" {
+    #include "obj_parser.h"
+}
+
 // ------------------------------------------------------------------------------------------------------
 // GLOBALS
 
@@ -27,74 +37,87 @@ constexpr int  WIDTH  = 800;
 constexpr int  HEIGHT = 600;
 constexpr char WINDOW_NAME[] = "Window";
 
+// Parse obj file
+char obj_file_path[] = "resources/models/cube.obj";
+ObjParse parse_output = parse(obj_file_path);
+
+const int VERTICES_COUNT = parse_output.vertices_count;
+const int INDICES_COUNT  = parse_output.indices_count;
+
 
 // ----------------------------------------------------
 // Vertex Data
-GLfloat vertices[] = {
 
-    //  COORDINATES  //   //     COLORS        // UV COORDINATES
-    // Front
-    -0.5f, -0.5f,  0.5f,   1.0f, 0.00f, 0.0f,   0.0f, 0.0f, // Lower left
-    -0.5f,  0.5f,  0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // Upper left
-     0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, // Upper right
-     0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // Lower right
+GLfloat* vertices = reinterpret_cast<GLfloat*>(parse_output.vertices);
+GLuint* indices  = reinterpret_cast<GLuint*>(parse_output.indices);
 
-    // Back
-    -0.5f, -0.5f, -0.5f,   1.0f, 0.00f, 0.0f,   0.0f, 0.0f, // Lower left
-    -0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // Upper left
-     0.5f,  0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, // Upper right
-     0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // Lower right
+// GLfloat vertices[] =
+//     {
+//
+//     //  COORDINATES  //   //     COLORS        // UV COORDINATES
+//     // Front
+//     -0.5f, -0.5f,  0.5f,   1.0f, 0.00f, 0.0f,   0.0f, 0.0f, // Lower left
+//     -0.5f,  0.5f,  0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // Upper left
+//      0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, // Upper right
+//      0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // Lower right
+//
+//     // Back
+//     -0.5f, -0.5f, -0.5f,   1.0f, 0.00f, 0.0f,   0.0f, 0.0f, // Lower left
+//     -0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // Upper left
+//      0.5f,  0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, // Upper right
+//      0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // Lower right
+//
+//     // Left
+//     -0.5f, -0.5f, -0.5f,   1.0f, 0.00f, 0.0f,   0.0f, 0.0f, // Lower left
+//     -0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // Upper left
+//     -0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, // Upper right
+//     -0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // Lower right
+//
+//     // Right
+//      0.5f, -0.5f, -0.5f,   1.0f, 0.00f, 0.0f,   0.0f, 0.0f, // Lower left
+//      0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // Upper left
+//      0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, // Upper right
+//      0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // Lower right
+//
+//     // Top
+//     -0.5f,  0.5f,  0.5f,   1.0f, 0.00f, 0.0f,   0.0f, 0.0f, // Lower left
+//     -0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // Upper left
+//      0.5f,  0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, // Upper right
+//      0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // Lower right
+//
+//     // Bottom
+//     -0.5f, -0.5f,  0.5f,   1.0f, 0.00f, 0.0f,   0.0f, 0.0f, // Lower left
+//     -0.5f, -0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // Upper left
+//      0.5f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, // Upper right
+//      0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f  // Lower right
+// };
 
-    // Left
-    -0.5f, -0.5f, -0.5f,   1.0f, 0.00f, 0.0f,   0.0f, 0.0f, // Lower left
-    -0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // Upper left
-    -0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, // Upper right
-    -0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // Lower right
-
-    // Right
-     0.5f, -0.5f, -0.5f,   1.0f, 0.00f, 0.0f,   0.0f, 0.0f, // Lower left
-     0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // Upper left
-     0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, // Upper right
-     0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // Lower right
-
-    // Top
-    -0.5f,  0.5f,  0.5f,   1.0f, 0.00f, 0.0f,   0.0f, 0.0f, // Lower left
-    -0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // Upper left
-     0.5f,  0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, // Upper right
-     0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // Lower right
-
-    // Bottom
-    -0.5f, -0.5f,  0.5f,   1.0f, 0.00f, 0.0f,   0.0f, 0.0f, // Lower left
-    -0.5f, -0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // Upper left
-     0.5f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, // Upper right
-     0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f  // Lower right
-};
-
-GLuint indices[] = {
-    // Front
-    0, 1, 2, // Upper triangle
-    0, 2, 3,  // Lower triangle
-
-    // Back
-    4, 5, 6, // Upper triangle
-    4, 6, 7,  // Lower triangle
-
-    // Left
-    8, 9, 10, // Upper triangle
-    8, 10, 11,  // Lower triangle
-
-    // Right
-    12, 13, 14, // Upper triangle
-    12, 14, 15,  // Lower triangle
-
-    // Top
-    16, 17, 18,  // Upper triangle
-    16, 18, 19,  // Lower triangle
-
-    // Bottom
-    20, 21, 22, // Upper triangle
-    20, 22, 23  // Lower triangle
-};
+// GLuint indices[] =
+//     {
+//     // Front
+//     0, 1, 2, // Upper triangle
+//     0, 2, 3,  // Lower triangle
+//
+//     // Back
+//     4, 5, 6, // Upper triangle
+//     4, 6, 7,  // Lower triangle
+//
+//     // Left
+//     8, 9, 10, // Upper triangle
+//     8, 10, 11,  // Lower triangle
+//
+//     // Right
+//     12, 13, 14, // Upper triangle
+//     12, 14, 15,  // Lower triangle
+//
+//     // Top
+//     16, 17, 18,  // Upper triangle
+//     16, 18, 19,  // Lower triangle
+//
+//     // Bottom
+//     20, 21, 22, // Upper triangle
+//     20, 22, 23  // Lower triangle
+// };
 
 // ----------------------------------------------------
 // Process Input
@@ -145,8 +168,8 @@ int main() {
     VAO VAO1;
     VAO1.Bind();
 
-    VBO VBO1(vertices, sizeof(vertices));
-    EBO EBO1(indices, sizeof(indices));
+    VBO VBO1(vertices, sizeof(GLfloat) * VERTICES_COUNT);
+    EBO EBO1(indices, sizeof(unsigned int)  * INDICES_COUNT);
 
     // Links VBO to VAO
     VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 8 * sizeof(float), (void*)0);;
@@ -155,7 +178,7 @@ int main() {
 
     VAO1.Unbind();
     VBO1.Unbind();
-    // EBO1.Unbind();
+    // EBO1.Unbind(); // DO NOT UNBIND!!!
 
     GLuint uniID = glGetUniformLocation(shaderProgram.ID, "scale");
 
@@ -183,6 +206,11 @@ int main() {
     // DEPTH -----------------------------
     glEnable(GL_DEPTH_TEST);
 
+    // Wireframe rendering
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    // Flip face direction
+    // glFrontFace(GL_CW);
 
     // Main Render Loop
     // --------------------------------------------------------------------------------------------------
@@ -211,8 +239,7 @@ int main() {
         model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.3f, 1.06, 0.7f));
         view = glm::translate(view, glm::vec3(0.0f, 0.3f, -6.0f));
         // view = glm::rotate(view, glm::radians(30.0f), glm::vec3(0.0f, -0.5, 0.5f));
-        proj = glm::perspective(glm::radians(45.0f), (float)(800/800), 0.1f, 100.0f);
-
+        proj = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
         int modelLoc = glGetUniformLocation(shaderProgram.ID, "model");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
@@ -226,7 +253,7 @@ int main() {
         texture.Bind();
 
         VAO1.Bind();
-        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, INDICES_COUNT, GL_UNSIGNED_INT, 0);
         glfwSwapBuffers(window);
 
         // Detect and Handle any GLFW events
