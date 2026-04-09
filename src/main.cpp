@@ -19,6 +19,7 @@
 #include "vao.h"
 #include "ebo.h"
 #include "texture.h"
+#include "camera.h"
 
 // std
 #include <iostream>
@@ -30,94 +31,14 @@ extern "C" {
     #include "obj_parser.h"
 }
 
+#include "OBJ_Loader.h"
+
 // ------------------------------------------------------------------------------------------------------
 // GLOBALS
 
 constexpr int  WIDTH  = 800;
 constexpr int  HEIGHT = 600;
 constexpr char WINDOW_NAME[] = "Window";
-
-// Parse obj file
-char obj_file_path[] = "resources/models/cube.obj";
-ObjParse parse_output = parse(obj_file_path);
-
-const int VERTICES_COUNT = parse_output.vertices_count;
-const int INDICES_COUNT  = parse_output.indices_count;
-
-
-// ----------------------------------------------------
-// Vertex Data
-
-GLfloat* vertices = reinterpret_cast<GLfloat*>(parse_output.vertices);
-GLuint* indices  = reinterpret_cast<GLuint*>(parse_output.indices);
-
-// GLfloat vertices[] =
-//     {
-//
-//     //  COORDINATES  //   //     COLORS        // UV COORDINATES
-//     // Front
-//     -0.5f, -0.5f,  0.5f,   1.0f, 0.00f, 0.0f,   0.0f, 0.0f, // Lower left
-//     -0.5f,  0.5f,  0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // Upper left
-//      0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, // Upper right
-//      0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // Lower right
-//
-//     // Back
-//     -0.5f, -0.5f, -0.5f,   1.0f, 0.00f, 0.0f,   0.0f, 0.0f, // Lower left
-//     -0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // Upper left
-//      0.5f,  0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, // Upper right
-//      0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // Lower right
-//
-//     // Left
-//     -0.5f, -0.5f, -0.5f,   1.0f, 0.00f, 0.0f,   0.0f, 0.0f, // Lower left
-//     -0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // Upper left
-//     -0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, // Upper right
-//     -0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // Lower right
-//
-//     // Right
-//      0.5f, -0.5f, -0.5f,   1.0f, 0.00f, 0.0f,   0.0f, 0.0f, // Lower left
-//      0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // Upper left
-//      0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, // Upper right
-//      0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // Lower right
-//
-//     // Top
-//     -0.5f,  0.5f,  0.5f,   1.0f, 0.00f, 0.0f,   0.0f, 0.0f, // Lower left
-//     -0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // Upper left
-//      0.5f,  0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, // Upper right
-//      0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // Lower right
-//
-//     // Bottom
-//     -0.5f, -0.5f,  0.5f,   1.0f, 0.00f, 0.0f,   0.0f, 0.0f, // Lower left
-//     -0.5f, -0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // Upper left
-//      0.5f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, // Upper right
-//      0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f  // Lower right
-// };
-
-// GLuint indices[] =
-//     {
-//     // Front
-//     0, 1, 2, // Upper triangle
-//     0, 2, 3,  // Lower triangle
-//
-//     // Back
-//     4, 5, 6, // Upper triangle
-//     4, 6, 7,  // Lower triangle
-//
-//     // Left
-//     8, 9, 10, // Upper triangle
-//     8, 10, 11,  // Lower triangle
-//
-//     // Right
-//     12, 13, 14, // Upper triangle
-//     12, 14, 15,  // Lower triangle
-//
-//     // Top
-//     16, 17, 18,  // Upper triangle
-//     16, 18, 19,  // Lower triangle
-//
-//     // Bottom
-//     20, 21, 22, // Upper triangle
-//     20, 22, 23  // Lower triangle
-// };
 
 // ----------------------------------------------------
 // Process Input
@@ -128,9 +49,29 @@ void processInput (GLFWwindow *window) {
     }
 }
 
+//
+
 // =======================================================================================================
 int main() {
+
+    // Parse obj file
+    char obj_file_path[] = "resources/models/sphere.obj";
+    ObjParse parse_output = parse(obj_file_path);
+    const int VERTICES_COUNT = parse_output.vertices_count;
+    const int INDICES_COUNT  = parse_output.indices_count;
+
+
+
+    // ----------------------------------------------------
+    // Vertex Data
+
+    GLfloat* vertices = reinterpret_cast<GLfloat*>(parse_output.vertices);
+    GLuint*  indices   = reinterpret_cast<GLuint*>(parse_output.indices);
+
+
+
     std::cout << "\nHello OpenGL!\n";
+
     // GLFW Initialization
     if (!glfwInit()) return -1;
 
@@ -180,7 +121,6 @@ int main() {
     VBO1.Unbind();
     // EBO1.Unbind(); // DO NOT UNBIND!!!
 
-    GLuint uniID = glGetUniformLocation(shaderProgram.ID, "scale");
 
     // Textures ---------------
 
@@ -191,26 +131,24 @@ int main() {
     GLenum texSlot = GL_TEXTURE0;
     GLenum pixelType = GL_UNSIGNED_BYTE;
 
-    // Instantiate Object
+    // Texture
     Tex texture = Tex(filePath.c_str(), texType, texSlot, pixelType);
-
-    // Tex Unit
     const char* texUniform = "tex0";
     constexpr GLuint unit = 0;
     texture.texUnit(shaderProgram, texUniform, unit);
 
-    // 3D TRANSFORMATIONS ------------------------------
-    float rotation = 0.0f;
-    double prevTime = glfwGetTime();
+    // TRANFORMATIONS -------------------
+
 
     // DEPTH -----------------------------
     glEnable(GL_DEPTH_TEST);
 
+    Camera camera(WIDTH, HEIGHT, glm::vec3(0.0f, 0.0f, 2.f));
+
     // Wireframe rendering
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-    // Flip face direction
-    // glFrontFace(GL_CW);
+    float lastTime = glfwGetTime();
 
     // Main Render Loop
     // --------------------------------------------------------------------------------------------------
@@ -222,38 +160,23 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         shaderProgram.Activate();
 
-        double crnTime = glfwGetTime();
-        if (crnTime - prevTime >= 1.0f / 60.0f) {
-            rotation += 0.5f;
-            prevTime = crnTime;
-        }
 
-        glm::mat4 model = glm::mat4(1.0f); // Identity Matrix
-        glm::mat4 view = glm::mat4(1.0f); // Identity Matrix
-        glm::mat4 proj = glm::mat4(1.0f); // Identity Matrix
+        float currentTime = glfwGetTime();
+        float deltaTime = currentTime - lastTime;
+        lastTime = currentTime;
 
-        // Rotate Towards and Down
-        model = glm::translate(model, glm::vec3(0.0f, -0.3f, 0.5f));
-        // model = glm::rotate(model, glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.1f));
+        camera.Inputs(window, deltaTime);
 
-        model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.3f, 1.06, 0.7f));
-        view = glm::translate(view, glm::vec3(0.0f, 0.3f, -6.0f));
-        // view = glm::rotate(view, glm::radians(30.0f), glm::vec3(0.0f, -0.5, 0.5f));
-        proj = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+        // New camera
+        camera.Matrix(45.0f, 0.1f, 100.0f, shaderProgram, "camMatrix");
 
-        int modelLoc = glGetUniformLocation(shaderProgram.ID, "model");
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        int viewLoc = glGetUniformLocation(shaderProgram.ID, "view");
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-        int projLoc = glGetUniformLocation(shaderProgram.ID, "proj");
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj));
 
         // Texture
-        glUniform1f(uniID, 0.5f);
+        // glUniform1f(uniID, 0.5f);
         texture.Bind();
 
         VAO1.Bind();
-        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, INDICES_COUNT, GL_UNSIGNED_INT, 0);
         glfwSwapBuffers(window);
 
         // Detect and Handle any GLFW events

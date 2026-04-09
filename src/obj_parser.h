@@ -14,6 +14,7 @@
 
 // ---------------------------------------------------------------------
 #define LINE_BUFFER_SIZE 256
+#define ARRAY_SIZE 4096
 
 // ---------------------------------------------------------------------
 typedef struct {
@@ -26,8 +27,8 @@ typedef struct {
 } Vec2;
 
 typedef struct {
-    float vertices[1000];
-    int   indices[1000];
+    float vertices[ARRAY_SIZE];
+    int   indices[ARRAY_SIZE];
 
     int vertices_count;
     int indices_count;

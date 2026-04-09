@@ -47,6 +47,10 @@ add_executable(learn-opengl
         src/obj_parser.h
         src/obj_parser.c
         src/obj_parser.c
+        src/OBJ_Loader.h
+        src/camera.cpp
+        src/camera.h
+        src/json.h
 )
 
 
@@ -65,26 +69,18 @@ target_link_libraries(learn-opengl PRIVATE
 )
 
 # =========================================================
-# COPY SHADERS DIR TO BUILD DIR
+# COPY SHADERS AND RESOURCES BEFORE BUILD
 # =========================================================
-# Copy all shaders reliably on every build
-add_custom_target(copy_shaders ALL
+# Shaders
+add_custom_command(TARGET learn-opengl PRE_BUILD
         COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/shaders
         COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/shaders ${CMAKE_BINARY_DIR}/shaders
-        COMMENT "Copying all shaders..."
+        COMMENT "Copying shaders..."
 )
-add_dependencies(learn-opengl copy_shaders)
 
-
-
-# =========================================================
-# COPY TEXTURES DIR TO BUILD DIR
-# =========================================================
-set(RESOURCE_DIR "${CMAKE_SOURCE_DIR}/resources")
-
-add_custom_command(TARGET learn-opengl POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    "${RESOURCE_DIR}"
-    $<TARGET_FILE_DIR:learn-opengl>/resources
-    COMMENT "Copying resources..."
-)
+# Resources (textures, models, etc.)
+#add_custom_command(TARGET learn-opengl PRE_BUILD
+#        COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/resources
+#        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/resources ${CMAKE_BINARY_DIR}/resources
+#        COMMENT "Copying resources..."
+#)
