@@ -12,7 +12,11 @@ uniform mat4 camMatrix;
 
 void main()
 {
-    gl_Position = camMatrix * vec4(aPos, 1.0);
+    // Rotate 90 degrees on Z: (x, y) becomes (-y, x)
+    vec3 rotatedPos = vec3(aPos.x, aPos.z, -aPos.y);
+
+    // Apply scale and camera matrix
+    gl_Position = camMatrix * vec4(rotatedPos*(0.001), 1.0);
     color = aColor;
     texCoord = aTex;
 }

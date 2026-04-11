@@ -46,7 +46,10 @@ constexpr int  HEIGHT = 600;
 constexpr char WINDOW_NAME[] = "Window";
 
 //glm::vec4 bgColor = glm::vec4(0.07f, 0.13f, 0.17f, 1.0f);
-glm::vec4 bgColor = glm::vec4(0.08f, 0.33f, 0.42f, 1.0f);
+glm::vec4 bgColor = glm::vec4(0.02f, 0.01f, 0.04f, 1.0f);
+std::string objectFile  = "ISD.obj";
+std::string textureFile = "ISD_hull_color_baked.png";
+
 
 // ----------------------------------------------------
 // Process Input
@@ -78,7 +81,7 @@ int main() {
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     std::string warn, err;
-    std::string filename = "resources/models/stanford_teapot.obj";
+    std::string filename = "resources/models/" + objectFile;
 
     bool success = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filename.c_str());
     if (!warn.empty()) std::cout << "WARN: " << warn << "\n";
@@ -209,7 +212,7 @@ int main() {
 
     int numColorCh;
 
-    std::string filePath = "resources/textures/missing.png";
+    std::string filePath = "resources/textures/" + textureFile;
     GLenum texType = GL_TEXTURE_2D;
     GLenum texSlot = GL_TEXTURE0;
     GLenum pixelType = GL_UNSIGNED_BYTE;
