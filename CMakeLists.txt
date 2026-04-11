@@ -46,7 +46,6 @@ add_executable(learn-opengl
         src/texture.h
         src/camera.cpp
         src/camera.h
-        src/json.h
         src/tiny_obj_loader.h
 )
 
@@ -68,12 +67,15 @@ target_link_libraries(learn-opengl PRIVATE
 # =========================================================
 # COPY SHADERS AND RESOURCES BEFORE BUILD
 # =========================================================
-# Shaders
-add_custom_command(TARGET learn-opengl PRE_BUILD
-        COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/shaders
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/shaders ${CMAKE_BINARY_DIR}/shaders
-        COMMENT "Copying shaders..."
+# Always sync shaders
+add_custom_target(sync_shaders ALL
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/shaders
+        ${CMAKE_BINARY_DIR}/shaders
+        COMMENT "Syncing shaders..."
 )
+
+add_dependencies(learn-opengl sync_shaders)
 
 # Always sync resources
 add_custom_target(sync_resources ALL

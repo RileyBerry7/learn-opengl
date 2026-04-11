@@ -45,6 +45,9 @@ constexpr int  WIDTH  = 800;
 constexpr int  HEIGHT = 600;
 constexpr char WINDOW_NAME[] = "Window";
 
+//glm::vec4 bgColor = glm::vec4(0.07f, 0.13f, 0.17f, 1.0f);
+glm::vec4 bgColor = glm::vec4(0.08f, 0.33f, 0.42f, 1.0f);
+
 // ----------------------------------------------------
 // Process Input
 void processInput (GLFWwindow *window) {
@@ -236,8 +239,8 @@ int main() {
         processInput(window);
 
         /* render here */
-        // glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+        glClearColor(bgColor.r, bgColor.g, bgColor.b, bgColor.a);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         shaderProgram.Activate();
 
