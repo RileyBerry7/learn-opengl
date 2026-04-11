@@ -25,17 +25,9 @@
 // std
 #include <iostream>
 #include <string>
-#include <cmath>
-
-// Vertex struct
-struct Vertex {
-    glm::vec3 position;
-    glm::vec3 normal;
-    glm::vec2 uv;
-};
 
 // ------------------------------------------------------------------------------------------------------
-// GLOBALS
+// GLOBAL CONFIGURATION
 
 constexpr int  WIDTH  = 800;
 constexpr int  HEIGHT = 600;
@@ -46,9 +38,8 @@ glm::vec4   bgColor     = glm::vec4(0.02f, 0.01f, 0.04f, 1.0f);
 std::string objectFile  = "ISD.obj";
 std::string textureFile = "ISD_hull_color_baked.png";
 
-
 // ----------------------------------------------------
-// Process Input
+// PROCESS INPUT (Exit on Esc)
 void processInput (GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)  {
         std::cout << "User pressed ESC\n";
@@ -59,52 +50,50 @@ void processInput (GLFWwindow *window) {
 // =======================================================================================================
 int main() {
 
-    // Load Model
+
+    //----------------------------------------------------------------------------------------------------
+    // LOAD MODEL
     std::string objFilePath = "resources/models/" + objectFile;
     Model model(objFilePath);
 
+    // Vertex Count & Index Count
     std::cout << "\nVertex Count: " << model.vertex_count << std::endl;
     std::cout << "Index Count: "    << model.index_count  << std::endl;
 
-    // ----------------------------------------------------
-    // Vertex Data
+    // Vertex & Index Data
     GLfloat* vertices = model.vertexBuffer.data();
     GLuint*  indices  = model.indexBuffer.data();
 
+    //------------------------------------------------------------------------------------------------------
+    // APPLICATION SETUP
 
     std::cout << "\nHello OpenGL!\n";
 
-    // GLFW Initialization
+    // Initialize GLFW
     if (!glfwInit()) return -1;
 
-    // Specify OpenGL version for GLFW
+    // Specify OpenGL version/profile for GLFW
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-
-    // Specify OpenGL profile for GLFW
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Core: lacks deprecated functions
 
     // Create a GLFW window object
     GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, WINDOW_NAME, nullptr, nullptr);
-    // Error check: Failed to create window
-    if (!window) {
-        glfwTerminate();
-        return -1;
-    }
+    if (!window) { glfwTerminate(); return -1; }
 
     // Introduce window to the current context
     glfwMakeContextCurrent(window);
 
-    // Load GLAD so it configures OpenGl to be driver agnostic
+    // Load GLAD -> configures OpenGl to be driver agnostic
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cout << "Failed to initialize GLAD\n";
-        return -1;
-    }
-    // Define viewport size - area in which OpenGL can render
+        std::cout << "Failed to initialize GLAD\n"; return -1; }
+
+    // Define viewport size
     glViewport(0, 0, WIDTH, HEIGHT);
 
     // -------------------------------------------------------------------------------------
     // GRAPHICS PIPELINE SETUP
+
     Shader shaderProgram("default.vert", "default.frag");
     shaderProgram.Activate();
 
@@ -123,8 +112,8 @@ int main() {
     VBO1.Unbind();
     // EBO1.Unbind(); // DO NOT UNBIND!!!
 
-
-    // Textures ---------------
+    // -------------------------------------------------------------------------------------
+    // TEXTURES
 
     int numColorCh;
 
@@ -141,6 +130,7 @@ int main() {
 
     // TRANFORMATIONS -------------------
 
+    // ...
 
     // DEPTH -----------------------------
     glEnable(GL_DEPTH_TEST);
@@ -152,17 +142,15 @@ int main() {
 
     float lastTime = glfwGetTime();
 
+    //===================================================================================================
     // Main Render Loop
     // --------------------------------------------------------------------------------------------------
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
 
-        /* render here */
-
         glClearColor(bgColor.r, bgColor.g, bgColor.b, bgColor.a);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         shaderProgram.Activate();
-
 
         float currentTime = glfwGetTime();
         float deltaTime = currentTime - lastTime;
@@ -185,9 +173,10 @@ int main() {
         // Detect and Handle any GLFW events
         glfwPollEvents();
 
-    } // --------------------------------------------------------------------------------------------------
+    }
+    // --------------------------------------------------------------------------------------------------
+    // APPLICATION CLEAN-UP
 
-    // Clean up vertex array, buffer and shader program
     VAO1.Delete();
     VBO1.Delete();
     EBO1.Delete();
@@ -196,6 +185,7 @@ int main() {
 
     glfwDestroyWindow(window);
     glfwTerminate();
+
     return 0;
 }
 // =======================================================================================================
