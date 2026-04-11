@@ -26,12 +26,17 @@
 #include <string>
 #include <cmath>
 
-// C
-extern "C" {
-    #include "obj_parser.h"
-}
+#define TINYOBJLOADER_IMPLEMENTATION // define this in only *one* .cc
+#include "tiny_obj_loader.h"
 
-#include "OBJ_Loader.h"
+
+
+// Vertex struct
+struct Vertex {
+    glm::vec3 position;
+    glm::vec3 normal;
+    glm::vec2 uv;
+};
 
 // ------------------------------------------------------------------------------------------------------
 // GLOBALS
@@ -50,24 +55,99 @@ void processInput (GLFWwindow *window) {
 }
 
 //
+GLfloat lightVertices[] =
+    { // Coordinates
+
+};
 
 // =======================================================================================================
 int main() {
 
     // Parse obj file
-    char obj_file_path[] = "resources/models/sphere.obj";
-    ObjParse parse_output = parse(obj_file_path);
-    const int VERTICES_COUNT = parse_output.vertices_count;
-    const int INDICES_COUNT  = parse_output.indices_count;
+    // char obj_file_path[] = "resources/models/stanford_teapot.obj";
+    // ObjParse parse_output = parse(obj_file_path);
 
 
 
     // ----------------------------------------------------
     // Vertex Data
+    tinyobj::attrib_t attrib;
+    std::vector<tinyobj::shape_t> shapes;
+    std::vector<tinyobj::material_t> materials;
+    std::string warn, err;
+    std::string filename = "resources/models/stanford_teapot.obj";
 
-    GLfloat* vertices = reinterpret_cast<GLfloat*>(parse_output.vertices);
-    GLuint*  indices   = reinterpret_cast<GLuint*>(parse_output.indices);
+    bool success = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filename.c_str());
+    if (!warn.empty()) std::cout << "WARN: " << warn << "\n";
+    if (!err.empty())  std::cout << "ERR: " << err << "\n";
+    if (!success) {
+        std::cout << "Failed to load OBJ\n";
+        return 1;
+    }
+    std::vector<float> vertexBuffer;
+    vertexBuffer.reserve(shapes.size() * 1000); // optional optimization
 
+    for (const auto& shape : shapes) {
+        for (const auto& index : shape.mesh.indices) {
+
+            // -------------------------
+            // POSITION (x, y, z)
+            // -------------------------
+            float vx = attrib.vertices[3 * index.vertex_index + 0];
+            float vy = attrib.vertices[3 * index.vertex_index + 1];
+            float vz = attrib.vertices[3 * index.vertex_index + 2];
+
+            // -------------------------
+            // COLOR (r, g, b)
+            // OBJ usually doesn't have this → default white
+            // -------------------------
+            float r = 1.0f;
+            float g = 1.0f;
+            float b = 1.0f;
+
+            // -------------------------
+            // UV (u, v)
+            // -------------------------
+            float u = 0.0f;
+            float v = 0.0f;
+
+            if (!attrib.texcoords.empty() && index.texcoord_index >= 0) {
+                u = attrib.texcoords[2 * index.texcoord_index + 0];
+                v = attrib.texcoords[2 * index.texcoord_index + 1];
+            }
+
+            // -------------------------
+            // PUSH INTERLEAVED VERTEX
+            // -------------------------
+            vertexBuffer.push_back(vx);
+            vertexBuffer.push_back(vy);
+            vertexBuffer.push_back(vz);
+
+            vertexBuffer.push_back(r);
+            vertexBuffer.push_back(g);
+            vertexBuffer.push_back(b);
+
+            vertexBuffer.push_back(u);
+            vertexBuffer.push_back(v);
+        }
+    }
+    //------------------------------------------------------
+    std::vector<unsigned int> out_indices;
+
+    for (unsigned int i = 0; i < vertexBuffer.size()/8; i++) {
+        out_indices.push_back(i);
+    }
+    //------------------------------------------------------
+
+    const int VERTICES_COUNT = vertexBuffer.size() / 8;
+    const int INDICES_COUNT  = out_indices.size();
+
+    std:: cout << std::endl << std::endl;
+    std::cout << "Vertex Count: " << VERTICES_COUNT << std::endl;
+    std::cout << "Index Count: "  << INDICES_COUNT  << std::endl;
+
+    GLfloat* vertices = vertexBuffer.data();
+    GLuint*  indices  = out_indices.data();
 
 
     std::cout << "\nHello OpenGL!\n";
@@ -109,7 +189,7 @@ int main() {
     VAO VAO1;
     VAO1.Bind();
 
-    VBO VBO1(vertices, sizeof(GLfloat) * VERTICES_COUNT);
+    VBO VBO1(vertices, sizeof(GLfloat) * VERTICES_COUNT * 8); // 8 = stride length
     EBO EBO1(indices, sizeof(unsigned int)  * INDICES_COUNT);
 
     // Links VBO to VAO
@@ -126,7 +206,7 @@ int main() {
 
     int numColorCh;
 
-    std::string filePath = "resources/textures/yuuri.png";
+    std::string filePath = "resources/textures/missing.png";
     GLenum texType = GL_TEXTURE_2D;
     GLenum texSlot = GL_TEXTURE0;
     GLenum pixelType = GL_UNSIGNED_BYTE;
@@ -156,7 +236,8 @@ int main() {
         processInput(window);
 
         /* render here */
-        glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
+        // glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         shaderProgram.Activate();
 
@@ -168,8 +249,8 @@ int main() {
         camera.Inputs(window, deltaTime);
 
         // New camera
-        camera.Matrix(45.0f, 0.1f, 100.0f, shaderProgram, "camMatrix");
-
+        camera.UpdateMatrix(45.0f, 0.1f, 100.0f);
+        camera.Matrix(shaderProgram, "camMatrix");
 
         // Texture
         // glUniform1f(uniID, 0.5f);

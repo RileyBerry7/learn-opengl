@@ -44,13 +44,10 @@ add_executable(learn-opengl
         src/stb.cpp
         src/texture.cpp
         src/texture.h
-        src/obj_parser.h
-        src/obj_parser.c
-        src/obj_parser.c
-        src/OBJ_Loader.h
         src/camera.cpp
         src/camera.h
         src/json.h
+        src/tiny_obj_loader.h
 )
 
 
@@ -78,9 +75,12 @@ add_custom_command(TARGET learn-opengl PRE_BUILD
         COMMENT "Copying shaders..."
 )
 
-# Resources (textures, models, etc.)
-#add_custom_command(TARGET learn-opengl PRE_BUILD
-#        COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/resources
-#        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/resources ${CMAKE_BINARY_DIR}/resources
-#        COMMENT "Copying resources..."
-#)
+# Always sync resources
+add_custom_target(sync_resources ALL
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/resources
+        ${CMAKE_BINARY_DIR}/resources
+        COMMENT "Syncing resources..."
+)
+
+add_dependencies(learn-opengl sync_resources)
