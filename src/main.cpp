@@ -20,16 +20,12 @@
 #include "ebo.h"
 #include "texture.h"
 #include "camera.h"
+#include "model.h"
 
 // std
 #include <iostream>
 #include <string>
 #include <cmath>
-
-#define TINYOBJLOADER_IMPLEMENTATION // define this in only *one* .cc
-#include "tiny_obj_loader.h"
-
-
 
 // Vertex struct
 struct Vertex {
@@ -45,8 +41,8 @@ constexpr int  WIDTH  = 800;
 constexpr int  HEIGHT = 600;
 constexpr char WINDOW_NAME[] = "Window";
 
-//glm::vec4 bgColor = glm::vec4(0.07f, 0.13f, 0.17f, 1.0f);
-glm::vec4 bgColor = glm::vec4(0.02f, 0.01f, 0.04f, 1.0f);
+//glm::vec4  bgColor     = glm::vec4(0.07f, 0.13f, 0.17f, 1.0f);
+glm::vec4   bgColor     = glm::vec4(0.02f, 0.01f, 0.04f, 1.0f);
 std::string objectFile  = "ISD.obj";
 std::string textureFile = "ISD_hull_color_baked.png";
 
@@ -60,100 +56,20 @@ void processInput (GLFWwindow *window) {
     }
 }
 
-//
-GLfloat lightVertices[] =
-    { // Coordinates
-
-};
-
 // =======================================================================================================
 int main() {
 
-    // Parse obj file
-    // char obj_file_path[] = "resources/models/stanford_teapot.obj";
-    // ObjParse parse_output = parse(obj_file_path);
+    // Load Model
+    std::string objFilePath = "resources/models/" + objectFile;
+    Model model(objFilePath);
 
-
+    std::cout << "\nVertex Count: " << model.vertex_count << std::endl;
+    std::cout << "Index Count: "    << model.index_count  << std::endl;
 
     // ----------------------------------------------------
     // Vertex Data
-    tinyobj::attrib_t attrib;
-    std::vector<tinyobj::shape_t> shapes;
-    std::vector<tinyobj::material_t> materials;
-    std::string warn, err;
-    std::string filename = "resources/models/" + objectFile;
-
-    bool success = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filename.c_str());
-    if (!warn.empty()) std::cout << "WARN: " << warn << "\n";
-    if (!err.empty())  std::cout << "ERR: " << err << "\n";
-    if (!success) {
-        std::cout << "Failed to load OBJ\n";
-        return 1;
-    }
-    std::vector<float> vertexBuffer;
-    vertexBuffer.reserve(shapes.size() * 1000); // optional optimization
-
-    for (const auto& shape : shapes) {
-        for (const auto& index : shape.mesh.indices) {
-
-            // -------------------------
-            // POSITION (x, y, z)
-            // -------------------------
-            float vx = attrib.vertices[3 * index.vertex_index + 0];
-            float vy = attrib.vertices[3 * index.vertex_index + 1];
-            float vz = attrib.vertices[3 * index.vertex_index + 2];
-
-            // -------------------------
-            // COLOR (r, g, b)
-            // OBJ usually doesn't have this → default white
-            // -------------------------
-            float r = 1.0f;
-            float g = 1.0f;
-            float b = 1.0f;
-
-            // -------------------------
-            // UV (u, v)
-            // -------------------------
-            float u = 0.0f;
-            float v = 0.0f;
-
-            if (!attrib.texcoords.empty() && index.texcoord_index >= 0) {
-                u = attrib.texcoords[2 * index.texcoord_index + 0];
-                v = attrib.texcoords[2 * index.texcoord_index + 1];
-            }
-
-            // -------------------------
-            // PUSH INTERLEAVED VERTEX
-            // -------------------------
-            vertexBuffer.push_back(vx);
-            vertexBuffer.push_back(vy);
-            vertexBuffer.push_back(vz);
-
-            vertexBuffer.push_back(r);
-            vertexBuffer.push_back(g);
-            vertexBuffer.push_back(b);
-
-            vertexBuffer.push_back(u);
-            vertexBuffer.push_back(v);
-        }
-    }
-    //------------------------------------------------------
-    std::vector<unsigned int> out_indices;
-
-    for (unsigned int i = 0; i < vertexBuffer.size()/8; i++) {
-        out_indices.push_back(i);
-    }
-    //------------------------------------------------------
-
-    const int VERTICES_COUNT = vertexBuffer.size() / 8;
-    const int INDICES_COUNT  = out_indices.size();
-
-    std:: cout << std::endl << std::endl;
-    std::cout << "Vertex Count: " << VERTICES_COUNT << std::endl;
-    std::cout << "Index Count: "  << INDICES_COUNT  << std::endl;
-
-    GLfloat* vertices = vertexBuffer.data();
-    GLuint*  indices  = out_indices.data();
+    GLfloat* vertices = model.vertexBuffer.data();
+    GLuint*  indices  = model.indexBuffer.data();
 
 
     std::cout << "\nHello OpenGL!\n";
@@ -195,8 +111,8 @@ int main() {
     VAO VAO1;
     VAO1.Bind();
 
-    VBO VBO1(vertices, sizeof(GLfloat) * VERTICES_COUNT * 8); // 8 = stride length
-    EBO EBO1(indices, sizeof(unsigned int)  * INDICES_COUNT);
+    VBO VBO1(vertices, sizeof(GLfloat) * model.vertex_count * model.stride); // 8 = stride length
+    EBO EBO1(indices, sizeof(unsigned int)  * model.index_count);
 
     // Links VBO to VAO
     VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 8 * sizeof(float), (void*)0);;
@@ -263,7 +179,7 @@ int main() {
         texture.Bind();
 
         VAO1.Bind();
-        glDrawElements(GL_TRIANGLES, INDICES_COUNT, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, model.index_count, GL_UNSIGNED_INT, 0);
         glfwSwapBuffers(window);
 
         // Detect and Handle any GLFW events

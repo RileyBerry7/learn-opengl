@@ -47,6 +47,7 @@ add_executable(learn-opengl
         src/camera.cpp
         src/camera.h
         src/tiny_obj_loader.h
+        src/model.h
 )
 
 
