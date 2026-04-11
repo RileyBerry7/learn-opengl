@@ -50,7 +50,28 @@ void processInput (GLFWwindow *window) {
 // =======================================================================================================
 int main() {
 
+    class Object {
+    public:
+        glm::vec3 position;
+        glm::vec3 rotation;
+        glm::vec3  scale;
 
+        Object(Model mesh) {
+            position = glm::vec3(0.0f, 0.0f, 0.0f);
+            rotation = glm::vec3(0.0f, 0.0f, 0.0f);
+            scale    = glm::vec3(1.0f, 1.0f, 1.0f);
+        }
+
+        glm::mat4 getModelMatrix() {
+            glm::mat4 model = glm::mat4(1.0f); // Identity matrix
+            model = glm::translate(model, position);
+            model = glm::rotate(model, rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+            model = glm::rotate(model, rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+            model = glm::rotate(model, rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+            model = glm::scale(model, scale);
+            return model;
+        }
+    };
     //----------------------------------------------------------------------------------------------------
     // LOAD MODEL
     std::string objFilePath = "resources/models/" + objectFile;
@@ -64,6 +85,13 @@ int main() {
     GLfloat* vertices = model.vertexBuffer.data();
     GLuint*  indices  = model.indexBuffer.data();
 
+    //------------------------------------------------------------------------------------------------------
+    // // LOAD LIGHT
+    // Model light("resources/models/cube.obj");
+    //
+    // // Vertex & Index Data
+    // GLfloat* light_vertices = light.vertexBuffer.data();
+    // GLuint*  light_indices  = light.indexBuffer.data();
     //------------------------------------------------------------------------------------------------------
     // APPLICATION SETUP
 
@@ -97,20 +125,19 @@ int main() {
     Shader shaderProgram("default.vert", "default.frag");
     shaderProgram.Activate();
 
-    VAO VAO1;
-    VAO1.Bind();
+    VAO VAO1; // Model
 
+    VAO1.Bind();
     VBO VBO1(vertices, sizeof(GLfloat) * model.vertex_count * model.stride); // 8 = stride length
     EBO EBO1(indices, sizeof(unsigned int)  * model.index_count);
 
-    // Links VBO to VAO
-    VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 8 * sizeof(float), (void*)0);;
-    VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 8 * sizeof(float), (void*)(3*sizeof(float)));;
-    VAO1.LinkAttrib(VBO1, 2, 2, GL_FLOAT, 8 * sizeof(float), (void*)(6*sizeof(float)));;
+    // Links VBO1 to VAO
+    VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, model.stride * sizeof(float), (void*)0);;
+    VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, model.stride * sizeof(float), (void*)(3*sizeof(float)));;
+    VAO1.LinkAttrib(VBO1, 2, 2, GL_FLOAT, model.stride * sizeof(float), (void*)(6*sizeof(float)));;
 
     VAO1.Unbind();
     VBO1.Unbind();
-    // EBO1.Unbind(); // DO NOT UNBIND!!!
 
     // -------------------------------------------------------------------------------------
     // TEXTURES
@@ -142,6 +169,23 @@ int main() {
 
     float lastTime = glfwGetTime();
 
+    // OBJECTS
+    std::vector<Object> objects;
+    Object buffer1(model);
+    objects.push_back(buffer1);
+
+    Object buffer2(model);
+    buffer2.position.x = 1.0f;
+    buffer2.scale = glm::vec3(1.0f, 1.0f, 1.0f);
+    // buffer2.rotation.x = glm::pi<float>() / 2.0f;
+    objects.push_back(buffer2);
+
+    // Model-Matrix Uniform
+    glm::mat4 modelMatrix = glm::mat4(1.0f);
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
+    // modelMatrix = buffer.getModelMatrix();
+
+
     //===================================================================================================
     // Main Render Loop
     // --------------------------------------------------------------------------------------------------
@@ -167,6 +211,13 @@ int main() {
         texture.Bind();
 
         VAO1.Bind();
+
+        modelMatrix = buffer1.getModelMatrix();
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
+        glDrawElements(GL_TRIANGLES, model.index_count, GL_UNSIGNED_INT, 0);
+
+        modelMatrix = buffer2.getModelMatrix();
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
         glDrawElements(GL_TRIANGLES, model.index_count, GL_UNSIGNED_INT, 0);
         glfwSwapBuffers(window);
 

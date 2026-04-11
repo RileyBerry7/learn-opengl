@@ -100,6 +100,7 @@ public:
     vertex_count = vertexBuffer.size() / 8;
     index_count  = indexBuffer.size();
     }
+
 };
 
 #endif //LEARN_OPENGL_MODEL_H
