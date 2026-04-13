@@ -121,6 +121,8 @@ int main() {
 
     // OBJECT 1 (ISD)
     Object object1(mesh, texture);
+    object1.rotation = glm::vec3(-90, 0.0f, 0.0f);
+    object1.scale    dw= glm::vec3(0.001f);
     objects.push_back(object1);
 
     // OBJECT 2 (CUBE)
@@ -129,7 +131,7 @@ int main() {
     texture.setUniform(shaderProgram, texUniform, 0);
     Object buffer2(cube_mesh, cube_texture);
     buffer2.position.x = 1.0f;
-    buffer2.scale = glm::vec3(100.0f, 100.0f, 100.0f);
+    buffer2.scale = glm::vec3(0.1f);
     objects.push_back(buffer2);
 
     //===================================================================================================
