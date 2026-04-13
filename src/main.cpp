@@ -51,6 +51,9 @@ void processInput (GLFWwindow *window) {
 // =======================================================================================================
 int main() {
 
+    // UNIFORM NAMES
+    const char* texUniform = "tex0";
+    glm::mat4 modelMatrix = glm::mat4(1.0f);
 
 
     //------------------------------------------------------------------------------------------------------
@@ -80,47 +83,34 @@ int main() {
     // Define viewport size
     glViewport(0, 0, WIDTH, HEIGHT);
 
-    // -------------------------------------------------------------------------------------
-    // GRAPHICS PIPELINE SETUP
-
+    //-------------------------------------------------------------------------------------
+    // LOAD SHADER
     Shader shaderProgram("default.vert", "default.frag");
     shaderProgram.Activate();
 
-//----------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------
     // LOAD MODEL
     std::string objFilePath = "resources/models/" + objectFile;
     Mesh mesh(objFilePath);
 
-    // Vertex Count & Index Count
-    std::cout << "\nVertex Count: " << mesh.vertex_count << std::endl;
-    std::cout << "Index Count: "    << mesh.index_count  << std::endl;
-
-    // Vertex & Index Data
-    GLfloat* vertices = mesh.vertices.data();
-    GLuint*  indices  = mesh.indices.data();
-
-    // -------------------------------------------------------------------------------------
-    // TEXTURES
+    //-------------------------------------------------------------------------------------
+    // LOAD TEXTURE
 
     int numColorCh;
-
     std::string filePath = "resources/textures/" + textureFile;
-    GLenum texType = GL_TEXTURE_2D;
-    GLenum texSlot = GL_TEXTURE0;
-    GLenum pixelType = GL_UNSIGNED_BYTE;
-
-    // Texture
+    GLenum texType       = GL_TEXTURE_2D;
+    GLenum texSlot       = GL_TEXTURE0;
+    GLenum pixelType     = GL_UNSIGNED_BYTE;
     Tex texture = Tex(filePath.c_str(), texType, texSlot, pixelType);
-    const char* texUniform = "tex0";
-    constexpr GLuint unit = 0;
-    texture.texUnit(shaderProgram, texUniform, unit);
+    texture.setUniform(shaderProgram, texUniform, 0);
 
-    // DEPTH -----------------------------
+    //-----------------------------------------------------------------------------
+    // DEPTH
     glEnable(GL_DEPTH_TEST);
-
     Camera camera(WIDTH, HEIGHT, glm::vec3(0.0f, 0.0f, 2.f));
 
-    // Wireframe rendering
+    //-----------------------------------------------------------------------------
+    // WIREFRAME RENDERING
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     float lastTime = glfwGetTime();
@@ -129,21 +119,18 @@ int main() {
     // OBJECT LIST
     std::vector<Object> objects;
 
-    // OBJECT 1
+    // OBJECT 1 (ISD)
     Object object1(mesh, texture);
     objects.push_back(object1);
 
-    // OBJECT 2
-    Object buffer2(mesh, texture);
+    // OBJECT 2 (CUBE)
+    Mesh cube_mesh("resources/models/cube.obj");
+    Tex  cube_texture("resources/textures/osaka.png", texType, texSlot, pixelType);
+    texture.setUniform(shaderProgram, texUniform, 0);
+    Object buffer2(cube_mesh, cube_texture);
     buffer2.position.x = 1.0f;
-    buffer2.scale = glm::vec3(1.0f, 1.0f, 1.0f);
+    buffer2.scale = glm::vec3(100.0f, 100.0f, 100.0f);
     objects.push_back(buffer2);
-
-    // Model-Matrix Uniform
-    glm::mat4 modelMatrix = glm::mat4(1.0f);
-    // glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
-    // modelMatrix = buffer.getModelMatrix();
-
 
     //===================================================================================================
     // Main Render Loop
@@ -151,21 +138,24 @@ int main() {
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
 
+        // Background color
         glClearColor(bgColor.r, bgColor.g, bgColor.b, bgColor.a);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // Activate Shader
         shaderProgram.Activate();
 
+        // Camera Timing
         float currentTime = glfwGetTime();
-        float deltaTime = currentTime - lastTime;
-        lastTime = currentTime;
-
+        float deltaTime   = currentTime - lastTime;
+        lastTime          = currentTime;
         camera.Inputs(window, deltaTime);
 
-        // New camera
+        // Camera Updating
         camera.UpdateMatrix(45.0f, 0.1f, 100.0f);
         camera.Matrix(shaderProgram, "camMatrix");
 
-        // Loop through all objects
+        // Object Loop
         for (int i = 0; i < objects.size(); i++) {
             Object currObject = objects[i];
 
@@ -180,17 +170,19 @@ int main() {
             shaderProgram.setUniform("modelMatrix", modelMatrix);
             glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, 0);
         }
+
+        // Swap Front/Back Buffers
         glfwSwapBuffers(window);
 
-        // Detect and Handle any GLFW events
+        // Detect and handle events
         glfwPollEvents();
 
     }
     // --------------------------------------------------------------------------------------------------
     // APPLICATION CLEAN-UP
+
     shaderProgram.Delete();
     texture.Delete();
-
     glfwDestroyWindow(window);
     glfwTerminate();
 

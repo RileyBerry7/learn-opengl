@@ -61,6 +61,10 @@ public:
 
         vao->Unbind();
         vbo->Unbind();
+
+        // Vertex Count & Index Count
+        // std::cout << "\nVertex Count: " << mesh.vertex_count << std::endl;
+        // std::cout << "Index Count: "    << mesh.index_count  << std::endl;
     }
 
     void loadModel(std::string filePath){

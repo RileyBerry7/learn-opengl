@@ -48,10 +48,12 @@ unsigned char* Tex::getImage(const char* fileName, int& widthImg, int& heightImg
     return image;
 }
 
-void Tex::texUnit(Shader& shader, const char* uniform, GLuint unit){
+void Tex::setUniform(Shader& shader, const char* uniform_name, GLuint unit){
     // Gets texture Uniform
-    GLuint texUni = glGetUniformLocation(shader.ID, uniform);
+    GLuint texUni = glGetUniformLocation(shader.ID, uniform_name);
+    // Ensure shader is active and listening
     shader.Activate();
+    // Links texture at the 'unit' slot to the texUni uniform
     glUniform1i(texUni, unit);
 }
 

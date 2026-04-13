@@ -23,8 +23,8 @@ public:
 
     // METHODS -----------------------------
 	Tex(const char* imagePath, GLenum texType, GLenum slot, GLenum pixelType);
-unsigned char* getImage(const char* fileName, int& widthImg, int& heightImg, int& numColorCh);
-    void texUnit(Shader& shader, const char* uniform, GLuint unit);
+    unsigned char* getImage(const char* fileName, int& widthImg, int& heightImg, int& numColorCh);
+    void setUniform(Shader& shader, const char* uniform, GLuint unit);
     void Bind();
     void Unbind();
     void Delete();
