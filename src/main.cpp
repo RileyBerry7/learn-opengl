@@ -20,7 +20,7 @@
 #include "ebo.h"
 #include "texture.h"
 #include "camera.h"
-#include "model.h"
+#include "Mesh.h"
 #include "object.h"
 
 // std
@@ -54,7 +54,7 @@ int main() {
     //----------------------------------------------------------------------------------------------------
     // LOAD MODEL
     std::string objFilePath = "resources/models/" + objectFile;
-    Model model(objFilePath);
+    Mesh model(objFilePath);
 
     // Vertex Count & Index Count
     std::cout << "\nVertex Count: " << model.vertex_count << std::endl;
@@ -134,10 +134,6 @@ int main() {
     constexpr GLuint unit = 0;
     texture.texUnit(shaderProgram, texUniform, unit);
 
-    // TRANFORMATIONS -------------------
-
-    // ...
-
     // DEPTH -----------------------------
     glEnable(GL_DEPTH_TEST);
 
@@ -148,15 +144,18 @@ int main() {
 
     float lastTime = glfwGetTime();
 
-    // OBJECTS
+    //------------------------------------------------------------------------
+    // OBJECT LIST
     std::vector<Object> objects;
-    Object buffer1(model);
-    objects.push_back(buffer1);
 
-    Object buffer2(model);
+    // OBJECT 1
+    Object object1(model, texture);
+    objects.push_back(object1);
+
+    // OBJECT 2
+    Object buffer2(model, texture);
     buffer2.position.x = 1.0f;
     buffer2.scale = glm::vec3(1.0f, 1.0f, 1.0f);
-    // buffer2.rotation.x = glm::pi<float>() / 2.0f;
     objects.push_back(buffer2);
 
     // Model-Matrix Uniform

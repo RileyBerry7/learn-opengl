@@ -16,7 +16,7 @@
 
 //======================================================================================
 
-class Model {
+class Mesh {
 public:
     // OpenGL Attributes
     std::vector<float>        vertexBuffer;
@@ -33,7 +33,7 @@ public:
     std::string warn, err;
     std::string filename;;
 
-    Model(std::string filePath) {
+    Mesh(std::string filePath) {
 
         filename = filePath;
 

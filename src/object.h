@@ -9,15 +9,26 @@
 
 class Object {
 public:
-    // Model Matrix Attributes
+    // Model Attributes
     glm::vec3 position;
     glm::vec3 rotation;
     glm::vec3  scale;
 
-    Object(Model mesh) {
+    // Mesh Attributes
+    Mesh* mesh;
+
+    // Texture Attributes
+    Tex* texture;
+
+    Object(Mesh& model_mesh, Tex& model_texture) {
+        // Default transformations
         position = glm::vec3(0.0f, 0.0f, 0.0f);
         rotation = glm::vec3(0.0f, 0.0f, 0.0f);
         scale    = glm::vec3(1.0f, 1.0f, 1.0f);
+
+        // Assign references
+        mesh    = &model_mesh;
+        texture = &model_texture;
     }
 
     glm::mat4 getModelMatrix() {
