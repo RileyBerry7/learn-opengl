@@ -51,26 +51,8 @@ void processInput (GLFWwindow *window) {
 // =======================================================================================================
 int main() {
 
-    //----------------------------------------------------------------------------------------------------
-    // LOAD MODEL
-    std::string objFilePath = "resources/models/" + objectFile;
-    Mesh model(objFilePath);
 
-    // Vertex Count & Index Count
-    std::cout << "\nVertex Count: " << model.vertex_count << std::endl;
-    std::cout << "Index Count: "    << model.index_count  << std::endl;
 
-    // Vertex & Index Data
-    GLfloat* vertices = model.vertexBuffer.data();
-    GLuint*  indices  = model.indexBuffer.data();
-
-    //------------------------------------------------------------------------------------------------------
-    // // LOAD LIGHT
-    // Model light("resources/models/cube.obj");
-    //
-    // // Vertex & Index Data
-    // GLfloat* light_vertices = light.vertexBuffer.data();
-    // GLuint*  light_indices  = light.indexBuffer.data();
     //------------------------------------------------------------------------------------------------------
     // APPLICATION SETUP
 
@@ -104,19 +86,18 @@ int main() {
     Shader shaderProgram("default.vert", "default.frag");
     shaderProgram.Activate();
 
-    VAO VAO1; // Model
+//----------------------------------------------------------------------------------------------------
+    // LOAD MODEL
+    std::string objFilePath = "resources/models/" + objectFile;
+    Mesh mesh(objFilePath);
 
-    VAO1.Bind();
-    VBO VBO1(vertices, sizeof(GLfloat) * model.vertex_count * model.stride); // 8 = stride length
-    EBO EBO1(indices, sizeof(unsigned int)  * model.index_count);
+    // Vertex Count & Index Count
+    std::cout << "\nVertex Count: " << mesh.vertex_count << std::endl;
+    std::cout << "Index Count: "    << mesh.index_count  << std::endl;
 
-    // Links VBO1 to VAO
-    VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, model.stride * sizeof(float), (void*)0);;
-    VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, model.stride * sizeof(float), (void*)(3*sizeof(float)));;
-    VAO1.LinkAttrib(VBO1, 2, 2, GL_FLOAT, model.stride * sizeof(float), (void*)(6*sizeof(float)));;
-
-    VAO1.Unbind();
-    VBO1.Unbind();
+    // Vertex & Index Data
+    GLfloat* vertices = mesh.vertices.data();
+    GLuint*  indices  = mesh.indices.data();
 
     // -------------------------------------------------------------------------------------
     // TEXTURES
@@ -149,11 +130,11 @@ int main() {
     std::vector<Object> objects;
 
     // OBJECT 1
-    Object object1(model, texture);
+    Object object1(mesh, texture);
     objects.push_back(object1);
 
     // OBJECT 2
-    Object buffer2(model, texture);
+    Object buffer2(mesh, texture);
     buffer2.position.x = 1.0f;
     buffer2.scale = glm::vec3(1.0f, 1.0f, 1.0f);
     objects.push_back(buffer2);
@@ -184,19 +165,20 @@ int main() {
         camera.UpdateMatrix(45.0f, 0.1f, 100.0f);
         camera.Matrix(shaderProgram, "camMatrix");
 
-        // Load Texture
-        texture.Bind();
-
-        // Load Mesh
-        //
-        VAO1.Bind();
-
         // Loop through all objects
         for (int i = 0; i < objects.size(); i++) {
             Object currObject = objects[i];
+
+            // Load mesh
+            currObject.mesh->vao->Bind();
+
+            // Load texture
+            currObject.texture->Bind();
+
+            // Load transformations
             modelMatrix = currObject.getModelMatrix();
             shaderProgram.setUniform("modelMatrix", modelMatrix);
-            glDrawElements(GL_TRIANGLES, model.index_count, GL_UNSIGNED_INT, 0);
+            glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, 0);
         }
         glfwSwapBuffers(window);
 
@@ -206,10 +188,6 @@ int main() {
     }
     // --------------------------------------------------------------------------------------------------
     // APPLICATION CLEAN-UP
-
-    VAO1.Delete();
-    VBO1.Delete();
-    EBO1.Delete();
     shaderProgram.Delete();
     texture.Delete();
 
