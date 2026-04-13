@@ -21,6 +21,7 @@
 #include "texture.h"
 #include "camera.h"
 #include "model.h"
+#include "object.h"
 
 // std
 #include <iostream>
@@ -50,28 +51,6 @@ void processInput (GLFWwindow *window) {
 // =======================================================================================================
 int main() {
 
-    class Object {
-    public:
-        glm::vec3 position;
-        glm::vec3 rotation;
-        glm::vec3  scale;
-
-        Object(Model mesh) {
-            position = glm::vec3(0.0f, 0.0f, 0.0f);
-            rotation = glm::vec3(0.0f, 0.0f, 0.0f);
-            scale    = glm::vec3(1.0f, 1.0f, 1.0f);
-        }
-
-        glm::mat4 getModelMatrix() {
-            glm::mat4 model = glm::mat4(1.0f); // Identity matrix
-            model = glm::translate(model, position);
-            model = glm::rotate(model, rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
-            model = glm::rotate(model, rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
-            model = glm::rotate(model, rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
-            model = glm::scale(model, scale);
-            return model;
-        }
-    };
     //----------------------------------------------------------------------------------------------------
     // LOAD MODEL
     std::string objFilePath = "resources/models/" + objectFile;
@@ -182,7 +161,7 @@ int main() {
 
     // Model-Matrix Uniform
     glm::mat4 modelMatrix = glm::mat4(1.0f);
-    glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
+    // glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
     // modelMatrix = buffer.getModelMatrix();
 
 
@@ -206,19 +185,20 @@ int main() {
         camera.UpdateMatrix(45.0f, 0.1f, 100.0f);
         camera.Matrix(shaderProgram, "camMatrix");
 
-        // Texture
-        // glUniform1f(uniID, 0.5f);
+        // Load Texture
         texture.Bind();
 
+        // Load Mesh
+        //
         VAO1.Bind();
 
-        modelMatrix = buffer1.getModelMatrix();
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
-        glDrawElements(GL_TRIANGLES, model.index_count, GL_UNSIGNED_INT, 0);
-
-        modelMatrix = buffer2.getModelMatrix();
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
-        glDrawElements(GL_TRIANGLES, model.index_count, GL_UNSIGNED_INT, 0);
+        // Loop through all objects
+        for (int i = 0; i < objects.size(); i++) {
+            Object currObject = objects[i];
+            modelMatrix = currObject.getModelMatrix();
+            shaderProgram.setUniform("modelMatrix", modelMatrix);
+            glDrawElements(GL_TRIANGLES, model.index_count, GL_UNSIGNED_INT, 0);
+        }
         glfwSwapBuffers(window);
 
         // Detect and Handle any GLFW events
