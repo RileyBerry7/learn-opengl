@@ -58,6 +58,7 @@ int main() {
     // Uniform Values
     glm::mat4 modelMatrix = glm::mat4(1.0f);
     glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+    glm::vec3 lightPos = glm::vec3(1.0f, 0.0f, 0.0f);
 
     //------------------------------------------------------------------------------------------------------
     // APPLICATION SETUP
@@ -133,7 +134,7 @@ int main() {
     Tex  cube_texture("resources/textures/osaka.png", texType, texSlot, pixelType);
     texture.setUniform(shaderProgram, texUniform, 0);
     Object buffer2(cube_mesh, cube_texture);
-    buffer2.position.x = 1.0f;
+    buffer2.position = lightPos;
     buffer2.scale = glm::vec3(0.1f);
     objects.push_back(buffer2);
 
@@ -174,6 +175,7 @@ int main() {
             modelMatrix = currObject.getModelMatrix();
             shaderProgram.setUniform("modelMatrix", modelMatrix);
             shaderProgram.setUniform("lightColor", lightColor);
+            shaderProgram.setUniform("lightPos", lightPos);
             glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, 0);
         }
 

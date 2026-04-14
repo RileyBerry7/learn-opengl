@@ -9,6 +9,7 @@ layout (location = 3) in vec3 aNormal;
 out vec3 color;
 out vec2 texCoord;
 out vec3 normal;
+out vec3 fragPos;
 
 uniform mat4 camMatrix;
 uniform mat4 modelMatrix;
@@ -21,5 +22,7 @@ void main()
     texCoord    = aTex;
 
     // The Normal Matrix: inverse transpose of the 3x3 model matrix
-    normal = mat3(transpose(inverse(modelMatrix))) * aNormal;}
-
+//    normal = mat3(transpose(inverse(modelMatrix))) * aNormal;
+    normal  = aNormal;
+    fragPos = vec3(modelMatrix * vec4(aPos, 1.0));
+}
