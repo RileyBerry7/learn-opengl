@@ -34,8 +34,8 @@ constexpr int  WIDTH  = 800;
 constexpr int  HEIGHT = 600;
 constexpr char WINDOW_NAME[] = "Window";
 
-//glm::vec4  bgColor     = glm::vec4(0.07f, 0.13f, 0.17f, 1.0f);
-glm::vec4   bgColor     = glm::vec4(0.02f, 0.01f, 0.04f, 1.0f);
+glm::vec4  bgColor     = glm::vec4(0.07f, 0.13f, 0.17f, 1.0f);
+// glm::vec4   bgColor     = glm::vec4(0.02f, 0.01f, 0.04f, 1.0f);
 std::string objectFile  = "ISD.obj";
 std::string textureFile = "ISD_hull_color_baked.png";
 
@@ -51,10 +51,13 @@ void processInput (GLFWwindow *window) {
 // =======================================================================================================
 int main() {
 
-    // UNIFORM NAMES
+    // Uniform Names
     const char* texUniform = "tex0";
-    glm::mat4 modelMatrix = glm::mat4(1.0f);
+    // const char* lightUniform = "lightUniform";
 
+    // Uniform Values
+    glm::mat4 modelMatrix = glm::mat4(1.0f);
+    glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
 
     //------------------------------------------------------------------------------------------------------
     // APPLICATION SETUP
@@ -122,7 +125,7 @@ int main() {
     // OBJECT 1 (ISD)
     Object object1(mesh, texture);
     object1.rotation = glm::vec3(-90, 0.0f, 0.0f);
-    object1.scale    dw= glm::vec3(0.001f);
+    object1.scale = glm::vec3(0.001f);
     objects.push_back(object1);
 
     // OBJECT 2 (CUBE)
@@ -170,6 +173,7 @@ int main() {
             // Load transformations
             modelMatrix = currObject.getModelMatrix();
             shaderProgram.setUniform("modelMatrix", modelMatrix);
+            shaderProgram.setUniform("lightColor", lightColor);
             glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, 0);
         }
 

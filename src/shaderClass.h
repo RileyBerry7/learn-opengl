@@ -20,10 +20,16 @@ class Shader {
 public:
     Shader(const char* vertexFile, const char* fragFile);
 
-    void setUniform(const char *uniform_name, glm::mat4& value){
-            glUniformMatrix4fv(glGetUniformLocation(ID, uniform_name), 1, GL_FALSE, glm::value_ptr(value));
-    }
+    void setUniform(const char *uniform_name, const glm::mat4& value){
+        GLint location = glGetUniformLocation(ID, uniform_name);
+        glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
 
+    }
+    void setUniform(const char *uniform_name, const glm::vec3& value){
+        GLint location = glGetUniformLocation(ID, uniform_name);
+        glUniform3fv(location, 1, glm::value_ptr(value));
+
+    }
     void Activate();
     void Delete();
     GLuint ID;
