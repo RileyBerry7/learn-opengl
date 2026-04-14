@@ -31,7 +31,7 @@ public:
 
     int      vertex_count = 0;
     int      index_count  = 0;
-    int      stride       = 8;
+    int      stride       = 11;
 
     // TinyObjLoader Attributes
     tinyobj::attrib_t attrib;
@@ -45,8 +45,18 @@ public:
         vbo->Delete();
         ebo->Delete();
     }
+
+    // CONSTRUCTOR
     Mesh(std::string filePath) {
+
+        // Load Model
         loadModel(filePath);
+
+        // Error Check
+        if (vertices.empty()) {
+            std::cerr << "Mesh error: No vertices loaded. Check file path: " << filePath << std::endl;
+            return;
+        }
 
         // Initialize VAO, VBO, EBO
         vao = std::make_unique<VAO>();
@@ -55,9 +65,10 @@ public:
         ebo = std::make_unique<EBO>(indices.data(), sizeof(unsigned int)  * index_count);
 
         // Links VBO1 to VAO
-        vao->LinkAttrib(*vbo, 0, 3, GL_FLOAT, stride * sizeof(float), (void*)0);;
-        vao->LinkAttrib(*vbo, 1, 3, GL_FLOAT, stride * sizeof(float), (void*)(3*sizeof(float)));;
-        vao->LinkAttrib(*vbo, 2, 2, GL_FLOAT, stride * sizeof(float), (void*)(6*sizeof(float)));;
+        vao->LinkAttrib(*vbo, 0, 3, GL_FLOAT, stride * sizeof(float), (void*)0);
+        vao->LinkAttrib(*vbo, 1, 3, GL_FLOAT, stride * sizeof(float), (void*)(3*sizeof(float)));
+        vao->LinkAttrib(*vbo, 2, 2, GL_FLOAT, stride * sizeof(float), (void*)(6*sizeof(float)));
+        vao->LinkAttrib(*vbo, 3, 3, GL_FLOAT, stride * sizeof(float), (void*)(8*sizeof(float)));
 
         vao->Unbind();
         vbo->Unbind();
@@ -111,6 +122,18 @@ public:
                 }
 
                 // -------------------------
+                // NORMAL VECTOR (nx, ny, nz)
+                // -------------------------
+                float nx = 0.0f, ny = 0.0f, nz = 0.0f;
+
+                // Check if the normal_index is valid before accessing the array
+                if (index.normal_index >= 0) {
+                    nx = attrib.normals[3 * index.normal_index + 0];
+                    ny = attrib.normals[3 * index.normal_index + 1];
+                    nz = attrib.normals[3 * index.normal_index + 2];
+                }
+
+                // -------------------------
                 // PUSH INTERLEAVED VERTEX
                 // -------------------------
                 vertices.push_back(vx);
@@ -123,15 +146,19 @@ public:
 
                 vertices.push_back(u);
                 vertices.push_back(v);
+
+                vertices.push_back(nx);
+                vertices.push_back(ny);
+                vertices.push_back(nz);
             }
         }
     //------------------------------------------------------
-    for (unsigned int i = 0; i < vertices.size()/8; i++) {
+    for (unsigned int i = 0; i < vertices.size()/stride; i++) {
         indices.push_back(i);
     }
     //------------------------------------------------------
 
-    vertex_count = vertices.size() / 8;
+    vertex_count = vertices.size() / stride;
     index_count  = indices.size();
     }
 
