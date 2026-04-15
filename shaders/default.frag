@@ -26,12 +26,12 @@ uniform vec3 lightColor;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
 //uniform Material material;
-//uniform Light light;
+uniform Light light;
 
 // Orange-Bronze
 Material material = Material(vec3(1.0, 0.5, 0.31), vec3(1.0, 0.5, 0.31), vec3(0.5, 0.5, 0.5), 32.0);
 // Point-Light
-Light    light    = Light(lightPos, vec3(0.2, 0.2, 0.2), vec3(0.5, 0.5, 0.5), vec3(1.0, 1.0, 1.0));
+//Light    light    = Light(lightPos, vec3(0.2, 0.2, 0.2), vec3(0.5, 0.5, 0.5), vec3(1.0, 1.0, 1.0));
 
 void main()
 {

@@ -27,6 +27,14 @@
 #include <iostream>
 #include <string>
 
+
+struct Light {
+    glm::vec3 position;
+    glm::vec3 ambient;
+    glm::vec3 diffuse;
+    glm::vec3 specular;
+};
+
 // ------------------------------------------------------------------------------------------------------
 // GLOBAL CONFIGURATION
 
@@ -143,10 +151,10 @@ int main() {
     Mesh cube_mesh("resources/models/cube.obj");
     Tex  cube_texture("resources/textures/osaka.png", texType, texSlot, pixelType);
     texture.setUniform(shaderProgram, texUniform, 0);
-    Object buffer2(cube_mesh, cube_texture);
-    buffer2.position = lightPos;
-    buffer2.scale = glm::vec3(0.1f);
-    objects.push_back(buffer2);
+    Object object2(cube_mesh, cube_texture);
+    object2.position = lightPos;
+    object2.scale = glm::vec3(0.1f);
+    objects.push_back(object2);
 
     //===================================================================================================
     // Main Render Loop
@@ -183,11 +191,24 @@ int main() {
             modelMatrix = currObject.getModelMatrix();
             glm::vec3 viewPos = camera.Position;
 
+            // Experimentation
+            glm::vec3 lightColor2;
+            lightColor.x = sin(glfwGetTime() * 2.0f);
+            lightColor.y = sin(glfwGetTime() * 0.7f);
+            lightColor.z = sin(glfwGetTime() * 1.3f);
+            glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
+            glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
+
             // Set Shader Uniforms
             shaderProgram.setUniform("modelMatrix", modelMatrix);
             shaderProgram.setUniform("lightColor", lightColor);
             shaderProgram.setUniform("lightPos", lightPos);
             shaderProgram.setUniform("viewPos", viewPos);
+
+            shaderProgram.setUniform("light.position", object2.position);
+            shaderProgram.setUniform("light.ambient", ambientColor);
+            shaderProgram.setUniform("light.diffuse", diffuseColor);
+            shaderProgram.setUniform("light.specular", glm::vec3(1.0f, 1.0f, 1.0f));
 
             // Draw
             glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, 0);
