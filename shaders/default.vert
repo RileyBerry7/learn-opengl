@@ -22,7 +22,7 @@ void main()
     texCoord    = aTex;
 
     // The Normal Matrix: inverse transpose of the 3x3 model matrix
-//    normal = mat3(transpose(inverse(modelMatrix))) * aNormal;
-    normal  = aNormal;
+    normal = mat3(transpose(inverse(modelMatrix))) * aNormal;
+//    normal  = aNormal;
     fragPos = vec3(modelMatrix * vec4(aPos, 1.0));
 }

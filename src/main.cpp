@@ -34,10 +34,19 @@ constexpr int  WIDTH  = 800;
 constexpr int  HEIGHT = 600;
 constexpr char WINDOW_NAME[] = "Window";
 
+// Background Color
 glm::vec4  bgColor     = glm::vec4(0.07f, 0.13f, 0.17f, 1.0f);
 // glm::vec4   bgColor     = glm::vec4(0.02f, 0.01f, 0.04f, 1.0f);
-std::string objectFile  = "ISD.obj";
-std::string textureFile = "ISD_hull_color_baked.png";
+
+// Model Files
+// std::string objectFile  = "ISD.obj";
+// std::string textureFile = "ISD_hull_color_baked.png";
+const std::string objectFile  = "utah_teapot.obj";
+const std::string textureFile = "missing.png";
+
+// Shader Files
+const char vertexShaderFile[]   = "default.vert";
+const char fragmentShaderFile[] = "default.frag";
 
 // ----------------------------------------------------
 // PROCESS INPUT (Exit on Esc)
@@ -58,7 +67,7 @@ int main() {
     // Uniform Values
     glm::mat4 modelMatrix = glm::mat4(1.0f);
     glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-    glm::vec3 lightPos = glm::vec3(1.0f, 0.0f, 0.0f);
+    glm::vec3 lightPos = glm::vec3(1.0f, 0.15f, 0.2f);
 
     //------------------------------------------------------------------------------------------------------
     // APPLICATION SETUP
@@ -89,7 +98,7 @@ int main() {
 
     //-------------------------------------------------------------------------------------
     // LOAD SHADER
-    Shader shaderProgram("default.vert", "default.frag");
+    Shader shaderProgram(vertexShaderFile, fragmentShaderFile);
     shaderProgram.Activate();
 
     //----------------------------------------------------------------------------------------------------
@@ -125,8 +134,9 @@ int main() {
 
     // OBJECT 1 (ISD)
     Object object1(mesh, texture);
-    object1.rotation = glm::vec3(-90, 0.0f, 0.0f);
-    object1.scale = glm::vec3(0.001f);
+    // object1.rotation = glm::vec3(-90, 0.0f, 0.0f);
+    // object1.scale = glm::vec3(0.001f);
+    object1.scale = glm::vec3(0.1f);
     objects.push_back(object1);
 
     // OBJECT 2 (CUBE)

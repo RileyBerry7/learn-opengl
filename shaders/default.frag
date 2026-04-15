@@ -12,7 +12,7 @@ uniform vec3 lightPos;
 
 void main()
 {
-    float ambientStrength = 0.3;
+    float ambientStrength = 0.2;
     vec3 ambient = ambientStrength * lightColor;
 //    vec3 result  = ambient * color;
 
@@ -23,5 +23,5 @@ void main()
 
     vec3 result = (ambient + diffuse) * color;
 
-    FragColor = texture(tex0, texCoord) * vec4(result, 1.0);
+    FragColor = vec4(result, 1.0);
 }
