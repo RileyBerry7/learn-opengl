@@ -134,7 +134,7 @@ int main() {
 
     // OBJECT 1 (ISD)
     Object object1(mesh, texture);
-    object1.rotation = glm::vec3(-90, 0.0f, 0.0f);
+    object1.rotation = glm::vec3(-90, 0.0f, 0);
     // object1.scale = glm::vec3(0.001f);
     object1.scale = glm::vec3(0.1f);
     objects.push_back(object1);
@@ -175,13 +175,11 @@ int main() {
         for (int i = 0; i < objects.size(); i++) {
             Object currObject = objects[i];
 
-            // Load mesh
+            // Activate Mesh/Texture
             currObject.mesh->vao->Bind();
-
-            // Load texture
             currObject.texture->Bind();
 
-            // Load transformations
+            // Load uniform values
             modelMatrix = currObject.getModelMatrix();
             glm::vec3 viewPos = camera.Position;
 
