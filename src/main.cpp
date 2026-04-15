@@ -134,7 +134,7 @@ int main() {
 
     // OBJECT 1 (ISD)
     Object object1(mesh, texture);
-    // object1.rotation = glm::vec3(-90, 0.0f, 0.0f);
+    object1.rotation = glm::vec3(-90, 0.0f, 0.0f);
     // object1.scale = glm::vec3(0.001f);
     object1.scale = glm::vec3(0.1f);
     objects.push_back(object1);
@@ -183,9 +183,15 @@ int main() {
 
             // Load transformations
             modelMatrix = currObject.getModelMatrix();
+            glm::vec3 viewPos = camera.Position;
+
+            // Set Shader Uniforms
             shaderProgram.setUniform("modelMatrix", modelMatrix);
             shaderProgram.setUniform("lightColor", lightColor);
             shaderProgram.setUniform("lightPos", lightPos);
+            shaderProgram.setUniform("viewPos", viewPos);
+
+            // Draw
             glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, 0);
         }
 
