@@ -6,6 +6,7 @@
 #define LEARN_OPENGL_OBJECT_H
 
 #include "glm/glm.hpp"
+#include "shaderClass.h"
 
 class Object {
 public:
@@ -20,13 +21,17 @@ public:
     // Texture Attributes
     Tex* texture;
 
-    Object(Mesh& model_mesh, Tex& model_texture) {
+    // Shader Attributes
+    Shader* shader;
+
+    Object(Shader& shader_program, Mesh& model_mesh, Tex& model_texture) {
         // Default transformations
         position = glm::vec3(0.0f, 0.0f, 0.0f);
         rotation = glm::vec3(0.0f, 0.0f, 0.0f);
         scale    = glm::vec3(1.0f, 1.0f, 1.0f);
 
         // Assign references
+        shader  = &shader_program;
         mesh    = &model_mesh;
         texture = &model_texture;
     }

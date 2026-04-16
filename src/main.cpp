@@ -28,11 +28,12 @@
 #include <string>
 
 
-struct Light {
+struct LightSource {
     glm::vec3 position;
     glm::vec3 ambient;
     glm::vec3 diffuse;
     glm::vec3 specular;
+    Object*   object;
 };
 
 // ------------------------------------------------------------------------------------------------------
@@ -73,9 +74,9 @@ int main() {
     // const char* lightUniform = "lightUniform";
 
     // Uniform Values
-    glm::mat4 modelMatrix = glm::mat4(1.0f);
-    glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-    glm::vec3 lightPos = glm::vec3(1.0f, 0.15f, 0.2f);
+    // glm::mat4 modelMatrix = glm::mat4(1.0f);
+    // glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+    // glm::vec3 lightPos = glm::vec3(1.0f, 0.15f, 0.2f);
 
     //------------------------------------------------------------------------------------------------------
     // APPLICATION SETUP
@@ -105,10 +106,12 @@ int main() {
     glViewport(0, 0, WIDTH, HEIGHT);
 
     //-------------------------------------------------------------------------------------
-    // LOAD SHADER
-    Shader shaderProgram(vertexShaderFile, fragmentShaderFile);
-    shaderProgram.Activate();
+    // LOAD SHADERS
+    Shader defaultShader(vertexShaderFile, fragmentShaderFile);
+    defaultShader.Activate();
 
+    Shader emisiveShader(vertexShaderFile, "light_source.frag");
+    emisiveShader.Activate();
     //----------------------------------------------------------------------------------------------------
     // LOAD MODEL
     std::string objFilePath = "resources/models/" + objectFile;
@@ -123,7 +126,7 @@ int main() {
     GLenum texSlot       = GL_TEXTURE0;
     GLenum pixelType     = GL_UNSIGNED_BYTE;
     Tex texture = Tex(filePath.c_str(), texType, texSlot, pixelType);
-    texture.setUniform(shaderProgram, texUniform, 0);
+    texture.setUniform(defaultShader, texUniform, 0);
 
     //-----------------------------------------------------------------------------
     // DEPTH
@@ -141,7 +144,7 @@ int main() {
     std::vector<Object> objects;
 
     // OBJECT 1 (ISD)
-    Object object1(mesh, texture);
+    Object object1(defaultShader, mesh, texture);
     object1.rotation = glm::vec3(-90, 0.0f, 0);
     // object1.scale = glm::vec3(0.001f);
     object1.scale = glm::vec3(0.1f);
@@ -150,11 +153,25 @@ int main() {
     // OBJECT 2 (CUBE)
     Mesh cube_mesh("resources/models/cube.obj");
     Tex  cube_texture("resources/textures/osaka.png", texType, texSlot, pixelType);
-    texture.setUniform(shaderProgram, texUniform, 0);
-    Object object2(cube_mesh, cube_texture);
-    object2.position = lightPos;
+    // texture.setUniform(shaderProgram, texUniform, 0);
+    Object object2(emisiveShader, cube_mesh, cube_texture);
+    object2.position = glm::vec3(1.0f, 0.15f, 0.2f);
     object2.scale = glm::vec3(0.1f);
     objects.push_back(object2);
+
+    //------------------------------------------------------------------------
+    // LIGHT SOURCE LIST
+    std::vector<LightSource> lights;
+
+    // Light 1
+    LightSource light1 = {
+        .position = glm::vec3(1.0f, 0.15f, 0.2f),
+        .ambient  = glm::vec3(0.2, 0.2, 0.2),
+        .diffuse  = glm::vec3(0.5, 0.5, 0.5),
+        .specular = glm::vec3(1.0, 1.0, 1.0),
+        .object   = &object2
+    };
+    lights.push_back(light1);
 
     //===================================================================================================
     // Main Render Loop
@@ -162,12 +179,17 @@ int main() {
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
 
-        // Background color
+        // Experimentation
+        // glm::vec3 lightColor2;
+        // lightColor.x = sin(glfwGetTime() * 3.0f);
+        // lightColor.y = sin(glfwGetTime() * 1.7f);
+        // lightColor.z = sin(glfwGetTime() * 2.3f);
+        // glm::vec3 diffuseColor = lightColor   * glm::vec3(0.7f);
+        // glm::vec3 ambientColor = diffuseColor * glm::vec3(0.4f);
+
+        // Replace background color
         glClearColor(bgColor.r, bgColor.g, bgColor.b, bgColor.a);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // Activate Shader
-        shaderProgram.Activate();
 
         // Camera Timing
         float currentTime = glfwGetTime();
@@ -177,40 +199,41 @@ int main() {
 
         // Camera Updating
         camera.UpdateMatrix(45.0f, 0.1f, 100.0f);
-        camera.Matrix(shaderProgram, "camMatrix");
+
+        // Set Camera uniforms
+        defaultShader.Activate();
+        camera.Matrix(defaultShader, "camMatrix");
+        emisiveShader.Activate();
+        camera.Matrix(emisiveShader, "camMatrix");
+
+        // Set default uniforms
+        defaultShader.Activate();
+        defaultShader.setUniform("viewPos", camera.Position);
+
+        // Light-source Loop
+        for (int i = 0; i < lights.size(); i++) {
+            LightSource* currLight = &lights[i];
+
+            defaultShader.Activate();
+            defaultShader.setUniform("light.position", currLight->position);
+            defaultShader.setUniform("light.ambient",  currLight->ambient);
+            defaultShader.setUniform("light.diffuse",  currLight->diffuse);
+            defaultShader.setUniform("light.specular", currLight->specular);
+        }
 
         // Object Loop
         for (int i = 0; i < objects.size(); i++) {
             Object currObject = objects[i];
 
-            // Activate Mesh/Texture
+            // Activate object's shader/mesh/texture
+            currObject.shader->Activate();
             currObject.mesh->vao->Bind();
             currObject.texture->Bind();
 
-            // Load uniform values
-            modelMatrix = currObject.getModelMatrix();
-            glm::vec3 viewPos = camera.Position;
+            // Set object-specific uniforms
+            defaultShader.setUniform("modelMatrix", currObject.getModelMatrix());
 
-            // Experimentation
-            glm::vec3 lightColor2;
-            lightColor.x = sin(glfwGetTime() * 2.0f);
-            lightColor.y = sin(glfwGetTime() * 0.7f);
-            lightColor.z = sin(glfwGetTime() * 1.3f);
-            glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
-            glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
-
-            // Set Shader Uniforms
-            shaderProgram.setUniform("modelMatrix", modelMatrix);
-            shaderProgram.setUniform("lightColor", lightColor);
-            shaderProgram.setUniform("lightPos", lightPos);
-            shaderProgram.setUniform("viewPos", viewPos);
-
-            shaderProgram.setUniform("light.position", object2.position);
-            shaderProgram.setUniform("light.ambient", ambientColor);
-            shaderProgram.setUniform("light.diffuse", diffuseColor);
-            shaderProgram.setUniform("light.specular", glm::vec3(1.0f, 1.0f, 1.0f));
-
-            // Draw
+            // Draw Object
             glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, 0);
         }
 
@@ -224,7 +247,7 @@ int main() {
     // --------------------------------------------------------------------------------------------------
     // APPLICATION CLEAN-UP
 
-    shaderProgram.Delete();
+    defaultShader.Delete();
     texture.Delete();
     glfwDestroyWindow(window);
     glfwTerminate();
