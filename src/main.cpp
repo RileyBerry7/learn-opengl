@@ -166,6 +166,19 @@ int main() {
     object1.scale = glm::vec3(0.3f);
     objects.push_back(object1);
 
+    Object object3(defaultShader, mesh, texture);
+    object3.position += glm::vec3(0.55f, 0.1f, -0.4f);
+    object3.rotation.z += 10;
+    object3.scale = glm::vec3(0.3f);
+    objects.push_back(object3);
+
+    Object object4(defaultShader, mesh, texture);
+    object4.position = glm::vec3(1.5f, 0.2f, 0.1f);
+    object4.rotation.x += 8;
+    object4.rotation.z += 15;
+    object4.scale = glm::vec3(0.3f);
+    objects.push_back(object4);
+
     // OBJECT 2 (Light Source)
     // Mesh cube_mesh("resources/models/sphere.obj");
     Tex  cube_texture("resources/textures/osaka.png", texType, texSlot, pixelType);
@@ -181,6 +194,8 @@ int main() {
     auto wood    = Material(glm::vec3(0.1f, 0.07f, 0.05f), glm::vec3(0.4f, 0.25f, 0.15f), glm::vec3(0.1f, 0.1f, 0.1f), 10.0f);
     auto ceramic = Material(glm::vec3(0.1f, 0.1f, 0.1f), glm::vec3(0.1f, 0.5f, 0.8f), glm::vec3(1.0f, 1.0f, 1.0f), 128.0f);
     objects[0].material = steel;
+    objects[1].material = steel;
+    objects[2].material = steel;
 
     //===================================================================================================
     // Main Render Loop
@@ -237,24 +252,24 @@ int main() {
         }
 
         // Object Loop
-        for (int i = 0; i < objects.size(); i++) {
-            Object currObject = objects[i];
+        for (auto &currObject : objects) {
 
             // Activate object's shader/mesh/texture
             currObject.shader->Activate();
             currObject.mesh->vao->Bind();
-            glActiveTexture(GL_TEXTURE0);
-            currObject.texture->Bind();
 
             // Set object-specific uniforms
             currObject.shader->setUniform("modelMatrix", currObject.getModelMatrix());
             currObject.shader->setUniform("material.ambient", currObject.material.ambient);
+            currObject.shader->setUniform("material.shininess", currObject.material.shininess);
+
+            glActiveTexture(GL_TEXTURE0);
+            currObject.texture->Bind();
             currObject.texture->setUniform(*currObject.shader, "material.diffuse", 0);
 
             glActiveTexture(GL_TEXTURE1);
             texture2.Bind();
             texture2.setUniform(*currObject.shader, "material.specular", 1);
-            currObject.shader->setUniform("material.shininess", currObject.material.shininess);
 
             // Draw Object
             glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, 0);
