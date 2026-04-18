@@ -27,7 +27,6 @@
 #include <iostream>
 #include <string>
 
-
 struct LightSource {
     glm::vec3 position;
     glm::vec3 ambient;
@@ -48,10 +47,8 @@ glm::vec4  bgColor     = glm::vec4(0.07f, 0.13f, 0.17f, 1.0f);
 // glm::vec4   bgColor     = glm::vec4(0.02f, 0.01f, 0.04f, 1.0f);
 
 // Model Files
-// std::string objectFile  = "ISD.obj";
-// std::string textureFile = "ISD_hull_color_baked.png";
-const std::string objectFile  = "utah_teapot.obj";
-const std::string textureFile = "missing.png";
+const std::string objectFile  = "cube.obj";
+const std::string textureFile = "osaka.png";
 
 // Shader Files
 const char vertexShaderFile[]   = "default.vert";
@@ -140,6 +137,19 @@ int main() {
     float lastTime = glfwGetTime();
 
     //------------------------------------------------------------------------
+    // LIGHT SOURCE LIST
+    std::vector<LightSource> lights;
+
+    // Light 1
+    LightSource light1 = {
+        .position = glm::vec3(1.0f, 0.15f, 0.2f),
+        .ambient  = glm::vec3(0.2, 0.2, 0.2),
+        .diffuse  = glm::vec3(0.5, 0.5, 0.5),
+        .specular = glm::vec3(1.0, 1.0, 1.0),
+        // .object   = &object2
+    };
+    lights.push_back(light1);
+    //------------------------------------------------------------------------
     // OBJECT LIST
     std::vector<Object> objects;
 
@@ -150,28 +160,21 @@ int main() {
     object1.scale = glm::vec3(0.1f);
     objects.push_back(object1);
 
-    // OBJECT 2 (CUBE)
-    Mesh cube_mesh("resources/models/cube.obj");
+    // OBJECT 2 (Light Source)
+    Mesh cube_mesh("resources/models/sphere.obj");
     Tex  cube_texture("resources/textures/osaka.png", texType, texSlot, pixelType);
     // texture.setUniform(shaderProgram, texUniform, 0);
     Object object2(emisiveShader, cube_mesh, cube_texture);
     object2.position = glm::vec3(1.0f, 0.15f, 0.2f);
-    object2.scale = glm::vec3(0.1f);
+    object2.scale = glm::vec3(0.05f);
     objects.push_back(object2);
 
-    //------------------------------------------------------------------------
-    // LIGHT SOURCE LIST
-    std::vector<LightSource> lights;
-
-    // Light 1
-    LightSource light1 = {
-        .position = glm::vec3(1.0f, 0.15f, 0.2f),
-        .ambient  = glm::vec3(0.2, 0.2, 0.2),
-        .diffuse  = glm::vec3(0.5, 0.5, 0.5),
-        .specular = glm::vec3(1.0, 1.0, 1.0),
-        .object   = &object2
-    };
-    lights.push_back(light1);
+    // Materials
+    auto bronze  = Material(glm::vec3(1.0f, 0.5f, 0.31f), glm::vec3(1.0f, 0.5f, 0.31f), glm::vec3(0.5f, 0.5f, 0.5f), 32.0f);
+    auto steel   = Material(glm::vec3(0.25f, 0.25f, 0.25f), glm::vec3(0.4f, 0.4f, 0.4f), glm::vec3(0.77f, 0.77f, 0.77f), 76.8f);
+    auto wood    = Material(glm::vec3(0.1f, 0.07f, 0.05f), glm::vec3(0.4f, 0.25f, 0.15f), glm::vec3(0.1f, 0.1f, 0.1f), 10.0f);
+    auto ceramic = Material(glm::vec3(0.1f, 0.1f, 0.1f), glm::vec3(0.1f, 0.5f, 0.8f), glm::vec3(1.0f, 1.0f, 1.0f), 128.0f);
+    objects[0].material = bronze;
 
     //===================================================================================================
     // Main Render Loop
@@ -180,12 +183,9 @@ int main() {
         processInput(window);
 
         // Experimentation
-        // glm::vec3 lightColor2;
-        // lightColor.x = sin(glfwGetTime() * 3.0f);
-        // lightColor.y = sin(glfwGetTime() * 1.7f);
-        // lightColor.z = sin(glfwGetTime() * 2.3f);
-        // glm::vec3 diffuseColor = lightColor   * glm::vec3(0.7f);
-        // glm::vec3 ambientColor = diffuseColor * glm::vec3(0.4f);
+            auto sinColor = glm::vec3(sin(glfwGetTime() * 3.0f),
+                                      sin(glfwGetTime() * 1.7f),
+                                      sin(glfwGetTime() * 2.3f));
 
         // Replace background color
         glClearColor(bgColor.r, bgColor.g, bgColor.b, bgColor.a);
@@ -214,11 +214,20 @@ int main() {
         for (int i = 0; i < lights.size(); i++) {
             LightSource* currLight = &lights[i];
 
+            // Experimentation Continued
+            if (int(glfwGetTime())%5 == 0) {
+                // currLight->ambient = sinColor;
+                // currLight->diffuse = sinColor * 0.65f;
+            }
             defaultShader.Activate();
             defaultShader.setUniform("light.position", currLight->position);
             defaultShader.setUniform("light.ambient",  currLight->ambient);
             defaultShader.setUniform("light.diffuse",  currLight->diffuse);
             defaultShader.setUniform("light.specular", currLight->specular);
+
+            emisiveShader.Activate();
+            float brightness  = 5.0f;
+            emisiveShader.setUniform("lightColor", currLight->diffuse * brightness);
         }
 
         // Object Loop
@@ -231,7 +240,11 @@ int main() {
             currObject.texture->Bind();
 
             // Set object-specific uniforms
-            defaultShader.setUniform("modelMatrix", currObject.getModelMatrix());
+            currObject.shader->setUniform("modelMatrix", currObject.getModelMatrix());
+            // currObject.shader->setUniform("material.ambient", currObject.material.ambient);
+            currObject.shader->setUniform("material.diffuse", 0);
+            currObject.shader->setUniform("material.specular", currObject.material.specular);
+            currObject.shader->setUniform("material.shininess", currObject.material.shininess);
 
             // Draw Object
             glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, 0);

@@ -8,6 +8,13 @@
 #include "glm/glm.hpp"
 #include "shaderClass.h"
 
+struct Material {
+    glm::vec3 ambient;
+    glm::vec3 diffuse;
+    glm::vec3 specular;
+    float     shininess;
+};
+
 class Object {
 public:
     // Model Attributes
@@ -23,6 +30,7 @@ public:
 
     // Shader Attributes
     Shader* shader;
+    Material material;
 
     Object(Shader& shader_program, Mesh& model_mesh, Tex& model_texture) {
         // Default transformations
@@ -34,6 +42,12 @@ public:
         shader  = &shader_program;
         mesh    = &model_mesh;
         texture = &model_texture;
+
+        // Default material
+        // material.ambient   = glm::vec3(0.1f);
+        // material.diffuse   = glm::vec3(0.1f);
+        // material.specular  = glm::vec3(0.5f);
+        // material.shininess = 32.0f;
     }
 
     glm::mat4 getModelMatrix() {

@@ -30,6 +30,11 @@ public:
         glUniform3fv(location, 1, glm::value_ptr(value));
 
     }
+    void setUniform(const char *uniform_name, const float& value){
+        GLint location = glGetUniformLocation(ID, uniform_name);
+        glUniform1f(location, value);
+
+    }
     void Activate();
     void Delete();
     GLuint ID;
