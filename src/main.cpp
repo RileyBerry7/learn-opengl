@@ -125,6 +125,10 @@ int main() {
     Tex texture = Tex(filePath.c_str(), texType, texSlot, pixelType);
     texture.setUniform(defaultShader, texUniform, 0);
 
+    // Specular texture map
+    Tex texture2 = Tex("resources/textures/crate_border.png", texType, GL_TEXTURE1, pixelType);
+    // texture2.setUniform(defaultShader, texUniform, 1);
+
     //-----------------------------------------------------------------------------
     // DEPTH
     glEnable(GL_DEPTH_TEST);
@@ -147,7 +151,6 @@ int main() {
         .ambient  = glm::vec3(0.3, 0.3, 0.3),
         .diffuse  = glm::vec3(0.5, 0.5, 0.5),
         .specular = glm::vec3(1.0, 1.0, 1.0),
-        // .object   = &object2
     };
     lights.push_back(light1);
 
@@ -158,7 +161,7 @@ int main() {
 
     // OBJECT 1 (Subject)
     Object object1(defaultShader, mesh, texture);
-    object1.rotation = glm::vec3(0.0f, -24.0f, 0.0f);
+    object1.rotation = glm::vec3(0.0f, -44.0f, 0.0f);
     // object1.scale = glm::vec3(0.001f); // ISD
     object1.scale = glm::vec3(0.3f);
     objects.push_back(object1);
@@ -240,15 +243,17 @@ int main() {
             // Activate object's shader/mesh/texture
             currObject.shader->Activate();
             currObject.mesh->vao->Bind();
+            glActiveTexture(GL_TEXTURE0);
             currObject.texture->Bind();
 
             // Set object-specific uniforms
             currObject.shader->setUniform("modelMatrix", currObject.getModelMatrix());
             currObject.shader->setUniform("material.ambient", currObject.material.ambient);
-            // currObject.shader->setUniform("material.diffue, ")
-            // currObject.shader->setUniform("material.diffuse", 0);
             currObject.texture->setUniform(*currObject.shader, "material.diffuse", 0);
-            currObject.shader->setUniform("material.specular", currObject.material.specular);
+
+            glActiveTexture(GL_TEXTURE1);
+            texture2.Bind();
+            texture2.setUniform(*currObject.shader, "material.specular", 1);
             currObject.shader->setUniform("material.shininess", currObject.material.shininess);
 
             // Draw Object

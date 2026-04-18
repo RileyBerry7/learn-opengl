@@ -4,8 +4,9 @@
 struct Material {
 //    vec3 ambient; We dont need this anymore since ambient is stored decided by the light struct
 //    vec3 diffuse;
+//    vec3      specular;
     sampler2D diffuse;
-    vec3      specular;
+    sampler2D specular;
     float     shininess;
 };
 struct Light {
@@ -37,7 +38,6 @@ uniform Light light;
 void main()
 {
     // Ambient Lighting
-//    float ambientStrength = 0.2;
     vec3 ambient = light.ambient * texture(material.diffuse, texCoord).rgb;
 
     // Diffuse Lighting
@@ -45,19 +45,17 @@ void main()
     vec3  lightDir = normalize(light.position - fragPos);
     float diff     = max(dot(norm, lightDir), 0.0);
     vec3  diffuse  = light.diffuse * diff * texture(material.diffuse, texCoord).rgb;
-    //    vec3  diffuse  = light.diffuse * (diff * material.diffuse);
-
 
     // Specular Lighting
 //    float specularStrength = 0.6;
     vec3  viewDir   = normalize(viewPos -fragPos);
     vec3  reflectDir = reflect(-lightDir, norm);
     float spec      = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-    vec3  specular  =  light.specular * (spec * material.specular);
+    float brightness = dot(texture(material.specular, texCoord).rgb, vec3(0.2126, 0.7152, 0.0722)); // Weighted brightness
+    vec3  specular  =  light.specular * spec * brightness;
 
     // Calculate Result
     vec3 result = (ambient + diffuse + specular) * objColor;
-//    vec3 result = ambient + diffuse + specular;
 
     FragColor = vec4(result, 1.0);
 }
