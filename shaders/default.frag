@@ -38,13 +38,13 @@ void main()
 {
     // Ambient Lighting
 //    float ambientStrength = 0.2;
-    vec3 ambient = light.ambient * vec3(texture(material.diffuse, texCoord));
+    vec3 ambient = light.ambient * texture(material.diffuse, texCoord).rgb;
 
     // Diffuse Lighting
     vec3  norm     = normalize(normal);
     vec3  lightDir = normalize(light.position - fragPos);
     float diff     = max(dot(norm, lightDir), 0.0);
-    vec3  diffuse  = light.diffuse * diff * vec3(texture(material.diffuse, texCoord));
+    vec3  diffuse  = light.diffuse * diff * texture(material.diffuse, texCoord).rgb;
     //    vec3  diffuse  = light.diffuse * (diff * material.diffuse);
 
 
@@ -57,6 +57,7 @@ void main()
 
     // Calculate Result
     vec3 result = (ambient + diffuse + specular) * objColor;
+//    vec3 result = ambient + diffuse + specular;
 
     FragColor = vec4(result, 1.0);
 }

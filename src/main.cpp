@@ -48,7 +48,7 @@ glm::vec4  bgColor     = glm::vec4(0.07f, 0.13f, 0.17f, 1.0f);
 
 // Model Files
 const std::string objectFile  = "cube.obj";
-const std::string textureFile = "osaka.png";
+const std::string textureFile = "wood_crate.png";
 
 // Shader Files
 const char vertexShaderFile[]   = "default.vert";
@@ -136,6 +136,7 @@ int main() {
 
     float lastTime = glfwGetTime();
 
+
     //------------------------------------------------------------------------
     // LIGHT SOURCE LIST
     std::vector<LightSource> lights;
@@ -143,28 +144,30 @@ int main() {
     // Light 1
     LightSource light1 = {
         .position = glm::vec3(1.0f, 0.15f, 0.2f),
-        .ambient  = glm::vec3(0.2, 0.2, 0.2),
+        .ambient  = glm::vec3(0.3, 0.3, 0.3),
         .diffuse  = glm::vec3(0.5, 0.5, 0.5),
         .specular = glm::vec3(1.0, 1.0, 1.0),
         // .object   = &object2
     };
     lights.push_back(light1);
+
+
     //------------------------------------------------------------------------
     // OBJECT LIST
     std::vector<Object> objects;
 
-    // OBJECT 1 (ISD)
+    // OBJECT 1 (Subject)
     Object object1(defaultShader, mesh, texture);
-    object1.rotation = glm::vec3(-90, 0.0f, 0);
-    // object1.scale = glm::vec3(0.001f);
-    object1.scale = glm::vec3(0.1f);
+    object1.rotation = glm::vec3(0.0f, -24.0f, 0.0f);
+    // object1.scale = glm::vec3(0.001f); // ISD
+    object1.scale = glm::vec3(0.3f);
     objects.push_back(object1);
 
     // OBJECT 2 (Light Source)
-    Mesh cube_mesh("resources/models/sphere.obj");
+    // Mesh cube_mesh("resources/models/sphere.obj");
     Tex  cube_texture("resources/textures/osaka.png", texType, texSlot, pixelType);
-    // texture.setUniform(shaderProgram, texUniform, 0);
-    Object object2(emisiveShader, cube_mesh, cube_texture);
+    // texture.setUniform(emisiveShader, texUniform, 0);
+    Object object2(emisiveShader, mesh, cube_texture);
     object2.position = glm::vec3(1.0f, 0.15f, 0.2f);
     object2.scale = glm::vec3(0.05f);
     objects.push_back(object2);
@@ -174,7 +177,7 @@ int main() {
     auto steel   = Material(glm::vec3(0.25f, 0.25f, 0.25f), glm::vec3(0.4f, 0.4f, 0.4f), glm::vec3(0.77f, 0.77f, 0.77f), 76.8f);
     auto wood    = Material(glm::vec3(0.1f, 0.07f, 0.05f), glm::vec3(0.4f, 0.25f, 0.15f), glm::vec3(0.1f, 0.1f, 0.1f), 10.0f);
     auto ceramic = Material(glm::vec3(0.1f, 0.1f, 0.1f), glm::vec3(0.1f, 0.5f, 0.8f), glm::vec3(1.0f, 1.0f, 1.0f), 128.0f);
-    objects[0].material = bronze;
+    objects[0].material = steel;
 
     //===================================================================================================
     // Main Render Loop
@@ -241,8 +244,10 @@ int main() {
 
             // Set object-specific uniforms
             currObject.shader->setUniform("modelMatrix", currObject.getModelMatrix());
-            // currObject.shader->setUniform("material.ambient", currObject.material.ambient);
-            currObject.shader->setUniform("material.diffuse", 0);
+            currObject.shader->setUniform("material.ambient", currObject.material.ambient);
+            // currObject.shader->setUniform("material.diffue, ")
+            // currObject.shader->setUniform("material.diffuse", 0);
+            currObject.texture->setUniform(*currObject.shader, "material.diffuse", 0);
             currObject.shader->setUniform("material.specular", currObject.material.specular);
             currObject.shader->setUniform("material.shininess", currObject.material.shininess);
 

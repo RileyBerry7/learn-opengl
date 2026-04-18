@@ -33,7 +33,10 @@ public:
     void setUniform(const char *uniform_name, const float& value){
         GLint location = glGetUniformLocation(ID, uniform_name);
         glUniform1f(location, value);
-
+    }
+    void setUniform(const char *uniform_name, const int& value){
+        GLint location = glGetUniformLocation(ID, uniform_name);
+        glUniform1i(location, value);
     }
     void Activate();
     void Delete();
