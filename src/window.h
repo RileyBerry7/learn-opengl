@@ -24,13 +24,30 @@ public:
         glfwMakeContextCurrent(window);
     }
 
-
+    ~Window() {
+        glfwDestroyWindow(window);
+        glfwTerminate();
+    }
 
     void processInput () {
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)  {
             // std::cout << "User pressed ESC\n";
             glfwSetWindowShouldClose(window, true);
         }
+    }
+    bool shouldClose() const {
+        return glfwWindowShouldClose(window);
+    }
+    void swapBuffers() const {
+
+        // Swap Front/Back Buffers
+        glfwSwapBuffers(window);
+
+        // Detect and handle events
+        glfwPollEvents();
+    }
+    GLFWwindow* getWindow() const {
+        return window;
     }
 };
 

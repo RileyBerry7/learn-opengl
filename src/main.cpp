@@ -23,6 +23,8 @@
 #include "Mesh.h"
 #include "object.h"
 #include  "material.h"
+#include  "window.h"
+#include  "renderer.h"
 
 // std
 #include <iostream>
@@ -56,15 +58,6 @@ const std::string textureFile = "wood_crate.png";
 const char vertexShaderFile[]   = "default.vert";
 const char fragmentShaderFile[] = "default.frag";
 
-// ----------------------------------------------------
-// PROCESS INPUT (Exit on Esc)
-void processInput (GLFWwindow *window) {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)  {
-        std::cout << "User pressed ESC\n";
-        glfwSetWindowShouldClose(window, true);
-    }
-}
-
 // =======================================================================================================
 int main() {
 
@@ -91,11 +84,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Core: lacks deprecated functions
 
     // Create a GLFW window object
-    GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, WINDOW_NAME, nullptr, nullptr);
-    if (!window) { glfwTerminate(); return -1; }
-
-    // Introduce window to the current context
-    glfwMakeContextCurrent(window);
+    auto window = Window();
 
     // Load GLAD -> configures OpenGl to be driver agnostic
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -206,8 +195,8 @@ int main() {
     //===================================================================================================
     // Main Render Loop
     // --------------------------------------------------------------------------------------------------
-    while (!glfwWindowShouldClose(window)) {
-        processInput(window);
+    while (!window.shouldClose()) {
+        window.processInput();
 
         // Experimentation
             auto sinColor = glm::vec3(sin(glfwGetTime() * 3.0f),
@@ -222,7 +211,7 @@ int main() {
         float currentTime = glfwGetTime();
         float deltaTime   = currentTime - lastTime;
         lastTime          = currentTime;
-        camera.Inputs(window, deltaTime);
+        camera.Inputs(window.getWindow(), deltaTime);
 
         // Camera Updating
         camera.UpdateMatrix(45.0f, 0.1f, 100.0f);
@@ -289,20 +278,13 @@ int main() {
             glDrawElements(GL_TRIANGLES, currObject.mesh->index_count, GL_UNSIGNED_INT, 0);
         }
 
-        // Swap Front/Back Buffers
-        glfwSwapBuffers(window);
-
-        // Detect and handle events
-        glfwPollEvents();
-
+        window.swapBuffers();
     }
     // --------------------------------------------------------------------------------------------------
     // APPLICATION CLEAN-UP
 
     defaultShader.Delete();
     texture.Delete();
-    glfwDestroyWindow(window);
-    glfwTerminate();
 
     return 0;
 }

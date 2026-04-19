@@ -159,8 +159,9 @@ public:
     index_count  = indices.size();
     }
 
-void draw() {
-        ;
+void draw() const {
+        vao->Bind();
+        glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
     }
 
 };
