@@ -29,6 +29,7 @@
 
 struct LightSource {
     glm::vec3 position;
+    glm::vec3 direction;
     glm::vec3 ambient;
     glm::vec3 diffuse;
     glm::vec3 specular;
@@ -148,6 +149,7 @@ int main() {
     // Light 1
     LightSource light1 = {
         .position = glm::vec3(1.0f, 0.15f, 0.2f),
+        .direction = glm::vec3(-0.2f, -0.0f, -0.1f),
         .ambient  = glm::vec3(0.3, 0.3, 0.3),
         .diffuse  = glm::vec3(0.5, 0.5, 0.5),
         .specular = glm::vec3(1.0, 1.0, 1.0),
@@ -242,6 +244,7 @@ int main() {
             }
             defaultShader.Activate();
             defaultShader.setUniform("light.position", currLight->position);
+            defaultShader.setUniform("light.direction", currLight->direction);
             defaultShader.setUniform("light.ambient",  currLight->ambient);
             defaultShader.setUniform("light.diffuse",  currLight->diffuse);
             defaultShader.setUniform("light.specular", currLight->specular);
