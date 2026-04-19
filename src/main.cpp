@@ -148,7 +148,7 @@ int main() {
 
     // Light 1
     LightSource light1 = {
-        .position = glm::vec3(1.0f, 0.15f, 0.2f),
+        .position = glm::vec3(3.3f, 0.5f, 0.7f),
         .direction = glm::vec3(-0.2f, -0.0f, -0.1f),
         .ambient  = glm::vec3(0.3, 0.3, 0.3),
         .diffuse  = glm::vec3(0.5, 0.5, 0.5),
@@ -161,36 +161,36 @@ int main() {
     // OBJECT LIST
     std::vector<Object> objects;
 
-    // OBJECT 1 (Subject)
-    Object object1(defaultShader, mesh, texture);
-    object1.rotation = glm::vec3(0.0f, -44.0f, 0.0f);
+    // Object 0 (Subject)
+    Object object0(defaultShader, mesh, texture);
+    object0.rotation = glm::vec3(0.0f, -44.0f, 0.0f);
     // object1.scale = glm::vec3(0.001f); // ISD
-    object1.scale = glm::vec3(0.3f);
+    objects.push_back(object0);
+
+    Object object1(defaultShader, mesh, texture);
+    object1.position += glm::vec3(1.8f, 0.3f, -1.3f);
+    object1.rotation.z += 10;
     objects.push_back(object1);
 
-    Object object3(defaultShader, mesh, texture);
-    object3.position += glm::vec3(0.55f, 0.1f, -0.4f);
-    object3.rotation.z += 10;
-    object3.scale = glm::vec3(0.3f);
-    objects.push_back(object3);
-
-    Object object4(defaultShader, mesh, texture);
-    object4.position = glm::vec3(1.5f, 0.2f, 0.1f);
-    object4.rotation.x += 8;
-    object4.rotation.z += 15;
-    object4.scale = glm::vec3(0.3f);
-    objects.push_back(object4);
-
-    // OBJECT 2 (Light Source)
-    // Mesh cube_mesh("resources/models/sphere.obj");
-    Tex  cube_texture("resources/textures/osaka.png", texType, texSlot, pixelType);
-    // texture.setUniform(emisiveShader, texUniform, 0);
-    Object object2(emisiveShader, mesh, cube_texture);
-    object2.position = glm::vec3(1.0f, 0.15f, 0.2f);
-    object2.scale = glm::vec3(0.05f);
+    Object object2(defaultShader, mesh, texture);
+    object2.position = glm::vec3(5.0f, 0.7f, 0.3f);
+    object2.rotation.x += 8;
+    object2.rotation.z += 15;
     objects.push_back(object2);
 
-    // Materials
+    Object object3(defaultShader, mesh, texture);
+    object3.position = glm::vec3(3.0f, 0.1f, -1.0f);
+    objects.push_back(object3);
+
+    // Object 4 (Light Source)
+    Mesh sphere_mesh("resources/models/sphere.obj");
+    Object object4(emisiveShader, sphere_mesh, texture);
+    object4.position = light1.position;
+    object4.scale = glm::vec3(0.4);
+    objects.push_back(object4);
+
+    //------------------------------------------------------------------------
+    // MATERIALS
     auto bronze  = Material(glm::vec3(1.0f, 0.5f, 0.31f), glm::vec3(1.0f, 0.5f, 0.31f), glm::vec3(0.5f, 0.5f, 0.5f), 32.0f);
     auto steel   = Material(glm::vec3(0.25f, 0.25f, 0.25f), glm::vec3(0.4f, 0.4f, 0.4f), glm::vec3(0.77f, 0.77f, 0.77f), 76.8f);
     auto wood    = Material(glm::vec3(0.1f, 0.07f, 0.05f), glm::vec3(0.4f, 0.25f, 0.15f), glm::vec3(0.1f, 0.1f, 0.1f), 10.0f);
@@ -198,6 +198,7 @@ int main() {
     objects[0].material = steel;
     objects[1].material = steel;
     objects[2].material = steel;
+    objects[3].material = steel;
 
     //===================================================================================================
     // Main Render Loop
@@ -234,24 +235,31 @@ int main() {
         defaultShader.setUniform("viewPos", camera.Position);
 
         // Light-source Loop
-        for (int i = 0; i < lights.size(); i++) {
-            LightSource* currLight = &lights[i];
+        for (auto &currLight : lights) {
 
             // Experimentation Continued
-            if (int(glfwGetTime())%5 == 0) {
-                // currLight->ambient = sinColor;
-                // currLight->diffuse = sinColor * 0.65f;
-            }
+            // if (int(glfwGetTime())%5 == 0) {
+            //     currLight.ambient = sinColor;
+            //     currLight.diffuse = sinColor * 0.65f;
+            // }
+
+            objects[3].position.z -= 0.0025f;
+            if (objects[3].position.z < -10.0f) objects[3].position.z = -0.15f;
+
             defaultShader.Activate();
-            defaultShader.setUniform("light.position", currLight->position);
-            defaultShader.setUniform("light.direction", currLight->direction);
-            defaultShader.setUniform("light.ambient",  currLight->ambient);
-            defaultShader.setUniform("light.diffuse",  currLight->diffuse);
-            defaultShader.setUniform("light.specular", currLight->specular);
+            defaultShader.setUniform("light.position", currLight.position);
+            defaultShader.setUniform("light.direction", currLight.direction);
+            defaultShader.setUniform("light.ambient",  currLight.ambient);
+            defaultShader.setUniform("light.diffuse",  currLight.diffuse);
+            defaultShader.setUniform("light.specular", currLight.specular);
+
+            defaultShader.setUniform("light.constant", 1.0f);
+            defaultShader.setUniform("light.linear", 0.09f);
+            defaultShader.setUniform("light.quadratic", 0.032f);
 
             emisiveShader.Activate();
             float brightness  = 5.0f;
-            emisiveShader.setUniform("lightColor", currLight->diffuse * brightness);
+            emisiveShader.setUniform("lightColor", (currLight.diffuse * brightness));
         }
 
         // Object Loop
@@ -275,7 +283,7 @@ int main() {
             texture2.setUniform(*currObject.shader, "material.specular", 1);
 
             // Draw Object
-            glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, 0);
+            glDrawElements(GL_TRIANGLES, currObject.mesh->index_count, GL_UNSIGNED_INT, 0);
         }
 
         // Swap Front/Back Buffers
