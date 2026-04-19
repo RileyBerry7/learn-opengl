@@ -46,9 +46,12 @@ add_executable(learn-opengl
         src/texture.h
         src/camera.cpp
         src/camera.h
-        src/tiny_obj_loader.h
         src/Mesh.h
         src/object.h
+        src/Renderer.cpp
+        src/Renderer.h
+        src/material.h
+        src/tiny_obj_loader.cpp
 )
 
 

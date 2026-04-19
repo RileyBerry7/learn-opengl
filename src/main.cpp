@@ -22,6 +22,7 @@
 #include "camera.h"
 #include "Mesh.h"
 #include "object.h"
+#include  "material.h"
 
 // std
 #include <iostream>
@@ -161,44 +162,46 @@ int main() {
     // OBJECT LIST
     std::vector<Object> objects;
 
+    auto steel   = Material(defaultShader, texture);
+
     // Object 0 (Subject)
-    Object object0(defaultShader, mesh, texture);
+    Object object0(defaultShader, mesh, texture,steel );
     object0.rotation = glm::vec3(0.0f, -44.0f, 0.0f);
     // object1.scale = glm::vec3(0.001f); // ISD
     objects.push_back(object0);
 
-    Object object1(defaultShader, mesh, texture);
+    Object object1(defaultShader, mesh, texture, steel);
     object1.position += glm::vec3(1.8f, 0.3f, -1.3f);
     object1.rotation.z += 10;
     objects.push_back(object1);
 
-    Object object2(defaultShader, mesh, texture);
+    Object object2(defaultShader, mesh, texture, steel);
     object2.position = glm::vec3(5.0f, 0.7f, 0.3f);
     object2.rotation.x += 8;
     object2.rotation.z += 15;
     objects.push_back(object2);
 
-    Object object3(defaultShader, mesh, texture);
+    Object object3(defaultShader, mesh, texture, steel);
     object3.position = glm::vec3(3.0f, 0.1f, -1.0f);
     objects.push_back(object3);
 
     // Object 4 (Light Source)
     Mesh sphere_mesh("resources/models/sphere.obj");
-    Object object4(emisiveShader, sphere_mesh, texture);
+    Object object4(emisiveShader, sphere_mesh, texture, steel);
     object4.position = light1.position;
     object4.scale = glm::vec3(0.4);
     objects.push_back(object4);
 
     //------------------------------------------------------------------------
     // MATERIALS
-    auto bronze  = Material(glm::vec3(1.0f, 0.5f, 0.31f), glm::vec3(1.0f, 0.5f, 0.31f), glm::vec3(0.5f, 0.5f, 0.5f), 32.0f);
-    auto steel   = Material(glm::vec3(0.25f, 0.25f, 0.25f), glm::vec3(0.4f, 0.4f, 0.4f), glm::vec3(0.77f, 0.77f, 0.77f), 76.8f);
-    auto wood    = Material(glm::vec3(0.1f, 0.07f, 0.05f), glm::vec3(0.4f, 0.25f, 0.15f), glm::vec3(0.1f, 0.1f, 0.1f), 10.0f);
-    auto ceramic = Material(glm::vec3(0.1f, 0.1f, 0.1f), glm::vec3(0.1f, 0.5f, 0.8f), glm::vec3(1.0f, 1.0f, 1.0f), 128.0f);
-    objects[0].material = steel;
-    objects[1].material = steel;
-    objects[2].material = steel;
-    objects[3].material = steel;
+    // auto bronze  = Material(glm::vec3(1.0f, 0.5f, 0.31f), glm::vec3(1.0f, 0.5f, 0.31f), glm::vec3(0.5f, 0.5f, 0.5f), 32.0f);
+    // auto steel glm::vec3(0.25f, 0.25f, 0.25f), glm::vec3(0.4f, 0.4f, 0.4f), glm::vec3(0.77f, 0.77f, 0.77f), 76.8f);
+    // auto wood    = Material(glm::vec3(0.1f, 0.07f, 0.05f), glm::vec3(0.4f, 0.25f, 0.15f), glm::vec3(0.1f, 0.1f, 0.1f), 10.0f);
+    // auto ceramic = Material(glm::vec3(0.1f, 0.1f, 0.1f), glm::vec3(0.1f, 0.5f, 0.8f), glm::vec3(1.0f, 1.0f, 1.0f), 128.0f);
+    // objects[0].material = steel;
+    // objects[1].material = &steel;
+    // objects[2].material = &steel;
+    // objects[3].material = &steel;
 
     //===================================================================================================
     // Main Render Loop
@@ -271,8 +274,8 @@ int main() {
 
             // Set object-specific uniforms
             currObject.shader->setUniform("modelMatrix", currObject.getModelMatrix());
-            currObject.shader->setUniform("material.ambient", currObject.material.ambient);
-            currObject.shader->setUniform("material.shininess", currObject.material.shininess);
+            currObject.shader->setUniform("material.ambient", currObject.material->ambient);
+            currObject.shader->setUniform("material.shininess", currObject.material->shininess);
 
             glActiveTexture(GL_TEXTURE0);
             currObject.texture->Bind();

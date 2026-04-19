@@ -1,20 +1,17 @@
-//
-// Created by Riley on 4/10/2026.
-//
-
 #ifndef LEARN_OPENGL_MODEL_H
 #define LEARN_OPENGL_MODEL_H
 
 //-----------------------------------------------------------------------
 
-#include <memory>
-
 //std
 #include <string>
+#include <memory>
 
-#define TINYOBJLOADER_IMPLEMENTATION // define this in only *one* .cc
 #include "tiny_obj_loader.h"
 #include "glm/glm.hpp"
+#include "vao.h"
+#include "vbo.h"
+#include "ebo.h"
 
 //======================================================================================
 
@@ -160,6 +157,10 @@ public:
 
     vertex_count = vertices.size() / stride;
     index_count  = indices.size();
+    }
+
+void draw() {
+        ;
     }
 
 };
