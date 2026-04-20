@@ -22,7 +22,11 @@ public:
     GLenum type;
 
     // METHODS -----------------------------
-	Tex(const char* imagePath, GLenum texType, GLenum slot, GLenum pixelType);
+	Tex(const std::string imagePath, GLenum texType, GLenum slot, GLenum pixelType);
+    ~Tex() {
+        this->Delete();
+    }
+
     unsigned char* getImage(const char* fileName, int& widthImg, int& heightImg, int& numColorCh);
     void setUniform(Shader& shader, const char* uniform, GLuint unit);
     void Bind();

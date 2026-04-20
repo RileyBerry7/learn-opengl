@@ -32,12 +32,15 @@ public:
 
     EmissiveMaterial(Shader& shader, Tex& tex) :
     Material(shader, tex), lightColor(glm::vec3(1.0f, 1.0f, 1.0f)) {}
+
     void apply() override {
         shader->Activate();
         constexpr float brightness  = 5.0f;
         shader->setUniform("lightColor", (lightColor * brightness));
     }
 };
+
+//----------------------------------------------------------------------------------------------------------------------
 
 class DefaultMaterial : public Material{
 

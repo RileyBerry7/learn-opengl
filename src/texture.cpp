@@ -4,7 +4,7 @@
 
 #include "texture.h"
 
-Tex::Tex(const char* imagePath, GLenum texType, GLenum slot, GLenum pixelType){
+Tex::Tex(const std::string imagePath, GLenum texType, GLenum slot, GLenum pixelType){
 
     int widthImg;
     int heightImg;
@@ -25,7 +25,7 @@ Tex::Tex(const char* imagePath, GLenum texType, GLenum slot, GLenum pixelType){
     // float flatColor[] = {1.0f, 1.0f, 1.0f, 1.0f};
     // glParameterfv(texType, GL_TEXTURE_BORDER_COLOR, flatColor);
 
-    unsigned char* image = this->getImage(imagePath, widthImg, heightImg, numColorCh);
+    unsigned char* image = this->getImage(imagePath.c_str(), widthImg, heightImg, numColorCh);
 
     // Get pixel format
     GLenum format = (numColorCh == 4) ? GL_RGBA : GL_RGB;

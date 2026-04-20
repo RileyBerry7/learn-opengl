@@ -5,13 +5,12 @@
 #include <GLFW/glfw3.h>
 
 class Window {
+public:
     int width  = 800;
     int height = 600;
     std::string windowName = "Riley's Renderer";
-
     GLFWwindow* window;
 
-public:
     Window() {
         // Initialize GLFW
         if (!glfwInit()) {

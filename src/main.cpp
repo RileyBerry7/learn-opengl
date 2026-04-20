@@ -30,252 +30,88 @@
 #include <iostream>
 #include <string>
 
-struct LightSource {
-    glm::vec3 position;
-    glm::vec3 direction;
-    glm::vec3 ambient;
-    glm::vec3 diffuse;
-    glm::vec3 specular;
-    Object*   object;
-};
-
-// ------------------------------------------------------------------------------------------------------
-// GLOBAL CONFIGURATION
-
-constexpr int  WIDTH  = 800;
-constexpr int  HEIGHT = 600;
-constexpr char WINDOW_NAME[] = "Window";
-
-// Background Color
-glm::vec4  bgColor     = glm::vec4(0.07f, 0.13f, 0.17f, 1.0f);
-// glm::vec4   bgColor     = glm::vec4(0.02f, 0.01f, 0.04f, 1.0f);
-
-// Model Files
-const std::string objectFile  = "cube.obj";
-const std::string textureFile = "wood_crate.png";
-
-// Shader Files
-const char vertexShaderFile[]   = "default.vert";
-const char fragmentShaderFile[] = "default.frag";
-
-// =======================================================================================================
+// =====================================================================================================================
 int main() {
-
-
-    // Texture Uniform
-    const char* texUniform = "tex0";
-
-    //------------------------------------------------------------------------------------------------------
-    // APPLICATION SETUP
 
     std::cout << "\nHello OpenGL!\n";
 
-    // Initialize GLFW Window
-    auto window = Window();
+    auto window   = Window();   // Initialize GLFW window
+    auto renderer = Renderer(); // Initialize renderer
+    auto camera   = Camera(window.width, window.height, glm::vec3(2.3f, 0.0f, 7.0f)); // Initialize camera
+    auto defaultShader = Shader("default.vert", "default.frag");      // Initialize default shader
+    auto emisiveShader = Shader("default.vert", "light_source.frag"); // Initialize emissive shader
+    float lastTime     = glfwGetTime(); // Initialize Timer
 
-    // Initialize Renderer
-    auto renderer = Renderer();
+    // Load meshes
+    std::string     path = "resources/models/";
+    Mesh cubeMesh  (path + "cube.obj");
+    Mesh sphereMesh(path + "sphere.obj");
 
-    //-------------------------------------------------------------------------------------
-    // LOAD SHADERS
-    Shader defaultShader(vertexShaderFile, fragmentShaderFile);
-    defaultShader.Activate();
+    // Load textures
+    path          = "resources/textures/";
+    GLenum tt     = GL_TEXTURE_2D;
+    GLenum pt     = GL_UNSIGNED_BYTE;
+    auto texture  = Tex(path + "wood_crate.png"  , tt, GL_TEXTURE0, pt); // Primary texture
+    auto texture2 = Tex(path + "crate_border.png", tt, GL_TEXTURE1, pt); // Specular map
 
-    Shader emisiveShader(vertexShaderFile, "light_source.frag");
-    emisiveShader.Activate();
-    //----------------------------------------------------------------------------------------------------
-    // LOAD MODEL
-    std::string objFilePath = "resources/models/" + objectFile;
-    Mesh mesh(objFilePath);
-
-    //-------------------------------------------------------------------------------------
-    // LOAD TEXTURE
-
-    int numColorCh;
-    std::string filePath = "resources/textures/" + textureFile;
-    GLenum texType       = GL_TEXTURE_2D;
-    GLenum texSlot       = GL_TEXTURE0;
-    GLenum pixelType     = GL_UNSIGNED_BYTE;
-    Tex texture = Tex(filePath.c_str(), texType, texSlot, pixelType);
-    texture.setUniform(defaultShader, texUniform, 0);
-
-    // Specular texture map
-    Tex texture2 = Tex("resources/textures/crate_border.png", texType, GL_TEXTURE1, pixelType);
-    // texture2.setUniform(defaultShader, texUniform, 1);
-
-    //-----------------------------------------------------------------------------
-    // DEPTH
-    glEnable(GL_DEPTH_TEST);
-    Camera camera(WIDTH, HEIGHT, glm::vec3(0.0f, 0.0f, 2.f));
-
-    //-----------------------------------------------------------------------------
-    // WIREFRAME RENDERING
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-    float lastTime = glfwGetTime();
-
-
-    //------------------------------------------------------------------------
-    // LIGHT SOURCE LIST
-    std::vector<LightSource> lights;
-
-    // Light 1
-    LightSource light1 = {
-        .position = glm::vec3(3.3f, 0.5f, 0.7f),
-        .direction = glm::vec3(-0.2f, -0.0f, -0.1f),
-        .ambient  = glm::vec3(0.3, 0.3, 0.3),
-        .diffuse  = glm::vec3(0.5, 0.5, 0.5),
-        .specular = glm::vec3(1.0, 1.0, 1.0),
-    };
-    lights.push_back(light1);
-
-
-    //------------------------------------------------------------------------
-    // OBJECT LIST
-    std::vector<Object> objects;
-
-    auto steel   = DefaultMaterial(defaultShader, texture);
+    // Load materials
+    auto steel         = DefaultMaterial(defaultShader, texture);
     auto lightMaterial = EmissiveMaterial(emisiveShader, texture);
 
-    // Object 0 (Subject)
-    Object object0(defaultShader, mesh, texture,steel );
+    // ------------------------- Initialize objects -------------------------
+
+    Object object0(defaultShader, cubeMesh, texture,steel );
     object0.rotation = glm::vec3(0.0f, -44.0f, 0.0f);
-    // object1.scale = glm::vec3(0.001f); // ISD
-    objects.push_back(object0);
 
-    Object object1(defaultShader, mesh, texture, steel);
-    object1.position += glm::vec3(1.8f, 0.3f, -1.3f);
-    object1.rotation.z += 10;
-    objects.push_back(object1);
+    Object object1(defaultShader, cubeMesh, texture, steel);
+    object1.position += glm::vec3(1.8f, 0.3f, -1.3f);object1.rotation.z += 10;
 
-    Object object2(defaultShader, mesh, texture, steel);
-    object2.position = glm::vec3(5.0f, 0.7f, 0.3f);
-    object2.rotation.x += 8;
-    object2.rotation.z += 15;
-    objects.push_back(object2);
+    Object object2(defaultShader, cubeMesh, texture, steel);
+    object2.position = glm::vec3(5.0f, 0.7f, 0.3f);object2.rotation.x += 8;object2.rotation.z += 15;
 
-    Object object3(defaultShader, mesh, texture, steel);
+    Object object3(defaultShader, cubeMesh, texture, steel);
     object3.position = glm::vec3(3.0f, 0.1f, -1.0f);
-    objects.push_back(object3);
 
-    // Object 4 (Light Source)
-    Mesh sphere_mesh("resources/models/sphere.obj");
-    Object object4(emisiveShader, sphere_mesh, texture, steel);
-    object4.position = light1.position;
-    object4.scale = glm::vec3(0.4);
-    objects.push_back(object4);
+    Object object4(emisiveShader, sphereMesh, texture, lightMaterial);
+    object4.position = glm::vec3(3.3f, 0.5f, 0.7f); object4.scale = glm::vec3(0.4);
 
-    // Object 5 (Light Source)
-    Object object5(emisiveShader, sphere_mesh, texture, lightMaterial);
-    object5.position = glm::vec3(-1.0f, 0.0f, 0.2f);
-    object5.scale = glm::vec3(0.4);
-
-    //------------------------------------------------------------------------
-    // MATERIALS
-    // auto bronze  = Material(glm::vec3(1.0f, 0.5f, 0.31f), glm::vec3(1.0f, 0.5f, 0.31f), glm::vec3(0.5f, 0.5f, 0.5f), 32.0f);
-    // auto steel glm::vec3(0.25f, 0.25f, 0.25f), glm::vec3(0.4f, 0.4f, 0.4f), glm::vec3(0.77f, 0.77f, 0.77f), 76.8f);
-    // auto wood    = Material(glm::vec3(0.1f, 0.07f, 0.05f), glm::vec3(0.4f, 0.25f, 0.15f), glm::vec3(0.1f, 0.1f, 0.1f), 10.0f);
-    // auto ceramic = Material(glm::vec3(0.1f, 0.1f, 0.1f), glm::vec3(0.1f, 0.5f, 0.8f), glm::vec3(1.0f, 1.0f, 1.0f), 128.0f);
-    // objects[0].material = steel;
-    // objects[1].material = &steel;
-    // objects[2].material = &steel;
-    // objects[3].material = &steel;
+    Object object5(emisiveShader, sphereMesh, texture, lightMaterial);
+    object5.position = glm::vec3(-1.0f, 0.0f, 0.2f);object5.scale = glm::vec3(0.4);
 
     //===================================================================================================
-    // Main Render Loop
+    // Render Loop
     // --------------------------------------------------------------------------------------------------
     while (!window.shouldClose()) {
+
         window.processInput();
-
-        // Experimentation
-            auto sinColor = glm::vec3(sin(glfwGetTime() * 3.0f),
-                                      sin(glfwGetTime() * 1.7f),
-                                      sin(glfwGetTime() * 2.3f));
-
-        // Replace background color
         renderer.prepare();
 
         renderer.draw(object5, camera);
+        renderer.draw(object4, camera);
+        renderer.draw(object3, camera);
+        renderer.draw(object2, camera);
+        renderer.draw(object1, camera);
+        renderer.draw(object0, camera);
 
-        // Camera Timing
-        float currentTime = glfwGetTime();
-        float deltaTime   = currentTime - lastTime;
-        lastTime          = currentTime;
-        camera.Inputs(window.getWindow(), deltaTime);
-
-        // Camera Updating
+        camera.Inputs(window.getWindow(), glfwGetTime() - lastTime);
         camera.UpdateMatrix(45.0f, 0.1f, 100.0f);
+        lastTime = glfwGetTime();
 
-        // Set Camera uniforms
-        defaultShader.Activate();
-        camera.Matrix(defaultShader, "camMatrix");
-        emisiveShader.Activate();
-        camera.Matrix(emisiveShader, "camMatrix");
-
-        // Set default uniforms
-        defaultShader.Activate();
-        defaultShader.setUniform("viewPos", camera.Position);
-
-        // Light-source Loop
-        for (auto &currLight : lights) {
-
-            // Experimentation Continued
-            // if (int(glfwGetTime())%5 == 0) {
-            //     currLight.ambient = sinColor;
-            //     currLight.diffuse = sinColor * 0.65f;
-            // }
-
-            // Move object 3 backwards
-            objects[3].position.z -= 0.0025f;
-            if (objects[3].position.z < -10.0f) objects[3].position.z = -0.15f;
-
-            defaultShader.Activate();
-            defaultShader.setUniform("light.position", currLight.position);
-            defaultShader.setUniform("light.direction", currLight.direction);
-            defaultShader.setUniform("light.ambient",  currLight.ambient);
-            defaultShader.setUniform("light.diffuse",  currLight.diffuse);
-            defaultShader.setUniform("light.specular", currLight.specular);
-
-            defaultShader.setUniform("light.constant", 1.0f);
-            defaultShader.setUniform("light.linear", 0.09f);
-            defaultShader.setUniform("light.quadratic", 0.032f);
-
-            emisiveShader.Activate();
-            float brightness  = 5.0f;
-            emisiveShader.setUniform("lightColor", (currLight.diffuse * brightness));
-        }
-
-        // Object Loop
-        for (auto &currObject : objects) {
-
-            // Activate object's shader/mesh/texture
-            currObject.shader->Activate();
-            currObject.mesh->vao->Bind();
-
-            // Set object-specific uniforms
-            currObject.shader->setUniform("modelMatrix", currObject.getModelMatrix());
-            // currObject.shader->setUniform("material.ambient", currObject.material->ambient);
-            // currObject.shader->setUniform("material.shininess", currObject.material->shininess);
-
-            glActiveTexture(GL_TEXTURE0);
-            currObject.texture->Bind();
-            currObject.texture->setUniform(*currObject.shader, "material.diffuse", 0);
-
-            glActiveTexture(GL_TEXTURE1);
-            texture2.Bind();
-            texture2.setUniform(*currObject.shader, "material.specular", 1);
-
-            // Draw Object
-            glDrawElements(GL_TRIANGLES, currObject.mesh->index_count, GL_UNSIGNED_INT, 0);
-        }
+        //     currObject.shader->setUniform("modelMatrix", currObject.getModelMatrix());
+        //     // currObject.shader->setUniform("material.ambient", currObject.material->ambient);
+        //     // currObject.shader->setUniform("material.shininess", currObject.material->shininess);
+        //
+        //     glActiveTexture(GL_TEXTURE0);
+        //     currObject.texture->Bind();
+        //     currObject.texture->setUniform(*currObject.shader, "material.diffuse", 0);
+        //
+        //     glActiveTexture(GL_TEXTURE1);
+        //     texture2.Bind();
+        //     texture2.setUniform(*currObject.shader, "material.specular", 1);
 
         window.swapBuffers();
     }
     // --------------------------------------------------------------------------------------------------
-    // APPLICATION CLEAN-UP
-
-    defaultShader.Delete();
-    texture.Delete();
 
     return 0;
 }

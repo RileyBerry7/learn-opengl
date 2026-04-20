@@ -20,21 +20,30 @@ class Shader {
 public:
     GLuint ID;
     Shader(const char* vertexFile, const char* fragFile);
+    ~Shader() {
+        this->Delete();
+    }
 
+    // Set Matrix4
     void setUniform(const char *uniform_name, const glm::mat4& value){
         GLint location = glGetUniformLocation(ID, uniform_name);
         glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
-
     }
+
+    // Set Vector3 Uniform
     void setUniform(const char *uniform_name, const glm::vec3& value){
         GLint location = glGetUniformLocation(ID, uniform_name);
         glUniform3fv(location, 1, glm::value_ptr(value));
 
     }
+
+    // Set Float Unifrom
     void setUniform(const char *uniform_name, const float& value){
         GLint location = glGetUniformLocation(ID, uniform_name);
         glUniform1f(location, value);
     }
+
+    // Set Integer Uniform
     void setUniform(const char *uniform_name, const int& value){
         GLint location = glGetUniformLocation(ID, uniform_name);
         glUniform1i(location, value);
