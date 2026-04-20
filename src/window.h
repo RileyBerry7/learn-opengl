@@ -13,6 +13,18 @@ class Window {
 
 public:
     Window() {
+        // Initialize GLFW
+        if (!glfwInit()) {
+            // return -1;
+            std::cerr << "GLFW failed to initialize." << std::endl;
+        }
+
+        // Specify OpenGL version/profile for GLFW
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Core: lacks deprecated functions
+
+
         // Create a GLFW window object
         window = glfwCreateWindow(width, height, windowName.c_str(), nullptr, nullptr);
         if (!window) {

@@ -18,6 +18,7 @@ std::string get_file_contents(const char* fileName);
 
 class Shader {
 public:
+    GLuint ID;
     Shader(const char* vertexFile, const char* fragFile);
 
     void setUniform(const char *uniform_name, const glm::mat4& value){
@@ -40,7 +41,6 @@ public:
     }
     void Activate();
     void Delete();
-    GLuint ID;
 };
 
 

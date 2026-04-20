@@ -61,37 +61,20 @@ const char fragmentShaderFile[] = "default.frag";
 // =======================================================================================================
 int main() {
 
-    // Uniform Names
-    const char* texUniform = "tex0";
-    // const char* lightUniform = "lightUniform";
 
-    // Uniform Values
-    // glm::mat4 modelMatrix = glm::mat4(1.0f);
-    // glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-    // glm::vec3 lightPos = glm::vec3(1.0f, 0.15f, 0.2f);
+    // Texture Uniform
+    const char* texUniform = "tex0";
 
     //------------------------------------------------------------------------------------------------------
     // APPLICATION SETUP
 
     std::cout << "\nHello OpenGL!\n";
 
-    // Initialize GLFW
-    if (!glfwInit()) return -1;
-
-    // Specify OpenGL version/profile for GLFW
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Core: lacks deprecated functions
-
-    // Create a GLFW window object
+    // Initialize GLFW Window
     auto window = Window();
 
-    // Load GLAD -> configures OpenGl to be driver agnostic
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cout << "Failed to initialize GLAD\n"; return -1; }
-
-    // Define viewport size
-    glViewport(0, 0, WIDTH, HEIGHT);
+    // Initialize Renderer
+    auto renderer = Renderer();
 
     //-------------------------------------------------------------------------------------
     // LOAD SHADERS
@@ -151,7 +134,8 @@ int main() {
     // OBJECT LIST
     std::vector<Object> objects;
 
-    auto steel   = Material(defaultShader, texture);
+    auto steel   = DefaultMaterial(defaultShader, texture);
+    auto lightMaterial = EmissiveMaterial(emisiveShader, texture);
 
     // Object 0 (Subject)
     Object object0(defaultShader, mesh, texture,steel );
@@ -181,6 +165,11 @@ int main() {
     object4.scale = glm::vec3(0.4);
     objects.push_back(object4);
 
+    // Object 5 (Light Source)
+    Object object5(emisiveShader, sphere_mesh, texture, lightMaterial);
+    object5.position = glm::vec3(-1.0f, 0.0f, 0.2f);
+    object5.scale = glm::vec3(0.4);
+
     //------------------------------------------------------------------------
     // MATERIALS
     // auto bronze  = Material(glm::vec3(1.0f, 0.5f, 0.31f), glm::vec3(1.0f, 0.5f, 0.31f), glm::vec3(0.5f, 0.5f, 0.5f), 32.0f);
@@ -204,8 +193,9 @@ int main() {
                                       sin(glfwGetTime() * 2.3f));
 
         // Replace background color
-        glClearColor(bgColor.r, bgColor.g, bgColor.b, bgColor.a);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        renderer.prepare();
+
+        renderer.draw(object5, camera);
 
         // Camera Timing
         float currentTime = glfwGetTime();
@@ -235,6 +225,7 @@ int main() {
             //     currLight.diffuse = sinColor * 0.65f;
             // }
 
+            // Move object 3 backwards
             objects[3].position.z -= 0.0025f;
             if (objects[3].position.z < -10.0f) objects[3].position.z = -0.15f;
 
@@ -263,8 +254,8 @@ int main() {
 
             // Set object-specific uniforms
             currObject.shader->setUniform("modelMatrix", currObject.getModelMatrix());
-            currObject.shader->setUniform("material.ambient", currObject.material->ambient);
-            currObject.shader->setUniform("material.shininess", currObject.material->shininess);
+            // currObject.shader->setUniform("material.ambient", currObject.material->ambient);
+            // currObject.shader->setUniform("material.shininess", currObject.material->shininess);
 
             glActiveTexture(GL_TEXTURE0);
             currObject.texture->Bind();

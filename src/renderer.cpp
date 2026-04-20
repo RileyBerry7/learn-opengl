@@ -73,9 +73,12 @@ void Renderer::draw(Object& obj, Camera& camera){
     modelMatrix = glm::scale(modelMatrix, obj.scale);
     activeShader->setUniform("modelMatrix", modelMatrix);
 
-    // Camera: Send the Camera's View/Projection matrix to the shader.
+    // Set Camera Matrix Uniform
     camera.Matrix(*activeShader, "camMatrix");
     activeShader->setUniform("viewPos", camera.Position);
+
+    // Set Required Uniforms
+
 
     // Execute: Tell the Mesh to call its draw command
     mesh->draw();
