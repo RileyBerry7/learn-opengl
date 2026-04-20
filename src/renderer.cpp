@@ -56,6 +56,7 @@ void Renderer::prepare(){
 
 // Render function
 void Renderer::draw(Object& obj, Camera& camera){
+
     // Extract: Get the Material and Mesh from the Object.
     Material* material = obj.material;
     Mesh*     mesh     = obj.mesh;

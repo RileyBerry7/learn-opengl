@@ -10,10 +10,9 @@
 class Material {
 public:
     Shader* shader;
-    Tex*    texture;
 
-    Material(Shader& shaderReference, Tex& texReference) :
-    shader(&shaderReference),  texture(&texReference) {}
+    Material(Shader& shaderReference) :
+    shader(&shaderReference) {}
     virtual ~Material() = default;
 
     virtual void apply() = 0;
@@ -30,8 +29,8 @@ class EmissiveMaterial : public Material {
 public:
     glm::vec3 lightColor;
 
-    EmissiveMaterial(Shader& shader, Tex& tex) :
-    Material(shader, tex), lightColor(glm::vec3(1.0f, 1.0f, 1.0f)) {}
+    EmissiveMaterial(Shader& shader) :
+    Material(shader), lightColor(glm::vec3(1.0f, 1.0f, 1.0f)) {}
 
     void apply() override {
         shader->Activate();
@@ -50,8 +49,14 @@ public:
     glm::vec3 specular;
     float     shininess;
 
-    DefaultMaterial(Shader& shader, Tex& tex) :
-        Material(shader, tex),
+    // Optional
+    Tex* texture;
+    Tex* diffuseMap;
+
+    DefaultMaterial(Shader& shader, Tex* tex = nullptr, Tex* diffMap = nullptr) :
+        Material(shader),
+        texture(tex),
+        diffuseMap(diffMap),
         ambient( glm::vec3(0.25f, 0.25f, 0.25f)),
         diffuse( glm::vec3(0.4f, 0.4f, 0.4f)),
         specular(glm::vec3(0.77f, 0.77f, 0.77f)),
@@ -81,15 +86,17 @@ public:
         shader->setUniform("material.ambient", ambient);
         shader->setUniform("material.shininess", shininess);
 
-        glActiveTexture(GL_TEXTURE0);
-        texture->Bind();
-        texture->setUniform(*shader, "material.diffuse", 0);
+        if (texture != nullptr) {
+            glActiveTexture(GL_TEXTURE0);
+            texture->Bind();
+            texture->setUniform(*shader, "material.diffuse", 0);
+        }
 
-        // glActiveTexture(GL_TEXTURE1);
-        // texture2.Bind();
-        // texture2.setUniform(*shader, "material.specular", 1);
-
-        // texture->Bind();
+        if (diffuseMap != nullptr) {
+            glActiveTexture(GL_TEXTURE1);
+            diffuseMap->Bind();
+            diffuseMap->setUniform(*shader, "material.specular", 1);
+        }
     }
 
 

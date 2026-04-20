@@ -55,8 +55,8 @@ int main() {
     auto texture2 = Tex(path + "crate_border.png", tt, GL_TEXTURE1, pt); // Specular map
 
     // Load materials
-    auto steel         = DefaultMaterial(defaultShader, texture);
-    auto lightMaterial = EmissiveMaterial(emisiveShader, texture);
+    auto steel         = DefaultMaterial(defaultShader, &texture, &texture2);
+    auto lightMaterial = EmissiveMaterial(emisiveShader);
 
     // ------------------------- Initialize objects -------------------------
 
