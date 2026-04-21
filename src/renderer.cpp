@@ -88,8 +88,41 @@ void Renderer::draw(Object& obj, Camera& camera){
 }
 
 // Batch rendering
-// void renderScene(std::vector<Object>& objects, std::vector<Light>& lights, Camera& camera){
-// }
+void Renderer::renderScene(std::vector<Object>& objects,
+                           std::vector<std::unique_ptr<Light>>& lights,
+                           Camera& camera,
+                           Shader& shader) {
+
+    // 1. Prepare the frame (Clear buffers)
+    prepare();
+
+    // 2. Identify the Shader
+    shader.Activate(); // This is temporary
+
+    // 3. THE INJECTION POINT
+    shader.setUniform("lightCount", static_cast<int>(lights.size()));
+    for (int i = 0; i < lights.size(); i++) {
+        std::string indexStr = std::format("lights[{}].", i);
+        // shader.setUniform((indexStr + "direction").c_str(), lights[i]->direction);
+        shader.setUniform((indexStr + "ambient").c_str(),   lights[i]->ambient);
+        shader.setUniform((indexStr + "diffuse").c_str(),   lights[i]->diffuse);
+        shader.setUniform((indexStr + "specular").c_str(),  lights[i]->specular);
+
+        if (lights[i]->type == LightType::Point) {
+            auto pLight = static_cast<PointLight&>(*lights[i]);
+            shader.setUniform((indexStr + "position").c_str(),  pLight.position);
+            shader.setUniform((indexStr + "constant").c_str(),  pLight.constant);
+            shader.setUniform((indexStr + "linear").c_str(),    pLight.linear);
+            shader.setUniform((indexStr + "quadratic").c_str(), pLight.quadratic);
+        }
+    }
+
+    // 4. THE OBJECT LOOP
+    for (auto object: objects) {
+            draw(object, camera);
+    }
+
+}
 
 //--------------------------------------------------------------------------------------------
 // CONTROL

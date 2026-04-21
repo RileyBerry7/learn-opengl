@@ -63,25 +63,15 @@ public:
         shininess(76.8f){}
 
     void apply() override {
-        struct Light {
-            glm::vec3 position  = glm::vec3(3.3f, 0.5f, 0.7f);
-            glm::vec3 direction = glm::vec3(-0.2f, -0.0f, -0.1f);
-            glm::vec3 ambient   = glm::vec3(0.3f, 0.3f, 0.3f);
-            glm::vec3 diffuse   = glm::vec3(0.5f, 0.5f, 0.5f);
-            glm::vec3 specular  = glm::vec3(1.0f, 1.0f, 1.0f);
-        };
-        Light light;
-
-        shader->Activate();
-        shader->setUniform("light.position",  light.position);
-        shader->setUniform("light.direction", light.direction);
-        shader->setUniform("light.ambient",   light.ambient);
-        shader->setUniform("light.diffuse",   light.diffuse);
-        shader->setUniform("light.specular",  light.specular);
-
-        shader->setUniform("light.constant", 1.0f);
-        shader->setUniform("light.linear", 0.09f);
-        shader->setUniform("light.quadratic", 0.032f);
+        // struct Light {
+        //     glm::vec3 position  = glm::vec3(3.3f, 0.5f, 0.7f);
+        //     glm::vec3 direction = glm::vec3(-0.2f, -0.0f, -0.1f);
+        //     glm::vec3 ambient   = glm::vec3(0.3f, 0.3f, 0.3f);
+        //     glm::vec3 diffuse   = glm::vec3(0.5f, 0.5f, 0.5f);
+        //     glm::vec3 specular  = glm::vec3(1.0f, 1.0f, 1.0f);
+        // };
+        // Light light;
+        //
 
         shader->setUniform("material.ambient", ambient);
         shader->setUniform("material.shininess", shininess);

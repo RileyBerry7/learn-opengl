@@ -25,6 +25,7 @@
 #include  "material.h"
 #include  "window.h"
 #include  "renderer.h"
+#include  "light.h"
 
 // std
 #include <iostream>
@@ -58,6 +59,22 @@ int main() {
     auto steel         = DefaultMaterial(defaultShader, &texture, &texture2);
     auto lightMaterial = EmissiveMaterial(emisiveShader);
 
+
+    // ------------------------- Initialize lights -------------------------
+
+    //     glm::vec3 direction = glm::vec3(-0.2f, -0.0f, -0.1f);
+
+    auto light0 = PointLight(glm::vec3(3.3f, 0.5f, 0.7f), 1.0f, 0.09f, 0.032f,
+        glm::vec3(0.3f, 0.3f, 0.3f),
+        glm::vec3(0.5f, 0.5f, 0.5f),
+        glm::vec3(1.0f, 1.0f, 1.0f));
+    auto light1 = PointLight(light0);
+    light1.position = glm::vec3(-1.0f, 0.0f, 0.2f);
+
+    std::vector<std::unique_ptr<Light>> lights;
+    lights.push_back(std::make_unique<PointLight>(light0));
+    lights.push_back(std::make_unique<PointLight>(light1));
+
     // ------------------------- Initialize objects -------------------------
 
     Object object0(defaultShader, cubeMesh, texture,steel );
@@ -76,7 +93,15 @@ int main() {
     object4.position = glm::vec3(3.3f, 0.5f, 0.7f); object4.scale = glm::vec3(0.4);
 
     Object object5(emisiveShader, sphereMesh, texture, lightMaterial);
-    object5.position = glm::vec3(-1.0f, 0.0f, 0.2f);object5.scale = glm::vec3(0.4);
+    object5.position = light1.position;object5.scale = glm::vec3(0.4);
+
+    std::vector<Object> objects;
+    objects.push_back(object0);
+    objects.push_back(object1);
+    objects.push_back(object2);
+    objects.push_back(object3);
+    objects.push_back(object4);
+    objects.push_back(object5);
 
     //===================================================================================================
     // Render Loop
@@ -84,14 +109,15 @@ int main() {
     while (!window.shouldClose()) {
 
         window.processInput();
-        renderer.prepare();
 
-        renderer.draw(object5, camera);
-        renderer.draw(object4, camera);
-        renderer.draw(object3, camera);
-        renderer.draw(object2, camera);
-        renderer.draw(object1, camera);
-        renderer.draw(object0, camera);
+        renderer.renderScene(objects, lights, camera, defaultShader);
+        // renderer.prepare();
+        // renderer.draw(object5, camera);
+        // renderer.draw(object4, camera);
+        // renderer.draw(object3, camera);
+        // renderer.draw(object2, camera);
+        // renderer.draw(object1, camera);
+        // renderer.draw(object0, camera);
 
         camera.Inputs(window.getWindow(), glfwGetTime() - lastTime);
         camera.UpdateMatrix(45.0f, 0.1f, 100.0f);

@@ -6,15 +6,12 @@
 #include "object.h"
 #include "Mesh.h"
 #include "camera.h"
-// #include "lightSource.h"
 #include "material.h"
-class Light {
-
-};
-
+#include "light.h"
 
 // STD
 #include <vector>
+#include <format>
 
 /*
 * 1. What is the Renderer's job?
@@ -42,7 +39,11 @@ public:
     int  initOpenGL();
     void prepare();
     void draw(Object& obj, Camera& camera);
-    // void renderScene(std::vector<Object>& objects, std::vector<Light>& lights, Camera& camera);
+    void renderScene(std::vector<Object>& objects,
+                     std::vector<std::unique_ptr<Light>>& lights,
+                     Camera& camera,
+                     Shader& shader);
+
     void setWireframe(bool state);
     void setViewportSize(int width, int height);
 };
