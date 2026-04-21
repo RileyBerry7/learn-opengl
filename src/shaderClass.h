@@ -48,6 +48,13 @@ public:
         GLint location = glGetUniformLocation(ID, uniform_name);
         glUniform1i(location, value);
     }
+
+    // Set Unsigned Integer Uniform
+    void setUniform(const char *uniform_name, const uint32_t& value){
+        GLint location = glGetUniformLocation(ID, uniform_name);
+        glUniform1ui(location, value);
+    }
+
     void Activate();
     void Delete();
 };

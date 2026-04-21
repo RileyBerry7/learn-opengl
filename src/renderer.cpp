@@ -102,18 +102,33 @@ void Renderer::renderScene(std::vector<Object>& objects,
     // 3. THE INJECTION POINT
     shader.setUniform("lightCount", static_cast<int>(lights.size()));
     for (int i = 0; i < lights.size(); i++) {
+
+        // Universal light uniforms
         std::string indexStr = std::format("lights[{}].", i);
-        // shader.setUniform((indexStr + "direction").c_str(), lights[i]->direction);
-        shader.setUniform((indexStr + "ambient").c_str(),   lights[i]->ambient);
-        shader.setUniform((indexStr + "diffuse").c_str(),   lights[i]->diffuse);
+        shader.setUniform((indexStr + "type"    ).c_str(),  static_cast<GLuint>(lights[i]->type));
+        shader.setUniform((indexStr + "ambient" ).c_str(),  lights[i]->ambient);
+        shader.setUniform((indexStr + "diffuse" ).c_str(),  lights[i]->diffuse);
         shader.setUniform((indexStr + "specular").c_str(),  lights[i]->specular);
 
-        if (lights[i]->type == LightType::Point) {
+        // Directional light uniforms
+        if (lights[i]->type == LightType::Directional) {
+            auto dLight = static_cast<DirectionalLight&>(*lights[i]);
+            shader.setUniform((indexStr + "direction").c_str(),  dLight.direction);
+
+            // Point light uniforms
+        } else if (lights[i]->type == LightType::Point) {
             auto pLight = static_cast<PointLight&>(*lights[i]);
             shader.setUniform((indexStr + "position").c_str(),  pLight.position);
             shader.setUniform((indexStr + "constant").c_str(),  pLight.constant);
             shader.setUniform((indexStr + "linear").c_str(),    pLight.linear);
             shader.setUniform((indexStr + "quadratic").c_str(), pLight.quadratic);
+
+            // Spot light uniforms
+        } else if (lights[i]->type == LightType::Spot) {
+            auto sLight = static_cast<SpotLight&>(*lights[i]);
+            shader.setUniform((indexStr + "position" ).c_str(),  sLight.position);
+            shader.setUniform((indexStr + "direction").c_str(),  sLight.direction);
+            shader.setUniform((indexStr + "cutOff"   ).c_str(),  sLight.cutOff);
         }
     }
 

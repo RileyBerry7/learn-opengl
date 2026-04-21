@@ -70,10 +70,15 @@ int main() {
         glm::vec3(1.0f, 1.0f, 1.0f));
     auto light1 = PointLight(light0);
     light1.position = glm::vec3(-1.0f, 0.0f, 0.2f);
+    auto light2 = SpotLight(glm::vec3(0.0f), glm::vec3(0.0f), std::cos(std::numbers::pi/15.0f),
+                           glm::vec3(0.3f, 0.3f, 0.3f),
+                            glm::vec3(0.5f, 0.5f, 0.5f),
+                            glm::vec3(1.0f, 1.0f, 1.0f));
 
     std::vector<std::unique_ptr<Light>> lights;
     lights.push_back(std::make_unique<PointLight>(light0));
     lights.push_back(std::make_unique<PointLight>(light1));
+    lights.push_back(std::make_unique<SpotLight>(light2));
 
     // ------------------------- Initialize objects -------------------------
 
@@ -110,30 +115,16 @@ int main() {
 
         window.processInput();
 
+        // Update Flashlight
+        light2.direction = glm::normalize(camera.Orientation);
+        light2.position  = camera.Position;
+        lights[2]        = std::make_unique<SpotLight>(light2);
+
         renderer.renderScene(objects, lights, camera, defaultShader);
-        // renderer.prepare();
-        // renderer.draw(object5, camera);
-        // renderer.draw(object4, camera);
-        // renderer.draw(object3, camera);
-        // renderer.draw(object2, camera);
-        // renderer.draw(object1, camera);
-        // renderer.draw(object0, camera);
 
         camera.Inputs(window.getWindow(), glfwGetTime() - lastTime);
         camera.UpdateMatrix(45.0f, 0.1f, 100.0f);
-        lastTime = glfwGetTime();
-
-        //     currObject.shader->setUniform("modelMatrix", currObject.getModelMatrix());
-        //     // currObject.shader->setUniform("material.ambient", currObject.material->ambient);
-        //     // currObject.shader->setUniform("material.shininess", currObject.material->shininess);
-        //
-        //     glActiveTexture(GL_TEXTURE0);
-        //     currObject.texture->Bind();
-        //     currObject.texture->setUniform(*currObject.shader, "material.diffuse", 0);
-        //
-        //     glActiveTexture(GL_TEXTURE1);
-        //     texture2.Bind();
-        //     texture2.setUniform(*currObject.shader, "material.specular", 1);
+        lastTime = static_cast<float>(glfwGetTime());
 
         window.swapBuffers();
     }
