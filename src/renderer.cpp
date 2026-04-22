@@ -126,9 +126,10 @@ void Renderer::renderScene(std::vector<Object>& objects,
             // Spot light uniforms
         } else if (lights[i]->type == LightType::Spot) {
             auto sLight = static_cast<SpotLight&>(*lights[i]);
-            shader.setUniform((indexStr + "position" ).c_str(),  sLight.position);
-            shader.setUniform((indexStr + "direction").c_str(),  sLight.direction);
-            shader.setUniform((indexStr + "cutOff"   ).c_str(),  sLight.cutOff);
+            shader.setUniform((indexStr + "position"   ).c_str(),  sLight.position);
+            shader.setUniform((indexStr + "direction"  ).c_str(),  sLight.direction);
+            shader.setUniform((indexStr + "cutOff"     ).c_str(),  sLight.cutOff);
+            shader.setUniform((indexStr + "outerCutOff").c_str(),  sLight.outerCutOff);
         }
     }
 

@@ -70,7 +70,9 @@ int main() {
         glm::vec3(1.0f, 1.0f, 1.0f));
     auto light1 = PointLight(light0);
     light1.position = glm::vec3(-1.0f, 0.0f, 0.2f);
-    auto light2 = SpotLight(glm::vec3(0.0f), glm::vec3(0.0f), std::cos(std::numbers::pi/15.0f),
+    auto light2 = SpotLight(glm::vec3(0.0f), glm::vec3(0.0f),
+                           std::cos(std::numbers::pi/17.0f),
+                           std::cos(std::numbers::pi/13),
                            glm::vec3(0.3f, 0.3f, 0.3f),
                             glm::vec3(0.5f, 0.5f, 0.5f),
                             glm::vec3(1.0f, 1.0f, 1.0f));

@@ -8,16 +8,17 @@ struct Material {
     float     shininess; //
 };
 struct Light {
-    uint  type;      // Directional/Point/Spot
-    vec3  ambient;   // Directional/Point/Spot
-    vec3  diffuse;   // Directional/Point/Spot
-    vec3  specular;  // Directional/Point/Spot
-    vec3  direction; // Directional
-    float constant;  // Point
-    float linear;    // Point
-    float quadratic; // Point
-    vec3  position;  // Point/Spot
-    float cutOff;    // Spot
+    uint  type;       // Directional/Point/Spot
+    vec3  ambient;    // Directional/Point/Spot
+    vec3  diffuse;    // Directional/Point/Spot
+    vec3  specular;   // Directional/Point/Spot
+    vec3  direction;  // Directional
+    float constant;   // Point
+    float linear;     // Point
+    float quadratic;  // Point
+    vec3  position;   // Point/Spot
+    float cutOff;     // Spot
+    float outerCutOff;// Spot
 };
 // GLSL enum representation of LightType
 const uint DIRECTIONAL_LIGHT = 0u;
@@ -62,26 +63,31 @@ void main()
             vec3 lightDir = normalize(lights[i].position - fragPos);
             vec3 spotDir  = normalize(lights[i].direction);
             float theta   = dot(lightDir, -spotDir);
-            float phi     = lights[i].cutOff;
-            if (theta > phi){
+            float phi     = lights[i].cutOff; // cos(phi) is expensive so done on cpu
 
-                // Ambient Lighting
-                vec3 ambient = lights[i].ambient * texture(material.diffuse, texCoord).rgb;
-                // Diffuse Lighting
-                vec3  norm     =     normalize(normal);
-                float diff     = max(dot(norm, lightDir), 0.0);
-                vec3  diffuse  = lights[i].diffuse * diff * texture(material.diffuse, texCoord).rgb;
-                // Specular Lighting
-                vec3  viewDir    = normalize(viewPos -fragPos);
-                vec3  reflectDir = reflect(-lightDir, norm);
-                float spec       = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-                float brightness = dot(texture(material.specular, texCoord).rgb, vec3(0.2126, 0.7152, 0.0722));// Weighted brightness
-                vec3  specular   =  lights[i].specular * spec * brightness;
-                // Acuumulate colors
-                totalAmbient  += ambient;
-                totalDiffuse  += diffuse;
-                totalSpecular += specular;
-            }
+            float epsilon   = phi - lights[i].outerCutOff; // cosine difference
+            float intensity = clamp((theta - lights[i].outerCutOff) / epsilon, 0.0, 1.0);
+
+            // Ambient Lighting
+            vec3 ambient = lights[i].ambient * texture(material.diffuse, texCoord).rgb;
+            // Diffuse Lighting
+            vec3  norm     =     normalize(normal);
+            float diff     = max(dot(norm, lightDir), 0.0);
+            vec3  diffuse  = lights[i].diffuse * diff * texture(material.diffuse, texCoord).rgb;
+            // Specular Lighting
+            vec3  viewDir    = normalize(viewPos -fragPos);
+            vec3  reflectDir = reflect(-lightDir, norm);
+            float spec       = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+            float brightness = dot(texture(material.specular, texCoord).rgb, vec3(0.2126, 0.7152, 0.0722));// Weighted brightness
+            vec3  specular   =  lights[i].specular * spec * brightness;
+            // Apply intensity
+                        ambient  *= intensity;
+                        diffuse  *= intensity;
+                        specular *= intensity;
+            // Acuumulate colors
+            totalAmbient  += ambient;
+            totalDiffuse  += diffuse;
+            totalSpecular += specular;
             break;
         }
 

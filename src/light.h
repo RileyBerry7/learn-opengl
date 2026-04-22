@@ -67,12 +67,14 @@ public:
     glm::vec3 position;
     glm::vec3 direction;
     float     cutOff;
+    float     outerCutOff;
 
-    SpotLight(glm::vec3 pos, glm::vec3 dir, float cutOff, glm::vec3 amb, glm::vec3 diff, glm::vec3 spec) :
+    SpotLight(glm::vec3 pos, glm::vec3 dir, float cutOff, float outCutOff, glm::vec3 amb, glm::vec3 diff, glm::vec3 spec) :
         Light(LightType::Spot, amb, diff, spec),
         position(pos),
         direction(dir),
-        cutOff(cutOff) {}
+        cutOff(cutOff),
+        outerCutOff(outCutOff) {}
 };
 
 //----------------------------------------------------------------------------------------------------------------------
