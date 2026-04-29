@@ -40,9 +40,9 @@ public:
     void prepare();
     void draw(Object& obj, Camera& camera);
     void renderScene(std::vector<Object>& objects,
-                     std::vector<std::unique_ptr<Light>>& lights,
-                     Camera& camera,
-                     Shader& shader);
+                            LightManager& lights,
+                                  Camera& camera,
+                                  Shader& shader);
 
     void setWireframe(bool state);
     void setViewportSize(int width, int height);

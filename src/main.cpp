@@ -77,10 +77,10 @@ int main() {
                             glm::vec3(0.5f, 0.5f, 0.5f),
                             glm::vec3(1.0f, 1.0f, 1.0f));
 
-    std::vector<std::unique_ptr<Light>> lights;
-    lights.push_back(std::make_unique<PointLight>(light0));
-    lights.push_back(std::make_unique<PointLight>(light1));
-    lights.push_back(std::make_unique<SpotLight>(light2));
+    LightManager lights(defaultShader);
+    lights.pointBucket.push_back(light0);
+    lights.pointBucket.push_back(light1);
+    lights.spotBucket.push_back(light2);
 
     // ------------------------- Initialize objects -------------------------
 
@@ -120,7 +120,8 @@ int main() {
         // Update Flashlight
         light2.direction = glm::normalize(camera.Orientation);
         light2.position  = camera.Position;
-        lights[2]        = std::make_unique<SpotLight>(light2);
+        lights.spotBucket.pop_back();
+        lights.spotBucket.push_back(light2);
 
         renderer.renderScene(objects, lights, camera, defaultShader);
 

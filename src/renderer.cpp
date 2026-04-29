@@ -89,9 +89,9 @@ void Renderer::draw(Object& obj, Camera& camera){
 
 // Batch rendering
 void Renderer::renderScene(std::vector<Object>& objects,
-                           std::vector<std::unique_ptr<Light>>& lights,
-                           Camera& camera,
-                           Shader& shader) {
+                                  LightManager& lights,
+                                        Camera& camera,
+                                        Shader& shader) {
 
     // 1. Prepare the frame (Clear buffers)
     prepare();

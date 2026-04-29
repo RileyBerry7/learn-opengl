@@ -79,4 +79,14 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------
 
+class LightManager {
+public:
+    std::vector<DirectionalLight> dirBucket;
+    std::vector<PointLight>       pointBucket;
+    std::vector<SpotLight>        spotBucket;
+    Shader* shader;
+
+    LightManager(Shader& lightingShader) : shader(&lightingShader) {}
+};
+
 #endif //LEARN_OPENGL_LIGHT_H
