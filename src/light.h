@@ -6,8 +6,6 @@
 #include "shaderClass.h"
 #include "texture.h"
 
-enum class LightType {Directional, Point, Spot};
-
 //-------------------------------------------------------------------------------------
 
 struct DirLight {         // Total: 32 bytes
@@ -45,5 +43,16 @@ public:
 
     LightManager(Shader& lightingShader) : shader(&lightingShader) {}
 };
+//----------------------------------------------------------------------------------------------------------------------
+#define MAX_LIGHTS 10
+struct LightingData {
+    DirLight   dirLights[MAX_LIGHTS];   // 32 x n bytes
+    PointLight pointLights[MAX_LIGHTS]; // 48 x n bytes
+    SpotLight  spotLights[MAX_LIGHTS];  // 48 x n bytes
+    alignas(16) int dirCount; // 4 bytes
+    int pointCount;           // 4 bytes
+    int spotCount;            // 4 bytes
+};
+//----------------------------------------------------------------------------------------------------------------------
 
 #endif //LEARN_OPENGL_LIGHT_H

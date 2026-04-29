@@ -45,19 +45,14 @@ const uint SPOT        = 2u;
 // Configuration
 #define MAX_LIGHTS 10
 
-// -- Light Uniforms Buffers --
-layout (std140, binding = 0 ) uniform DirLightBlock {
-    DirLight dirLights[MAX_LIGHTS];// Directional light list
+// -- Light Uniform Buffer --
+layout (std140, binding = 0 ) uniform LightData
+{
+    DirLight   dirLights[MAX_LIGHTS];
+    PointLight pointLights[MAX_LIGHTS];
+    SpotLight  spotLightsi[MAX_LIGHTS];
+    int dirCount, pointCount, spotCount;
 };
-layout (std140, binding = 0 ) uniform DirLightBlock {
-    PointLight pointLights[MAX_LIGHTS];// Point light list
-};
-layout (std140, binding = 0 ) uniform DirLightBlock {
-    SpotLight  spotLightsi[MAX_LIGHTS];// Spot light list
-};
-uniform int       dirCount;   // Directional light count
-uniform int       pointCount; // Point light count
-uniform int       spotCount;  // Spot light count
 
 uniform sampler2D tex0;     // Texture uniform
 uniform vec3      viewPos;  // View position uniform

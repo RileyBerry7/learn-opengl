@@ -9,7 +9,7 @@ Renderer::Renderer(){
     clearColor    = glm::vec4(0.07f, 0.13f, 0.17f, 1.0f);
     wireFrameMode = false;
     activeShader  = nullptr;
-    uboLights     = UBO(320, nullptr);
+    uboLights     = UBO(1296, nullptr);
     uboLights.BindToSLot(0);
 
     // Initialize OpenGL
@@ -92,6 +92,16 @@ void Renderer::renderScene(std::vector<Object>& objects,
                                         Camera& camera,
                                         Shader& shader) {
     // 0. Uniform Buffers
+
+    // Copy lighting data into contiguous memory
+    LightingData lightData{};
+    for (int i = 0; i < lights.dirBucket.size(); i++) lightData.dirLights[i] = lights.dirBucket[i];
+    for (int i = 0; i < lights.pointBucket.size(); i++) lightData.pointLights[i] = lights.pointBucket[i];
+    for (int i = 0; i < lights.spotBucket.size(); i++) lightData.spotLights[i] = lights.spotBucket[i];
+    lightData.dirCount   = lights.dirBucket.size();
+    lightData.pointCount = lights.pointBucket.size();
+    lightData.spotCount  = lights.spotBucket.size();
+
     glBufferSubData(GL_UNIFORM_BUFFER, 0,
         lights.pointBucket.size() * sizeof(PointLight),
         lights.pointBucket.data());
