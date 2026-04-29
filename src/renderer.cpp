@@ -94,17 +94,15 @@ void Renderer::renderScene(std::vector<Object>& objects,
     // 0. Uniform Buffers
 
     // Copy lighting data into contiguous memory
-    LightingData lightData{};
+    LightingData lightData{};              // Will crash if real lights exceed struct's max lights
     for (int i = 0; i < lights.dirBucket.size(); i++) lightData.dirLights[i] = lights.dirBucket[i];
     for (int i = 0; i < lights.pointBucket.size(); i++) lightData.pointLights[i] = lights.pointBucket[i];
     for (int i = 0; i < lights.spotBucket.size(); i++) lightData.spotLights[i] = lights.spotBucket[i];
     lightData.dirCount   = lights.dirBucket.size();
     lightData.pointCount = lights.pointBucket.size();
     lightData.spotCount  = lights.spotBucket.size();
-
-    glBufferSubData(GL_UNIFORM_BUFFER, 0,
-        lights.pointBucket.size() * sizeof(PointLight),
-        lights.pointBucket.data());
+    uboLights.Bind();
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(lightData), &lightData); // Update uniform buffer
 
     // 1. Prepare the frame (Clear buffers)
     prepare();
