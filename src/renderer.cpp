@@ -9,6 +9,8 @@ Renderer::Renderer(){
     clearColor    = glm::vec4(0.07f, 0.13f, 0.17f, 1.0f);
     wireFrameMode = false;
     activeShader  = nullptr;
+    uboLights     = UBO(320, nullptr);
+    uboLights.BindToSLot(0);
 
     // Initialize OpenGL
     initOpenGL();
@@ -78,9 +80,6 @@ void Renderer::draw(Object& obj, Camera& camera){
     camera.Matrix(*activeShader, "camMatrix");
     activeShader->setUniform("viewPos", camera.Position);
 
-    // Set Required Uniforms
-
-
     // Execute: Tell the Mesh to call its draw command
     mesh->draw();
 
@@ -92,6 +91,10 @@ void Renderer::renderScene(std::vector<Object>& objects,
                                   LightManager& lights,
                                         Camera& camera,
                                         Shader& shader) {
+    // 0. Uniform Buffers
+    glBufferSubData(GL_UNIFORM_BUFFER, 0,
+        lights.pointBucket.size() * sizeof(PointLight),
+        lights.pointBucket.data());
 
     // 1. Prepare the frame (Clear buffers)
     prepare();

@@ -8,6 +8,7 @@
 #include "camera.h"
 #include "material.h"
 #include "light.h"
+#include "ubo.h"
 
 // STD
 #include <vector>
@@ -30,6 +31,7 @@ private:
     glm::vec4 clearColor{};
     bool      wireFrameMode;
     Shader*   activeShader;
+    UBO       uboLights;
 
 public:
     Renderer();  // Constructor

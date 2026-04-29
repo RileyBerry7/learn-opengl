@@ -54,6 +54,7 @@ add_executable(learn-opengl
         src/tiny_obj_loader.cpp
         src/window.h
         src/light.h
+        src/ubo.h
 )
 
 
