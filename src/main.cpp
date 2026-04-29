@@ -61,21 +61,23 @@ int main() {
 
 
     // ------------------------- Initialize lights -------------------------
-
-    //     glm::vec3 direction = glm::vec3(-0.2f, -0.0f, -0.1f);
-
-    auto light0 = PointLight{glm::vec3(3.3f, 0.5f, 0.7f), 1.0f, 0.09f, 0.032f,
-        glm::vec3(0.3f, 0.3f, 0.3f),
-        glm::vec3(0.5f, 0.5f, 0.5f),
-        glm::vec3(1.0f, 1.0f, 1.0f)};
+    auto light0 = PointLight {};
+    light0.position  = glm::vec3(3.3f, 0.5f, 0.7f);
+    light0.intensity = 10.0f;
+    light0.color     = glm::vec3(1.0f);
+    light0.constant  = 1.0f;
+    light0.linear    = 0.09f;
+    light0.quadratic = 0.032f;
+    light0.radius    = 10.0f;
     auto light1 = light0;
     light1.position = glm::vec3(-1.0f, 0.0f, 0.2f);
-    auto light2 = SpotLight{glm::vec3(0.0f), glm::vec3(0.0f),
-                           std::cos(std::numbers::pi/17.0f),
-                           std::cos(std::numbers::pi/13),
-                           glm::vec3(0.3f, 0.3f, 0.3f),
-                            glm::vec3(0.5f, 0.5f, 0.5f),
-                            glm::vec3(1.0f, 1.0f, 1.0f)};
+    auto light2 = SpotLight {};
+    light2.position    = glm::vec3(0.0f);
+    light2.intensity   = 10.0f;
+    light2.direction   = glm::vec3(0.0f);
+    light2.cutOff      = std::cos(std::numbers::pi/17.0f);
+    light2.color       = glm::vec3(1.0f);
+    light2.outerCutOff = std::cos(std::numbers::pi/13);
 
     LightManager lights(defaultShader);
     lights.pointBucket.push_back(light0);
