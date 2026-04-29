@@ -9,79 +9,36 @@
 enum class LightType {Directional, Point, Spot};
 
 //-------------------------------------------------------------------------------------
-// BASE CLASS
-class Light {
-public:
-    // Universal
-    LightType type;
-    glm::vec3 ambient;
-    glm::vec3 diffuse;
-    glm::vec3 specular;
 
-    // Constructor
-    Light(LightType lightType, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular) :
-        type(lightType),
-        ambient(ambient),
-        diffuse(diffuse),
-        specular(specular) {};
-
-    // Default Destructor
-    virtual ~Light() = default;
+struct DirLight {         // Total: 32 bytes
+    glm::vec3  direction; // 12 bytes
+    float intensity;      // 4 bytes
+    glm::vec3  color;     // 12 bytes
+    float padding;        // 4  bytes
 };
-
-
-//-------------------------------------------------------------------------------------
-// DERIVED CLASSES
-
-class DirectionalLight : public Light {
-public:
-    glm::vec3 direction;
-
-    DirectionalLight(glm::vec3 dir, glm::vec3 amb, glm::vec3 diff, glm::vec3 spec) :
-        Light(LightType::Point, amb, diff, spec),
-        direction(dir) {}
+struct PointLight {      // Total: 48 bytes
+    glm::vec3  position; // 12 bytes
+    float intensity;     // 4  bytes
+    glm::vec3  color;    // 12 bytes
+    float constant;      // 4  bytes
+    float linear;        // 4  bytes
+    float quadratic;     // 4  bytes
+    float radius;        // 4  bytes
+    float padding;       // 4  bytes
 };
-
-//----------------------------------------------------------------------------------------------------------------------
-
-
-class PointLight : public Light {
-public:
-    glm::vec3 position;
-    float constant;
-    float linear;
-    float quadratic;
-
-    PointLight(glm::vec3 pos, float con, float lin, float quad, glm::vec3 amb, glm::vec3 diff, glm::vec3 spec) :
-        Light(LightType::Point, amb, diff, spec),
-        position(pos),
-        constant(con),
-        linear(lin),
-        quadratic(quad) {}
+struct SpotLight {       // Total: 48 bytes
+    glm::vec3  position; // 12 bytes
+    float intensity;     // 4  bytes
+    glm::vec3  direction;// 12 bytes
+    float cutOff;        // 4  bytes
+    glm::vec3  color;    // 12 bytes
+    float outerCutOff;   // 4  bytes
 };
-
-//----------------------------------------------------------------------------------------------------------------------
-
-class SpotLight : public Light {
-public:
-    glm::vec3 position;
-    glm::vec3 direction;
-    float     cutOff;
-    float     outerCutOff;
-
-    SpotLight(glm::vec3 pos, glm::vec3 dir, float cutOff, float outCutOff, glm::vec3 amb, glm::vec3 diff, glm::vec3 spec) :
-        Light(LightType::Spot, amb, diff, spec),
-        position(pos),
-        direction(dir),
-        cutOff(cutOff),
-        outerCutOff(outCutOff) {}
-};
-
 //----------------------------------------------------------------------------------------------------------------------
 
 class LightManager {
 public:
-    std::vector<DirectionalLight> dirBucket;
+    std::vector<DirLight> dirBucket;
     std::vector<PointLight>       pointBucket;
     std::vector<SpotLight>        spotBucket;
     Shader* shader;
