@@ -10,34 +10,31 @@ struct Material {
     sampler2D specular;  // specuar map (texture)
     float     shininess; //
 };
-// In GLSL sizes are calculated based on 16-byte chunks. All elements reserve 16 bytes.
+// In GLSL sizes are calculated based on 16-byte chunks. All elements reserve 16 bytes. Thus our struct size should be
+// a factor of 16 in order to ensure alignment of contiguos memory(of our light arrays).
 struct DirLight {    // Total: 32 bytes
     vec3  direction; // 12 bytes
-    float padding;   // 4  bytes
-    vec3  color;     // 12 bytes
     float intensity; // 4 bytes
+    vec3  color;     // 12 bytes
+    float padding;   // 4  bytes
 };
-struct PointLight {   // Total size: 48
+struct PointLight {   // Total: 48 bytes
     vec3  position;  // 12 bytes
-    float padding;   // 4  bytes
+    float intensity; // 4  bytes
     vec3  color;     // 12 bytes
-    float intensity; // 4 bytes
-
-    // Attenuation factors
-    float constant;  // 4 bytes
-    float linear;    // 4 bytes
-    float quadratic; // 4 bytes
-    float radius;    // 4 bytes
+    float constant;  // 4  bytes
+    float linear;    // 4  bytes
+    float quadratic; // 4  bytes
+    float radius;    // 4  bytes
+    float padding;   // 4  bytes
 };
 struct SpotLight {    // Total: 48 bytes
     vec3  position;   // 12 bytes
-    float padding1;   // 4  bytes
+    float intensity;  // 4  bytes
+    vec3  direction;  // 12 bytes
+    float cutOff;     // 4  bytes
     vec3  color;      // 12 bytes
-    float padding2;   // 4  bytes
-    float intensity;  // 4 bytes
-    float cutOff;     // 4 bytes
-    float outerCutOff;// 4 bytes
-    float padding3;   // 4  bytes
+    float outerCutOff;// 4  bytes
 };
 // GLSL enum representation of LightType
 const uint DIRECTIONAL = 0u;
