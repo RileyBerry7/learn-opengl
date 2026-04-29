@@ -15,10 +15,10 @@ public:
     // METHODS: -------------------------------------------
 
     // Constructor: generates a VAO ID
-    UBO(int size_bytes, const void *array_base) {
+    UBO(int size_bytes) {
         glGenBuffers(1, &ID);
         Bind();
-        glBufferData(GL_UNIFORM_BUFFER, size_bytes, array_base, GL_STATIC_DRAW);
+        glBufferData(GL_UNIFORM_BUFFER, size_bytes, nullptr, GL_STATIC_DRAW);
     }
     void BindToSLot(const GLuint slot) {
         Bind();

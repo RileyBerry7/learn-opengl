@@ -31,11 +31,11 @@ private:
     glm::vec4 clearColor{};
     bool      wireFrameMode;
     Shader*   activeShader;
-    UBO       uboLights;
+    UBO*      uboLights;
 
 public:
     Renderer();  // Constructor
-    // ~Renderer(); // Destructor
+    ~Renderer(); // Destructor
 
     // METHODS
     int  initOpenGL();

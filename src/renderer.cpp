@@ -3,22 +3,23 @@
 //-------------------------------------------------------------------------------------
 // CONSTRUCTOR / DESTRUCTOR
 
-Renderer::Renderer(){
+Renderer::Renderer() {
 
     // Initialize attributes
     clearColor    = glm::vec4(0.07f, 0.13f, 0.17f, 1.0f);
     wireFrameMode = false;
     activeShader  = nullptr;
-    uboLights     = UBO(1296, nullptr);
-    uboLights.BindToSLot(0);
 
     // Initialize OpenGL
     initOpenGL();
+
+    uboLights = new UBO(sizeof(LightingData));
+    uboLights->BindToSLot(0);
 }
 
-// ~Renderer::Renderer(){
-//
-// }
+Renderer::~Renderer(){
+    delete uboLights;
+}
 
 //-------------------------------------------------------------------------------------
 // METHODS
@@ -101,7 +102,7 @@ void Renderer::renderScene(std::vector<Object>& objects,
     lightData.dirCount   = lights.dirBucket.size();
     lightData.pointCount = lights.pointBucket.size();
     lightData.spotCount  = lights.spotBucket.size();
-    uboLights.Bind();
+    uboLights->Bind();
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(lightData), &lightData); // Update uniform buffer
 
     // 1. Prepare the frame (Clear buffers)
@@ -111,38 +112,38 @@ void Renderer::renderScene(std::vector<Object>& objects,
     shader.Activate(); // This is temporary
 
     // 3. THE INJECTION POINT
-    shader.setUniform("lightCount", static_cast<int>(lights.size()));
-    for (int i = 0; i < lights.size(); i++) {
-
-        // Universal light uniforms
-        std::string indexStr = std::format("lights[{}].", i);
-        shader.setUniform((indexStr + "type"    ).c_str(),  static_cast<GLuint>(lights[i]->type));
-        shader.setUniform((indexStr + "ambient" ).c_str(),  lights[i]->ambient);
-        shader.setUniform((indexStr + "diffuse" ).c_str(),  lights[i]->diffuse);
-        shader.setUniform((indexStr + "specular").c_str(),  lights[i]->specular);
-
-        // Directional light uniforms
-        if (lights[i]->type == LightType::Directional) {
-            auto dLight = static_cast<DirectionalLight&>(*lights[i]);
-            shader.setUniform((indexStr + "direction").c_str(),  dLight.direction);
-
-            // Point light uniforms
-        } else if (lights[i]->type == LightType::Point) {
-            auto pLight = static_cast<PointLight&>(*lights[i]);
-            shader.setUniform((indexStr + "position").c_str(),  pLight.position);
-            shader.setUniform((indexStr + "constant").c_str(),  pLight.constant);
-            shader.setUniform((indexStr + "linear").c_str(),    pLight.linear);
-            shader.setUniform((indexStr + "quadratic").c_str(), pLight.quadratic);
-
-            // Spot light uniforms
-        } else if (lights[i]->type == LightType::Spot) {
-            auto sLight = static_cast<SpotLight&>(*lights[i]);
-            shader.setUniform((indexStr + "position"   ).c_str(),  sLight.position);
-            shader.setUniform((indexStr + "direction"  ).c_str(),  sLight.direction);
-            shader.setUniform((indexStr + "cutOff"     ).c_str(),  sLight.cutOff);
-            shader.setUniform((indexStr + "outerCutOff").c_str(),  sLight.outerCutOff);
-        }
-    }
+    // shader.setUniform("lightCount", static_cast<int>(lights.size()));
+    // for (int i = 0; i < lights.size(); i++) {
+    //
+    //     // Universal light uniforms
+    //     std::string indexStr = std::format("lights[{}].", i);
+    //     shader.setUniform((indexStr + "type"    ).c_str(),  static_cast<GLuint>(lights[i]->type));
+    //     shader.setUniform((indexStr + "ambient" ).c_str(),  lights[i]->ambient);
+    //     shader.setUniform((indexStr + "diffuse" ).c_str(),  lights[i]->diffuse);
+    //     shader.setUniform((indexStr + "specular").c_str(),  lights[i]->specular);
+    //
+    //     // Directional light uniforms
+    //     if (lights[i]->type == LightType::Directional) {
+    //         auto dLight = static_cast<DirectionalLight&>(*lights[i]);
+    //         shader.setUniform((indexStr + "direction").c_str(),  dLight.direction);
+    //
+    //         // Point light uniforms
+    //     } else if (lights[i]->type == LightType::Point) {
+    //         auto pLight = static_cast<PointLight&>(*lights[i]);
+    //         shader.setUniform((indexStr + "position").c_str(),  pLight.position);
+    //         shader.setUniform((indexStr + "constant").c_str(),  pLight.constant);
+    //         shader.setUniform((indexStr + "linear").c_str(),    pLight.linear);
+    //         shader.setUniform((indexStr + "quadratic").c_str(), pLight.quadratic);
+    //
+    //         // Spot light uniforms
+    //     } else if (lights[i]->type == LightType::Spot) {
+    //         auto sLight = static_cast<SpotLight&>(*lights[i]);
+    //         shader.setUniform((indexStr + "position"   ).c_str(),  sLight.position);
+    //         shader.setUniform((indexStr + "direction"  ).c_str(),  sLight.direction);
+    //         shader.setUniform((indexStr + "cutOff"     ).c_str(),  sLight.cutOff);
+    //         shader.setUniform((indexStr + "outerCutOff").c_str(),  sLight.outerCutOff);
+    //     }
+    // }
 
     // 4. THE OBJECT LOOP
     for (auto object: objects) {

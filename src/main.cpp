@@ -68,12 +68,12 @@ int main() {
     light0.constant  = 1.0f;
     light0.linear    = 0.09f;
     light0.quadratic = 0.032f;
-    light0.radius    = 10.0f;
+    light0.radius    = 1.0f;
     auto light1 = light0;
     light1.position = glm::vec3(-1.0f, 0.0f, 0.2f);
     auto light2 = SpotLight {};
     light2.position    = glm::vec3(0.0f);
-    light2.intensity   = 10.0f;
+    light2.intensity   = 1.0f;
     light2.direction   = glm::vec3(0.0f);
     light2.cutOff      = std::cos(std::numbers::pi/17.0f);
     light2.color       = glm::vec3(1.0f);
