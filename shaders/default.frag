@@ -1,5 +1,6 @@
 #version 420 core
 
+
 //----------------------------------------------------------------------------------------------------------------------
 // Type Definitions
 struct Material {
@@ -61,63 +62,111 @@ in vec3 fragPos;
 out vec4 FragColor;
 
 
+vec3 calculateDirLight(DirLight   light, vec3 normal, vec3 viewDir, vec3 albedo, vec3 specMap, vec3 fragPos);
+vec3 calculatePointLight(PointLight   light, vec3 normal, vec3 viewDir, vec3 albedo, vec3 specMap, vec3 fragPos);
+vec3 calculateSpotLight(SpotLight   light, vec3 normal, vec3 viewDir, vec3 albedo, vec3 specMap, vec3 fragPos);
 //======================================================================================================================
 void main()
 {
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
     vec3 result = vec3(0.0);
     vec3 totalLight = vec3(0.0);
 
     // Calculate these once outside main
     vec3 norm     = normalize(normal);
-    vec3  viewDir = normalize(viewPos -fragPos);
+    vec3 viewDir  = normalize(viewPos -fragPos);
     vec3 albedo   = texture(material.diffuse, texCoord).rgb;
     vec3 specMap  = texture(material.specular, texCoord).rgb;
 
+    // Directional Light Loop
+    for (int i = 0; i < dirCount; i++) {
+        totalLight += calculateDirLight(dirLights[i], norm, viewDir, albedo, specMap, fragPos);
+    }
+    // Point Light Loop
+    for (int i = 0; i < pointCount; i++) {
+        totalLight += calculatePointLight(pointLights[i], norm, viewDir, albedo, specMap, fragPos);
+    }
     // Spot Light Loop
     for (int i = 0; i < spotCount; i++) {
-
-//            vec3 lightsDir = normalize(-lights[i].direction);// Directional Light
-//            lightDir = normalize(lights[i].position - fragPos);// Point Light
-//            // Point attenuation
-//            float distance    = length(lights[i].position - fragPos);
-//            float attenuation = 1.0 / (lights[i].constant + lights[i].linear * distance + lights[i].quadratic * (distance * distance));
-        vec3 lightDir = (spotLights[i].position - fragPos);
-
-        // Spot light cone calcuation
-        vec3 spotDir  = normalize(spotLights[i].direction);
-        float theta   = dot(lightDir, -spotDir);
-        float phi     = spotLights[i].cutOff; // cos(phi) is expensive so done on cpu
-        float epsilon = phi - spotLights[i].outerCutOff; // cosine difference
-        // Spot intensity
-        float intensity = clamp((theta - spotLights[i].outerCutOff) / epsilon, 0.0, 1.0);
-
-        vec3 lightEnergy = spotLights[i].color * spotLights[i].intensity;
-
-        // Ambient Lighting
-        ambient = (lightEnergy * 0.1) *  albedo;
-
-        // Diffuse Lighting
-        float diff = max(dot(norm, lightDir), 0.0);
-        diffuse    = lightEnergy * diff * albedo;
-
-        // Specular Lighting
-        vec3  reflectDir = reflect(-lightDir, norm);
-        float spec       = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-        float brightness = dot(specMap, vec3(0.2126, 0.7152, 0.0722));// Weighted brightness
-        specular   =  lightEnergy * spec * brightness;
-        //          vec3 specular = lightEnergy * spec * specMap;
-
-        // Apply intensity / Attenuation (Point/Spot)
-        ambient  *= intensity;
-        diffuse  *= intensity;
-        specular *= intensity;
-        totalLight += ambient + diffuse + specular;
+        totalLight += calculateSpotLight(spotLights[i], norm, viewDir, albedo, specMap, fragPos);
     }
-    // Calculate Result
-    result = totalLight * objColor;
-    FragColor = vec4(result, 1.0);
+    // Calculate Frag Color
+    FragColor = vec4((totalLight * objColor), 1.0);
 }
 //----------------------------------------------------------------------------------------------------------------------
+
+vec3 calculateDirLight(DirLight   light, vec3 normal, vec3 viewDir, vec3 albedo, vec3 specMap, vec3 fragPos) {
+    return vec3(0.0);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+vec3 calculatePointLight(PointLight light, vec3 normal, vec3 viewDir, vec3 albedo, vec3 specMap, vec3 fragPos) {
+
+    vec3 lightDir = normalize(light.position - fragPos);// Point Light
+    // Point attenuation
+    float distance    = length(light.position - fragPos);
+    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
+
+    vec3 lightEnergy = light.color * light.intensity;
+
+    // Ambient Lighting
+    vec3 ambient = (lightEnergy * 0.1) *  albedo;
+
+    // Diffuse Lighting
+    float diff = max(dot(normal, lightDir), 0.0);
+    vec3 diffuse    = lightEnergy * diff * albedo;
+
+    // Specular Lighting
+    vec3  reflectDir = reflect(-lightDir, normal);
+    float spec       = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+    float brightness = dot(specMap, vec3(0.2126, 0.7152, 0.0722));// Weighted brightness
+    vec3 specular   =  lightEnergy * spec * brightness;
+    //        vec3 specular = lightEnergy * spec * specMap;
+
+    // Apply intensity / Attenuation (Point/Spot)
+    ambient  *= attenuation;
+    diffuse  *= attenuation;
+    specular *= attenuation;
+    return ambient + diffuse + specular;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+vec3 calculateSpotLight(SpotLight   light, vec3 normal, vec3 viewDir, vec3 albedo, vec3 specMap, vec3 fragPos) {
+
+
+    //            vec3 lightsDir = normalize(-lights[i].direction);// Directional Light
+    //            lightDir = normalize(lights[i].position - fragPos);// Point Light
+    //            // Point attenuation
+    //            float distance    = length(lights[i].position - fragPos);
+    //            float attenuation = 1.0 / (lights[i].constant + lights[i].linear * distance + lights[i].quadratic * (distance * distance));
+    vec3 lightDir = normalize(light.position - fragPos);
+
+    // Spot light cone calcuation
+    vec3 spotDir  = normalize(light.direction);
+    float theta   = dot(lightDir, -spotDir);
+    float phi     = light.cutOff; // cos(phi) is expensive so done on cpu
+    float epsilon = phi - light.outerCutOff; // cosine difference
+    // Spot intensity
+    float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
+
+    vec3 lightEnergy = light.color * light.intensity;
+
+    // Ambient Lighting
+    vec3 ambient = (lightEnergy * 0.1) *  albedo;
+
+    // Diffuse Lighting
+    float diff = max(dot(normal, lightDir), 0.0);
+    vec3 diffuse    = lightEnergy * diff * albedo;
+
+    // Specular Lighting
+    vec3  reflectDir = reflect(-lightDir, normal);
+    float spec       = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+    float brightness = dot(specMap, vec3(0.2126, 0.7152, 0.0722));// Weighted brightness
+    vec3 specular   =  lightEnergy * spec * brightness;
+    //        vec3 specular = lightEnergy * spec * specMap;
+
+    // Apply intensity / Attenuation (Point/Spot)
+    ambient  *= intensity;
+    diffuse  *= intensity;
+    specular *= intensity;
+    return ambient + diffuse + specular;
+}
