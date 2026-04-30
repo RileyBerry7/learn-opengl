@@ -60,7 +60,7 @@ public:
         ambient( glm::vec3(0.25f, 0.25f, 0.25f)),
         diffuse( glm::vec3(0.4f, 0.4f, 0.4f)),
         specular(glm::vec3(0.77f, 0.77f, 0.77f)),
-        shininess(76.8f){}
+        shininess(106.8f){}
 
     void apply() override {
         // struct Light {
