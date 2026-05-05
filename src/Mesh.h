@@ -35,7 +35,9 @@ public:
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     std::string warn, err;
+
     std::string filename;
+    std::string matDir;
 
     ~Mesh() {
         vao->Delete();
@@ -44,10 +46,11 @@ public:
     }
 
     // CONSTRUCTOR
-    Mesh(std::string filePath) {
+    Mesh(std::string filePath, std::string matDir = "") :
+    filename(filePath), matDir(matDir) {
 
         // Load Model
-        loadModel(filePath);
+        loadModel(filePath, matDir);
 
         // Error Check
         if (vertices.empty()) {
@@ -75,7 +78,7 @@ public:
         // std::cout << "Index Count: "    << mesh.index_count  << std::endl;
     }
 
-    void loadModel(std::string fileName){
+    void loadModel(std::string objFile, std::string matFile){
         // Modern OOP Implementation
         // std::string inputFile = fileName;
         // tinyobj::ObjReaderConfig readerConfig;
@@ -89,7 +92,8 @@ public:
         // }
 
         // Load Mesh
-        bool success = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, fileName.c_str());
+        bool success = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err,
+                                objFile.c_str(), matFile.c_str());
         if (!warn.empty()) std::cout << "WARN: " << warn << "\n";
         if (!err.empty())  std::cout << "ERR: " << err << "\n";
         if (!success) {

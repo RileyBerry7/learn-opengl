@@ -47,7 +47,7 @@ int main() {
     std::string     path = "resources/models/";
     Mesh cubeMesh  (path + "cube.obj");
     Mesh sphereMesh(path + "sphere.obj");
-    Mesh houseMesh(path + "Floor.obj");
+    Mesh floorMesh(path + "Floor.obj", path);
 
     // Load textures
     path          = "resources/textures/";
@@ -106,7 +106,7 @@ int main() {
     Object object5(emisiveShader, sphereMesh, texture, lightMaterial);
     object5.position = light1.position;object5.scale = glm::vec3(0.4);
 
-    Object object6(defaultShader, houseMesh, texture, steel);
+    Object object6(defaultShader, floorMesh, texture, steel);
     object6.position = glm::vec3(0.0f, -1.0f, 0.0f);
 
     std::vector<Object> objects;
