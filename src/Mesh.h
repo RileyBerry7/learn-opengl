@@ -14,6 +14,13 @@
 #include "ebo.h"
 #include "material.h"
 
+struct subMesh {
+    int materialIndex;
+    unsigned int indexOffset; // Starting point
+    unsigned int count;       // Length
+};
+
+#define DEFAULT_MATERIAL_INDEX 0
 //======================================================================================
 
 class Mesh {
@@ -28,6 +35,7 @@ public:
     std::unique_ptr<EBO>      ebo;
 
     std::vector<std::unique_ptr<DefaultMaterial>> materialList;
+    std::vector<subMesh> subMeshes;
 
     // Obj Parse Atrributes
     int vertex_count = 0;
@@ -84,107 +92,138 @@ public:
         // std::cout << "Index Count: "    << mesh.index_count  << std::endl;
     }
 
-    void loadModel(std::string objFile, std::string matFile){
-        // Modern OOP Implementation
-        // std::string inputFile = fileName;
-        // tinyobj::ObjReaderConfig readerConfig;
-        // readerConfig.mtl_search_path = "./";
-        //
-        // tinyobj::ObjReader reader;
-        // if (!reader.ParseFromFile(inputFile, readerConfig)) {
-        //     if (!reader.Error().empty()) {
-        //
-        //     }
-        // }
+void loadModel(std::string objFile, std::string matFile) {
+    // Load Mesh
+    bool success = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, objFile.c_str(), matFile.c_str());
 
-        // Load Mesh
-        bool success = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err,
-                                objFile.c_str(), matFile.c_str());
-        if (!warn.empty()) std::cout << "WARN: " << warn << "\n";
-        if (!err.empty())  std::cout << "ERR: " << err << "\n";
-        if (!success) {
-            std::cerr << "Failed to load OBJ\n";
-            // return;
-            // return 1;
-        }
-        vertices.reserve(shapes.size() * 1000); // optional optimization
+    if (!warn.empty()) std::cout << "WARN: " << warn << "\n";
+    if (!err.empty()) std::cout << "ERR: " << err << "\n";
+    if (!success) {
+        std::cerr << "Failed to load OBJ: " << objFile << std::endl;
+        return;
+    }
 
-        for (const auto& shape : shapes) {
-            for (const auto& index : shape.mesh.indices) {
+    vertices.reserve(shapes.size() * 1000);
 
-                // -------------------------
-                // POSITION (x, y, z)
-                // -------------------------
-                float vx = attrib.vertices[3 * index.vertex_index + 0];
-                float vy = attrib.vertices[3 * index.vertex_index + 1];
-                float vz = attrib.vertices[3 * index.vertex_index + 2];
+    // Grouping indices by material to create subMeshes
+    std::map<int, std::vector<unsigned int>> materialToIndices;
 
-                // -------------------------
-                // COLOR (r, g, b)
-                // OBJ usually doesn't have this → default white
-                // -------------------------
-                float r = 1.0f;
-                float g = 1.0f;
-                float b = 1.0f;
+    // Map to track unique vertices and avoid massive duplication (Vertex Deduplication)
+    // Key is a string of "posIndex_texIndex_normalIndex"
+    std::map<std::string, unsigned int> uniqueVertices;
 
-                // -------------------------
-                // UV (u, v)
-                // -------------------------
-                float u = 0.0f;
-                float v = 0.0f;
+    for (const auto& shape : shapes) {
+        for (size_t f = 0; f < shape.mesh.indices.size() / 3; f++) {
 
-                if (!attrib.texcoords.empty() && index.texcoord_index >= 0) {
-                    u = attrib.texcoords[2 * index.texcoord_index + 0];
-                    v = attrib.texcoords[2 * index.texcoord_index + 1];
+            // Get material ID for this face (default to 0 if negative)
+            int matID = shape.mesh.material_ids[f];
+
+            if (matID < 0) {
+                matID = DEFAULT_MATERIAL_INDEX; // use fallback
+            } else {
+                matID += 1; // shift to account for default material
+            }
+
+            for (size_t vi = 0; vi < 3; vi++) {
+                tinyobj::index_t index = shape.mesh.indices[3 * f + vi];
+
+                // Create a unique key for this specific vertex combination
+                std::string key = std::to_string(index.vertex_index) + "_" +
+                                  std::to_string(index.texcoord_index) + "_" +
+                                  std::to_string(index.normal_index);
+
+                if (uniqueVertices.find(key) == uniqueVertices.end()) {
+                    // Record the index where this new unique vertex will be stored
+                    uniqueVertices[key] = static_cast<unsigned int>(vertices.size() / stride);
+
+                    // -------------------------
+                    // POSITION (x, y, z)
+                    // -------------------------
+                    vertices.push_back(attrib.vertices[3 * index.vertex_index + 0]);
+                    vertices.push_back(attrib.vertices[3 * index.vertex_index + 1]);
+                    vertices.push_back(attrib.vertices[3 * index.vertex_index + 2]);
+
+                    // -------------------------
+                    // COLOR (r, g, b)
+                    // -------------------------
+                    vertices.push_back(1.0f);
+                    vertices.push_back(1.0f);
+                    vertices.push_back(1.0f);
+
+                    // -------------------------
+                    // UV (u, v)
+                    // -------------------------
+                    float u = 0.0f, v = 0.0f;
+                    if (!attrib.texcoords.empty() && index.texcoord_index >= 0) {
+                        u = attrib.texcoords[2 * index.texcoord_index + 0];
+                        v = attrib.texcoords[2 * index.texcoord_index + 1];
+                    }
+                    vertices.push_back(u);
+                    vertices.push_back(v);
+
+                    // -------------------------
+                    // NORMAL VECTOR (nx, ny, nz)
+                    // -------------------------
+                    float nx = 0.0f, ny = 0.0f, nz = 0.0f;
+                    if (index.normal_index >= 0) {
+                        nx = attrib.normals[3 * index.normal_index + 0];
+                        ny = attrib.normals[3 * index.normal_index + 1];
+                        nz = attrib.normals[3 * index.normal_index + 2];
+                    }
+                    vertices.push_back(nx);
+                    vertices.push_back(ny);
+                    vertices.push_back(nz);
                 }
 
-                // -------------------------
-                // NORMAL VECTOR (nx, ny, nz)
-                // -------------------------
-                float nx = 0.0f, ny = 0.0f, nz = 0.0f;
-
-                // Check if the normal_index is valid before accessing the array
-                if (index.normal_index >= 0) {
-                    nx = attrib.normals[3 * index.normal_index + 0];
-                    ny = attrib.normals[3 * index.normal_index + 1];
-                    nz = attrib.normals[3 * index.normal_index + 2];
-                }
-
-                // -------------------------
-                // PUSH INTERLEAVED VERTEX
-                // -------------------------
-                vertices.push_back(vx);
-                vertices.push_back(vy);
-                vertices.push_back(vz);
-
-                vertices.push_back(r);
-                vertices.push_back(g);
-                vertices.push_back(b);
-
-                vertices.push_back(u);
-                vertices.push_back(v);
-
-                vertices.push_back(nx);
-                vertices.push_back(ny);
-                vertices.push_back(nz);
+                // Map this triangle's vertex to the correct index in our grouped list
+                materialToIndices[matID].push_back(uniqueVertices[key]);
             }
         }
-    //------------------------------------------------------
-    for (unsigned int i = 0; i < vertices.size()/stride; i++) {
-        indices.push_back(i);
     }
-    //------------------------------------------------------
 
-    vertex_count = vertices.size() / stride;
-    index_count  = indices.size();
+    // FLATTEN: Combine grouped indices into the final index buffer and define subMeshes
+    indices.clear();
+    subMeshes.clear(); // Ensure list is clean
+    for (auto const& [matID, matIndices] : materialToIndices) {
+        subMesh batch;
+        batch.materialIndex = matID;
+        batch.indexOffset = static_cast<unsigned int>(indices.size());
+        batch.count = static_cast<unsigned int>(matIndices.size());
+
+        subMeshes.push_back(batch);
+        indices.insert(indices.end(), matIndices.begin(), matIndices.end());
     }
+
+    vertex_count = static_cast<int>(vertices.size() / stride);
+    index_count = static_cast<int>(indices.size());
+}
+
 
     void draw() const {
+        if (materialList.empty()) return; // Safety check: No materials loaded yet
+
         vao->Bind();
-        glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
+        for (const auto& sm : subMeshes) {
+            // Critical safety check: Ensure the index is valid for our materialList
+            if (sm.materialIndex >= 0 && sm.materialIndex < (int)materialList.size()) {
+                auto mat = materialList[sm.materialIndex].get();
+                if (mat) {
+                    mat->apply();
+                    glDrawElements(GL_TRIANGLES, sm.count, GL_UNSIGNED_INT, (void*)(uintptr_t)(sm.indexOffset * sizeof(unsigned int)));
+                }
+            }
+        }
+        vao->Unbind();
+        // glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
     }
 
     void loadMaterial(Shader& suggestedShader) {
+        auto defaultMat = std::make_unique<DefaultMaterial>(suggestedShader);
+        defaultMat->ambient   = glm::vec3(0.2f);
+        defaultMat->diffuse   = glm::vec3(0.8f, 0.8f, 0.8f); // neutral gray
+        defaultMat->specular  = glm::vec3(0.1f);
+        defaultMat->shininess = 8.0f;
+        materialList.push_back(std::move(defaultMat));
 
         // 1. Convert to your Class
         for (const auto& mat : materials) {
@@ -201,10 +240,12 @@ public:
             GLenum tt     = GL_TEXTURE_2D;
             GLenum pt     = GL_UNSIGNED_BYTE;
             if (!mat.diffuse_texname.empty()) {     // DANGLING POINTER !!!!!
-                material->diffuseMap = new Tex(mat.diffuse_texname.c_str(), tt, GL_TEXTURE0, pt);
+                std::string path = matDir + mat.diffuse_texname;
+                material->diffuseMap = new Tex(path.c_str(), tt, GL_TEXTURE0, pt);
             }
             if (!mat.specular_texname.empty()) {
-                material->specMap = new Tex(mat.specular_texname.c_str(), tt, GL_TEXTURE1, pt);
+                std::string path = matDir + mat.specular_texname;
+                material->specMap = new Tex(path.c_str(), tt, GL_TEXTURE1, pt);
             }
             materialList.push_back(std::move(material));
         }

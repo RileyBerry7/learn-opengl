@@ -45,9 +45,12 @@ int main() {
 
     // Load meshes
     std::string     path = "resources/models/";
-    Mesh cubeMesh  (path + "cube.obj");
-    Mesh sphereMesh(path + "sphere.obj");
+    Mesh cubeMesh  (path + "cube.obj", path);
+    Mesh sphereMesh(path + "sphere.obj", path);
     Mesh floorMesh(path + "Floor.obj", path);
+    cubeMesh.loadMaterial(defaultShader);
+    sphereMesh.loadMaterial(defaultShader);
+    floorMesh.loadMaterial(defaultShader);
 
     // Load textures
     path          = "resources/textures/";
@@ -108,6 +111,7 @@ int main() {
 
     Object object6(defaultShader, floorMesh, texture, &steel);
     object6.position = glm::vec3(0.0f, -1.0f, 0.0f);
+    object6.scale    = glm::vec3(0.1);
 
     std::vector<Object> objects;
     objects.push_back(object0);
