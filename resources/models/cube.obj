@@ -1,5 +1,9 @@
 # Version 2 with normals
 
+mtllib crate.mtl
+o Crate
+usemtl side
+
 # 8 positions
 v -0.5 -0.5  0.5
 v -0.5  0.5  0.5

@@ -53,11 +53,11 @@ int main() {
     floorMesh.loadMaterial(defaultShader);
 
     // Load textures
-    path          = "resources/textures/";
-    GLenum tt     = GL_TEXTURE_2D;
-    GLenum pt     = GL_UNSIGNED_BYTE;
-    auto texture  = Tex(path + "wood_crate.png"  , tt, GL_TEXTURE0, pt); // Primary specMap
-    auto texture2 = Tex(path + "crate_border.png", tt, GL_TEXTURE1, pt); // Specular map
+    // path          = "resources/textures/";
+    // GLenum tt     = GL_TEXTURE_2D;
+    // GLenum pt     = GL_UNSIGNED_BYTE;
+    // auto texture  = Tex(path + "wood_crate.png"  , tt, GL_TEXTURE0, pt); // Primary specMap
+    // auto texture2 = Tex(path + "crate_border.png", tt, GL_TEXTURE1, pt); // Specular map
 
     // Load materials
     // auto steel         = DefaultMaterial(defaultShader, &texture, &texture2);

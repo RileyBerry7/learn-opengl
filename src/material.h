@@ -53,10 +53,11 @@ public:
     Tex* specMap;
     Tex* diffuseMap;
 
-    DefaultMaterial(Shader& shader, Tex* tex = nullptr, Tex* diffMap = nullptr) :
+    DefaultMaterial(Shader& shader, Tex* diffMap = nullptr, Tex* specMap = nullptr) :
         Material(shader),
-        specMap(tex),
         diffuseMap(diffMap),
+        specMap(specMap),
+        // Default material
         ambient( glm::vec3(0.25f, 0.25f, 0.25f)),
         diffuse( glm::vec3(0.4f, 0.4f, 0.4f)),
         specular(glm::vec3(0.77f, 0.77f, 0.77f)),
@@ -66,20 +67,22 @@ public:
 
         // Inject Material Uniforms
         shader->setUniform("material.ambient", ambient);
+        shader->setUniform("material.diffuse", diffuse);
+        shader->setUniform("material.specular", specular);
         shader->setUniform("material.shininess", shininess);
 
         // Set diffuse map
         if (diffuseMap != nullptr) {
             glActiveTexture(GL_TEXTURE0);
             diffuseMap->Bind();
-            diffuseMap->setUniform(*shader, "material.diffuse", 1);
+            diffuseMap->setUniform(*shader, "material.diffuse", 0);
         }
 
             // Set specular map
         if (specMap != nullptr) {
             glActiveTexture(GL_TEXTURE1);
             specMap->Bind();
-            specMap->setUniform(*shader, "material.specular", 0);
+            specMap->setUniform(*shader, "material.specular", 1);
         }
     }
 

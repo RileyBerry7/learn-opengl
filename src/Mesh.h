@@ -240,11 +240,11 @@ void loadModel(std::string objFile, std::string matFile) {
             GLenum pt     = GL_UNSIGNED_BYTE;
             if (!mat.diffuse_texname.empty()) {     // DANGLING POINTER !!!!!
                 std::string path = texDir + mat.diffuse_texname;
-                material->diffuseMap = new Tex(path.c_str(), tt, GL_TEXTURE0, pt);
+                material->diffuseMap = new Tex(path, tt, GL_TEXTURE0, pt);
             }
             if (!mat.specular_texname.empty()) {
                 std::string path = texDir + mat.specular_texname;
-                material->specMap = new Tex(path.c_str(), tt, GL_TEXTURE1, pt);
+                material->specMap = new Tex(path, tt, GL_TEXTURE1, pt);
             }
             materialList.push_back(std::move(material));
         }
