@@ -13,6 +13,7 @@ Renderer::Renderer() {
     // Initialize OpenGL
     initOpenGL();
 
+    // Create Uniform Buffer
     uboLights = new UBO(sizeof(LightingData));
     uboLights->BindToSLot(0);
 }
@@ -46,6 +47,9 @@ int Renderer::initOpenGL(){
     // Enable depth test
     glEnable(GL_DEPTH_TEST);
 
+    // Enable SRGB Frame Buffer
+    // glEnable(GL_FRAMEBUFFER_SRGB);
+
     return 0;
 }
 
@@ -58,15 +62,17 @@ void Renderer::prepare(){
 }
 
 // Render function
-void Renderer::draw(Object& obj, Camera& camera){
+void Renderer::draw(Object& obj, Camera& camera, Shader& shader){
 
     // Extract: Get the Material and Mesh from the Object.
-    Material* material = obj.material;
     Mesh*     mesh     = obj.mesh;
+    mesh->materialList[0]->apply();
+    // Material* material = ;
 
     // Bind: Tell the Material to apply its shader and textures.
-    material->apply();
-    material->getShader(activeShader);
+    // material->apply();
+    // material->getShader(activeShader);
+    activeShader = &shader;
 
     // Upload: Calculate the Model matrix from the Object's position/rotation/scale and send it to the shader as a uniform.
     auto modelMatrix = glm::mat4(1.0f);
@@ -117,7 +123,7 @@ void Renderer::renderScene(std::vector<Object>& objects,
 
     // 4. THE OBJECT LOOP
     for (auto object: objects) {
-            draw(object, camera);
+            draw(object, camera, shader);
     }
 }
 

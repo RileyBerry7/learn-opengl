@@ -120,8 +120,6 @@ void loadModel(std::string objFile, std::string matFile) {
 
             if (matID < 0) {
                 matID = DEFAULT_MATERIAL_INDEX; // use fallback
-            } else {
-                matID += 1; // shift to account for default material
             }
 
             for (size_t vi = 0; vi < 3; vi++) {
@@ -186,7 +184,7 @@ void loadModel(std::string objFile, std::string matFile) {
     subMeshes.clear(); // Ensure list is clean
     for (auto const& [matID, matIndices] : materialToIndices) {
         subMesh batch;
-        batch.materialIndex = matID;
+        batch.materialIndex = (matID == -1) ? 0 : matID + 1;
         batch.indexOffset = static_cast<unsigned int>(indices.size());
         batch.count = static_cast<unsigned int>(matIndices.size());
 
@@ -200,29 +198,29 @@ void loadModel(std::string objFile, std::string matFile) {
 
 
     void draw() const {
-        if (materialList.empty()) return; // Safety check: No materials loaded yet
+        // if (materialList.empty()) return; // Safety check: No materials loaded yet
 
         vao->Bind();
         for (const auto& sm : subMeshes) {
-            // Critical safety check: Ensure the index is valid for our materialList
-            if (sm.materialIndex >= 0 && sm.materialIndex < (int)materialList.size()) {
-                auto mat = materialList[sm.materialIndex].get();
-                if (mat) {
-                    mat->apply();
-                    glDrawElements(GL_TRIANGLES, sm.count, GL_UNSIGNED_INT, (void*)(uintptr_t)(sm.indexOffset * sizeof(unsigned int)));
-                }
+            int idx = sm.materialIndex;
+            if (idx < 0 || idx >= (int)materialList.size()) {
+                idx = DEFAULT_MATERIAL_INDEX;
             }
+            materialList[idx]->apply();
+            glDrawElements(GL_TRIANGLES, sm.count, GL_UNSIGNED_INT, (void*)(uintptr_t)(sm.indexOffset * sizeof(unsigned int)));
         }
         vao->Unbind();
         // glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
     }
 
     void loadMaterial(Shader& suggestedShader) {
-        auto defaultMat = std::make_unique<DefaultMaterial>(suggestedShader);
-        defaultMat->ambient   = glm::vec3(0.2f);
-        defaultMat->diffuse   = glm::vec3(0.8f, 0.8f, 0.8f); // neutral gray
-        defaultMat->specular  = glm::vec3(0.1f);
-        defaultMat->shininess = 8.0f;
+        materialList.clear();
+        std::string path = "resources/textures/";
+        GLenum tt     = GL_TEXTURE_2D;
+        GLenum pt     = GL_UNSIGNED_BYTE;
+        auto difMap   = new Tex(path + "missing.png"  , tt, GL_TEXTURE0, pt); // Diffuse map
+        auto specMap  = new Tex(path + "missing.png", tt, GL_TEXTURE1, pt); // Specular map
+        auto defaultMat = std::make_unique<DefaultMaterial>(suggestedShader, difMap, specMap);
         materialList.push_back(std::move(defaultMat));
 
         // 1. Convert to your Class
@@ -237,14 +235,15 @@ void loadModel(std::string objFile, std::string matFile) {
             material->shininess = mat.shininess;
 
             // 4.Map texture maps
+            std::string texDir = "resources/textures/";
             GLenum tt     = GL_TEXTURE_2D;
             GLenum pt     = GL_UNSIGNED_BYTE;
             if (!mat.diffuse_texname.empty()) {     // DANGLING POINTER !!!!!
-                std::string path = matDir + mat.diffuse_texname;
+                std::string path = texDir + mat.diffuse_texname;
                 material->diffuseMap = new Tex(path.c_str(), tt, GL_TEXTURE0, pt);
             }
             if (!mat.specular_texname.empty()) {
-                std::string path = matDir + mat.specular_texname;
+                std::string path = texDir + mat.specular_texname;
                 material->specMap = new Tex(path.c_str(), tt, GL_TEXTURE1, pt);
             }
             materialList.push_back(std::move(material));

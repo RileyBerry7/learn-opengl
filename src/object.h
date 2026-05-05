@@ -27,14 +27,14 @@ public:
     // Shader Attributes
     Shader*   shader;
 
-    Material* material;
+    // Material* material;
 
-    Object(Shader& shader_program, Mesh& model_mesh, Tex& model_texture, Material* model_material = nullptr) :
+    Object(Shader& shader_program, Mesh& model_mesh) :
     // Assign references
     shader(&shader_program),
-    mesh(&model_mesh),
-    texture(&model_texture), // Redundant - (Remove)
-    material(model_material)
+    mesh(&model_mesh)
+    // texture(&model_texture), // Redundant - (Remove)
+    // material(model_material)
     {
         // Default transformations
         position = glm::vec3(0.0f, 0.0f, 0.0f);

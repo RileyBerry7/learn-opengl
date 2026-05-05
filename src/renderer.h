@@ -40,7 +40,7 @@ public:
     // METHODS
     int  initOpenGL();
     void prepare();
-    void draw(Object& obj, Camera& camera);
+    void draw(Object& obj, Camera& camera, Shader& shader);
     void renderScene(std::vector<Object>& objects,
                             LightManager& lights,
                                   Camera& camera,
