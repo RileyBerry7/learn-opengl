@@ -48,7 +48,7 @@ THE SOFTWARE.
 // version 1.0.6 : Add TINYOBJLOADER_USE_DOUBLE option(#124)
 // version 1.0.5 : Ignore `Tr` when `d` exists in MTL(#43)
 // version 1.0.4 : Support multiple filenames for 'mtllib'(#112)
-// version 1.0.3 : Support parsing texture options(#85)
+// version 1.0.3 : Support parsing specMap options(#85)
 // version 1.0.2 : Improve parsing speed by about a factor of 2 for large
 // files(#105)
 // version 1.0.1 : Fixes a shape is lost if obj ends with a 'usemtl'(#104)
@@ -88,12 +88,12 @@ namespace tinyobj {
 
 // https://en.wikipedia.org/wiki/Wavefront_.obj_file says ...
 //
-//  -blendu on | off                       # set horizontal texture blending
+//  -blendu on | off                       # set horizontal specMap blending
 //  (default on)
-//  -blendv on | off                       # set vertical texture blending
+//  -blendv on | off                       # set vertical specMap blending
 //  (default on)
 //  -boost real_value                      # boost mip-map sharpness
-//  -mm base_value gain_value              # modify texture map values (default
+//  -mm base_value gain_value              # modify specMap map values (default
 //  0 1)
 //                                         #     base_value = brightness,
 //                                         gain_value = contrast
@@ -103,7 +103,7 @@ namespace tinyobj {
 //  1 1 1)
 //  -t u [v [w]]                           # Turbulence                (default
 //  0 0 0)
-//  -texres resolution                     # texture resolution to create
+//  -texres resolution                     # specMap resolution to create
 //  -clamp on | off                        # only render texels in the clamped
 //  0-1 range (default off)
 //                                         #   When unclamped, textures are
@@ -116,7 +116,7 @@ namespace tinyobj {
 //
 //  -imfchan r | g | b | m | l | z         # specifies which channel of the file
 //  is used to
-//                                         # create a scalar or bump texture.
+//                                         # create a scalar or bump specMap.
 //                                         r:red, g:green,
 //                                         # b:blue, m:matte, l:luminance,
 //                                         z:z-depth..
@@ -129,7 +129,7 @@ namespace tinyobj {
 //
 //   -type sphere                           # specifies a sphere for a "refl"
 //   reflection map
-//   -type cube_top    | cube_bottom |      # when using a cube map, the texture
+//   -type cube_top    | cube_bottom |      # when using a cube map, the specMap
 //   file for each
 //         cube_front  | cube_back   |      # side of the cube is specified
 //         separately
@@ -137,7 +137,7 @@ namespace tinyobj {
 //
 // TinyObjLoader extension.
 //
-//   -colorspace SPACE                      # Color space of the texture. e.g.
+//   -colorspace SPACE                      # Color space of the specMap. e.g.
 //   'sRGB` or 'linear'
 //
 
@@ -395,7 +395,7 @@ struct attrib_t {
   std::vector<real_t> normals;         // 'vn'
   std::vector<real_t> texcoords;       // 'vt'(uv)
 
-  // For backward compatibility, we store texture coordinate 'w' in separate
+  // For backward compatibility, we store specMap coordinate 'w' in separate
   // array.
   std::vector<real_t> texcoord_ws;  // 'vt'(w)
   std::vector<real_t> colors;       // extension: vertex colors
@@ -637,10 +637,10 @@ void LoadMtl(std::map<std::string, int> *material_map,
              std::string *warning, std::string *err);
 
 ///
-/// Parse texture name and texture option for custom texture parameter through
+/// Parse specMap name and specMap option for custom specMap parameter through
 /// material::unknown_parameter
 ///
-/// @param[out] texname Parsed texture name
+/// @param[out] texname Parsed specMap name
 /// @param[out] texopt Parsed texopt
 /// @param[in] linebuf Input string
 ///
@@ -5750,7 +5750,7 @@ struct __line_t {
 struct __points_t {
   // p v1 v2 ...
   // In the specification, point primitrive does not have normal index and
-  // texture coord index, but TinyObjLoader allow it.
+  // specMap coord index, but TinyObjLoader allow it.
   std::vector<vertex_index_t> vertex_indices;
 };
 
@@ -6925,7 +6925,7 @@ bool ParseTextureNameAndOption(std::string *texname, texture_option_t *texopt,
       token += 12;
       texopt->colorspace = parseString(&token);
     } else {
-// Assume texture filename
+// Assume specMap filename
 #if 0
       size_t len = strcspn(token, " \t\r");  // untile next space
       texture_name = std::string(token, token + len);
@@ -6934,7 +6934,7 @@ bool ParseTextureNameAndOption(std::string *texname, texture_option_t *texopt,
       token += strspn(token, " \t");  // skip space
 #else
       // Read filename until line end to parse filename containing whitespace
-      // TODO(syoyo): Support parsing texture option flag after the filename.
+      // TODO(syoyo): Support parsing specMap option flag after the filename.
       texture_name = std::string(token);
       token += texture_name.length();
 #endif
@@ -7949,10 +7949,10 @@ static bool LoadMtlInternal(std::map<std::string, int> *material_map,
       continue;
     }
 
-    // For texture directives, read rest of line and delegate to
+    // For specMap directives, read rest of line and delegate to
     // ParseTextureNameAndOption (which uses the old const char* parse functions).
 
-    // ambient or ambient occlusion texture
+    // ambient or ambient occlusion specMap
     if (sr.match("map_Ka", 6) && (sr.peek_at(6) == ' ' || sr.peek_at(6) == '\t')) {
       sr.advance(7);
       std::string line_rest = trimTrailingWhitespace(sr.read_line());
@@ -7962,7 +7962,7 @@ static bool LoadMtlInternal(std::map<std::string, int> *material_map,
       continue;
     }
 
-    // diffuse texture
+    // diffuse specMap
     if (sr.match("map_Kd", 6) && (sr.peek_at(6) == ' ' || sr.peek_at(6) == '\t')) {
       sr.advance(7);
       std::string line_rest = trimTrailingWhitespace(sr.read_line());
@@ -7977,7 +7977,7 @@ static bool LoadMtlInternal(std::map<std::string, int> *material_map,
       continue;
     }
 
-    // specular texture
+    // specular specMap
     if (sr.match("map_Ks", 6) && (sr.peek_at(6) == ' ' || sr.peek_at(6) == '\t')) {
       sr.advance(7);
       std::string line_rest = trimTrailingWhitespace(sr.read_line());
@@ -7987,7 +7987,7 @@ static bool LoadMtlInternal(std::map<std::string, int> *material_map,
       continue;
     }
 
-    // specular highlight texture
+    // specular highlight specMap
     if (sr.match("map_Ns", 6) && (sr.peek_at(6) == ' ' || sr.peek_at(6) == '\t')) {
       sr.advance(7);
       std::string line_rest = trimTrailingWhitespace(sr.read_line());
@@ -7997,7 +7997,7 @@ static bool LoadMtlInternal(std::map<std::string, int> *material_map,
       continue;
     }
 
-    // bump texture
+    // bump specMap
     if ((sr.match("map_bump", 8) || sr.match("map_Bump", 8)) &&
         (sr.peek_at(8) == ' ' || sr.peek_at(8) == '\t')) {
       sr.advance(9);
@@ -8008,7 +8008,7 @@ static bool LoadMtlInternal(std::map<std::string, int> *material_map,
       continue;
     }
 
-    // bump texture (short form)
+    // bump specMap (short form)
     if (sr.match("bump", 4) && (sr.peek_at(4) == ' ' || sr.peek_at(4) == '\t')) {
       sr.advance(5);
       std::string line_rest = trimTrailingWhitespace(sr.read_line());
@@ -8018,7 +8018,7 @@ static bool LoadMtlInternal(std::map<std::string, int> *material_map,
       continue;
     }
 
-    // alpha texture
+    // alpha specMap
     if (sr.match("map_d", 5) && (sr.peek_at(5) == ' ' || sr.peek_at(5) == '\t')) {
       sr.advance(6);
       std::string line_rest = trimTrailingWhitespace(sr.read_line());
@@ -8028,7 +8028,7 @@ static bool LoadMtlInternal(std::map<std::string, int> *material_map,
       continue;
     }
 
-    // displacement texture
+    // displacement specMap
     if ((sr.match("map_disp", 8) || sr.match("map_Disp", 8)) &&
         (sr.peek_at(8) == ' ' || sr.peek_at(8) == '\t')) {
       sr.advance(9);
@@ -8039,7 +8039,7 @@ static bool LoadMtlInternal(std::map<std::string, int> *material_map,
       continue;
     }
 
-    // displacement texture (short form)
+    // displacement specMap (short form)
     if (sr.match("disp", 4) && (sr.peek_at(4) == ' ' || sr.peek_at(4) == '\t')) {
       sr.advance(5);
       std::string line_rest = trimTrailingWhitespace(sr.read_line());
@@ -8059,7 +8059,7 @@ static bool LoadMtlInternal(std::map<std::string, int> *material_map,
       continue;
     }
 
-    // PBR: roughness texture
+    // PBR: roughness specMap
     if (sr.match("map_Pr", 6) && (sr.peek_at(6) == ' ' || sr.peek_at(6) == '\t')) {
       sr.advance(7);
       std::string line_rest = trimTrailingWhitespace(sr.read_line());
@@ -8069,7 +8069,7 @@ static bool LoadMtlInternal(std::map<std::string, int> *material_map,
       continue;
     }
 
-    // PBR: metallic texture
+    // PBR: metallic specMap
     if (sr.match("map_Pm", 6) && (sr.peek_at(6) == ' ' || sr.peek_at(6) == '\t')) {
       sr.advance(7);
       std::string line_rest = trimTrailingWhitespace(sr.read_line());
@@ -8079,7 +8079,7 @@ static bool LoadMtlInternal(std::map<std::string, int> *material_map,
       continue;
     }
 
-    // PBR: sheen texture
+    // PBR: sheen specMap
     if (sr.match("map_Ps", 6) && (sr.peek_at(6) == ' ' || sr.peek_at(6) == '\t')) {
       sr.advance(7);
       std::string line_rest = trimTrailingWhitespace(sr.read_line());
@@ -8089,7 +8089,7 @@ static bool LoadMtlInternal(std::map<std::string, int> *material_map,
       continue;
     }
 
-    // PBR: emissive texture
+    // PBR: emissive specMap
     if (sr.match("map_Ke", 6) && (sr.peek_at(6) == ' ' || sr.peek_at(6) == '\t')) {
       sr.advance(7);
       std::string line_rest = trimTrailingWhitespace(sr.read_line());
@@ -8099,7 +8099,7 @@ static bool LoadMtlInternal(std::map<std::string, int> *material_map,
       continue;
     }
 
-    // PBR: normal map texture
+    // PBR: normal map specMap
     if (sr.match("norm", 4) && (sr.peek_at(4) == ' ' || sr.peek_at(4) == '\t')) {
       sr.advance(5);
       std::string line_rest = trimTrailingWhitespace(sr.read_line());

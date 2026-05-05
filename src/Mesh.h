@@ -75,11 +75,21 @@ public:
         // std::cout << "Index Count: "    << mesh.index_count  << std::endl;
     }
 
-    void loadModel(std::string filePath){
-        // Load Mesh
-        filename = filePath;
+    void loadModel(std::string fileName){
+        // Modern OOP Implementation
+        // std::string inputFile = fileName;
+        // tinyobj::ObjReaderConfig readerConfig;
+        // readerConfig.mtl_search_path = "./";
+        //
+        // tinyobj::ObjReader reader;
+        // if (!reader.ParseFromFile(inputFile, readerConfig)) {
+        //     if (!reader.Error().empty()) {
+        //
+        //     }
+        // }
 
-        bool success = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filename.c_str());
+        // Load Mesh
+        bool success = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, fileName.c_str());
         if (!warn.empty()) std::cout << "WARN: " << warn << "\n";
         if (!err.empty())  std::cout << "ERR: " << err << "\n";
         if (!success) {

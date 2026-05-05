@@ -50,12 +50,12 @@ public:
     float     shininess;
 
     // Optional
-    Tex* texture;
+    Tex* specMap;
     Tex* diffuseMap;
 
     DefaultMaterial(Shader& shader, Tex* tex = nullptr, Tex* diffMap = nullptr) :
         Material(shader),
-        texture(tex),
+        specMap(tex),
         diffuseMap(diffMap),
         ambient( glm::vec3(0.25f, 0.25f, 0.25f)),
         diffuse( glm::vec3(0.4f, 0.4f, 0.4f)),
@@ -63,33 +63,25 @@ public:
         shininess(76.8f){}
 
     void apply() override {
-        // struct Light {
-        //     glm::vec3 position  = glm::vec3(3.3f, 0.5f, 0.7f);
-        //     glm::vec3 direction = glm::vec3(-0.2f, -0.0f, -0.1f);
-        //     glm::vec3 ambient   = glm::vec3(0.3f, 0.3f, 0.3f);
-        //     glm::vec3 diffuse   = glm::vec3(0.5f, 0.5f, 0.5f);
-        //     glm::vec3 specular  = glm::vec3(1.0f, 1.0f, 1.0f);
-        // };
-        // Light light;
-        //
 
+        // Inject Material Uniforms
         shader->setUniform("material.ambient", ambient);
         shader->setUniform("material.shininess", shininess);
 
-        if (texture != nullptr) {
+        // Set diffuse map
+        if (diffuseMap != nullptr) {
             glActiveTexture(GL_TEXTURE0);
-            texture->Bind();
-            texture->setUniform(*shader, "material.diffuse", 0);
+            diffuseMap->Bind();
+            diffuseMap->setUniform(*shader, "material.diffuse", 1);
         }
 
-        if (diffuseMap != nullptr) {
+            // Set specular map
+        if (specMap != nullptr) {
             glActiveTexture(GL_TEXTURE1);
-            diffuseMap->Bind();
-            diffuseMap->setUniform(*shader, "material.specular", 1);
+            specMap->Bind();
+            specMap->setUniform(*shader, "material.specular", 0);
         }
     }
-
-
 
 
 };

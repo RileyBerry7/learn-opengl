@@ -47,16 +47,18 @@ int main() {
     std::string     path = "resources/models/";
     Mesh cubeMesh  (path + "cube.obj");
     Mesh sphereMesh(path + "sphere.obj");
+    Mesh houseMesh(path + "Floor.obj");
 
     // Load textures
     path          = "resources/textures/";
     GLenum tt     = GL_TEXTURE_2D;
     GLenum pt     = GL_UNSIGNED_BYTE;
-    auto texture  = Tex(path + "wood_crate.png"  , tt, GL_TEXTURE0, pt); // Primary texture
+    auto texture  = Tex(path + "wood_crate.png"  , tt, GL_TEXTURE0, pt); // Primary specMap
     auto texture2 = Tex(path + "crate_border.png", tt, GL_TEXTURE1, pt); // Specular map
 
     // Load materials
     auto steel         = DefaultMaterial(defaultShader, &texture, &texture2);
+    // auo  floorMaterial = DefaultMaterial(defaultShader, );
     auto lightMaterial = EmissiveMaterial(emisiveShader);
 
 
@@ -104,6 +106,9 @@ int main() {
     Object object5(emisiveShader, sphereMesh, texture, lightMaterial);
     object5.position = light1.position;object5.scale = glm::vec3(0.4);
 
+    Object object6(defaultShader, houseMesh, texture, steel);
+    object6.position = glm::vec3(0.0f, -1.0f, 0.0f);
+
     std::vector<Object> objects;
     objects.push_back(object0);
     objects.push_back(object1);
@@ -111,6 +116,7 @@ int main() {
     objects.push_back(object3);
     objects.push_back(object4);
     objects.push_back(object5);
+    objects.push_back(object6);
 
     //===================================================================================================
     // Render Loop
