@@ -9,7 +9,7 @@
 // BASE CLASS
 class Material {
 public:
-    Shader* shader;
+    Shader* shader; // Suggested shader
 
     Material(Shader& shaderReference) :
     shader(&shaderReference) {}

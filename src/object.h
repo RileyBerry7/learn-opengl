@@ -26,20 +26,29 @@ public:
 
     // Shader Attributes
     Shader*   shader;
+
     Material* material;
 
-    Object(Shader& shader_program, Mesh& model_mesh, Tex& model_texture, Material& model_material) {
+    Object(Shader& shader_program, Mesh& model_mesh, Tex& model_texture, Material* model_material = nullptr) :
+    // Assign references
+    shader(&shader_program),
+    mesh(&model_mesh),
+    texture(&model_texture), // Redundant - (Remove)
+    material(model_material)
+    {
         // Default transformations
         position = glm::vec3(0.0f, 0.0f, 0.0f);
         rotation = glm::vec3(0.0f, 0.0f, 0.0f);
         scale    = glm::vec3(1.0f, 1.0f, 1.0f);
 
-        // Assign references
-        shader   = &shader_program;
-        mesh     = &model_mesh;
-        texture  = &model_texture;
-        material = &model_material;
+        // If no material exist, create one
+        // if (material == nullptr) material = createMaterial();
     }
+
+    // Material& createMaterial() {
+    //
+    // }
+
 
     glm::mat4 getModelMatrix() {
         auto model = glm::mat4(1.0f); // Identity matrix

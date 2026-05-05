@@ -12,6 +12,7 @@
 #include "vao.h"
 #include "vbo.h"
 #include "ebo.h"
+#include "material.h"
 
 //======================================================================================
 
@@ -21,14 +22,17 @@ public:
     std::vector<float>        vertices;
     std::vector<unsigned int> indices;
 
-    //
-    std::unique_ptr<VAO> vao;
-    std::unique_ptr<VBO> vbo;
-    std::unique_ptr<EBO> ebo;
+    // Composed Objects
+    std::unique_ptr<VAO>      vao;
+    std::unique_ptr<VBO>      vbo;
+    std::unique_ptr<EBO>      ebo;
 
-    int      vertex_count = 0;
-    int      index_count  = 0;
-    int      stride       = 11;
+    std::vector<std::unique_ptr<DefaultMaterial>> materialList;
+
+    // Obj Parse Atrributes
+    int vertex_count = 0;
+    int index_count  = 0;
+    int stride       = 11;
 
     // TinyObjLoader Attributes
     tinyobj::attrib_t attrib;
@@ -40,9 +44,11 @@ public:
     std::string matDir;
 
     ~Mesh() {
+        // Delete buffer objects
         vao->Delete();
         vbo->Delete();
         ebo->Delete();
+        // c++ smart ptrs automatically free memory
     }
 
     // CONSTRUCTOR
@@ -173,9 +179,35 @@ public:
     index_count  = indices.size();
     }
 
-void draw() const {
+    void draw() const {
         vao->Bind();
         glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
+    }
+
+    void loadMaterial(Shader& suggestedShader) {
+
+        // 1. Convert to your Class
+        for (const auto& mat : materials) {
+            // 2. Create your class instance
+            auto material = std::make_unique<DefaultMaterial>(suggestedShader);
+
+            // 3. Map colors
+            material->ambient   = glm::vec3(mat.ambient[0], mat.ambient[1], mat.ambient[2]);
+            material->diffuse   = glm::vec3(mat.diffuse[0], mat.diffuse[1], mat.diffuse[2]);
+            material->specular  = glm::vec3(mat.specular[0], mat.specular[1], mat.specular[2]);
+            material->shininess = mat.shininess;
+
+            // 4.Map texture maps
+            GLenum tt     = GL_TEXTURE_2D;
+            GLenum pt     = GL_UNSIGNED_BYTE;
+            if (!mat.diffuse_texname.empty()) {     // DANGLING POINTER !!!!!
+                material->diffuseMap = new Tex(mat.diffuse_texname.c_str(), tt, GL_TEXTURE0, pt);
+            }
+            if (!mat.specular_texname.empty()) {
+                material->specMap = new Tex(mat.specular_texname.c_str(), tt, GL_TEXTURE1, pt);
+            }
+            materialList.push_back(std::move(material));
+        }
     }
 
 };

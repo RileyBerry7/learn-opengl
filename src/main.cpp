@@ -88,25 +88,25 @@ int main() {
 
     // ------------------------- Initialize objects -------------------------
 
-    Object object0(defaultShader, cubeMesh, texture,steel );
+    Object object0(defaultShader, cubeMesh, texture, &steel);
     object0.rotation = glm::vec3(0.0f, -44.0f, 0.0f);
 
-    Object object1(defaultShader, cubeMesh, texture, steel);
+    Object object1(defaultShader, cubeMesh, texture, &steel);
     object1.position += glm::vec3(1.8f, 0.3f, -1.3f);object1.rotation.z += 10;
 
-    Object object2(defaultShader, cubeMesh, texture, steel);
+    Object object2(defaultShader, cubeMesh, texture, &steel);
     object2.position = glm::vec3(5.0f, 0.7f, 0.3f);object2.rotation.x += 8;object2.rotation.z += 15;
 
-    Object object3(defaultShader, cubeMesh, texture, steel);
+    Object object3(defaultShader, cubeMesh, texture, &steel);
     object3.position = glm::vec3(3.0f, 0.1f, -1.0f);
 
-    Object object4(emisiveShader, sphereMesh, texture, lightMaterial);
+    Object object4(emisiveShader, sphereMesh, texture, &lightMaterial);
     object4.position = glm::vec3(3.3f, 0.5f, 0.7f); object4.scale = glm::vec3(0.4);
 
-    Object object5(emisiveShader, sphereMesh, texture, lightMaterial);
+    Object object5(emisiveShader, sphereMesh, texture, &lightMaterial);
     object5.position = light1.position;object5.scale = glm::vec3(0.4);
 
-    Object object6(defaultShader, floorMesh, texture, steel);
+    Object object6(defaultShader, floorMesh, texture, &steel);
     object6.position = glm::vec3(0.0f, -1.0f, 0.0f);
 
     std::vector<Object> objects;
