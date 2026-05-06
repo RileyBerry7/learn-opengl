@@ -78,7 +78,7 @@ public:
             diffuseMap->setUniform(*shader, "material.diffuse", 0);
         }
 
-            // Set specular map
+        // Set specular map
         if (specMap != nullptr) {
             glActiveTexture(GL_TEXTURE1);
             specMap->Bind();

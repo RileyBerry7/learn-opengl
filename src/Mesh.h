@@ -34,6 +34,7 @@ public:
     std::unique_ptr<VBO>      vbo;
     std::unique_ptr<EBO>      ebo;
 
+    Shader* shader;
     std::vector<std::unique_ptr<DefaultMaterial>> materialList;
     std::vector<subMesh> subMeshes;
 
@@ -60,17 +61,19 @@ public:
     }
 
     // CONSTRUCTOR
-    Mesh(std::string filePath, std::string matDir = "") :
-    filename(filePath), matDir(matDir) {
+    Mesh(std::string fileName, Shader& shader) :
+    filename(fileName), matDir("resources/models/"), shader(&shader) {
 
-        // Load Model
-        loadModel(filePath, matDir);
-
-        // Error Check
+        // Load model
+        loadModel(matDir+fileName, matDir);
         if (vertices.empty()) {
-            std::cerr << "Mesh error: No vertices loaded. Check file path: " << filePath << std::endl;
+        // Error Check
+            std::cerr << "Mesh error: No vertices loaded. Check file path: " << fileName << std::endl;
             return;
         }
+
+        // Load material
+        loadMaterial(shader);
 
         // Initialize VAO, VBO, EBO
         vao = std::make_unique<VAO>();
