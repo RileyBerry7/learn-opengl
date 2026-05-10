@@ -27,6 +27,8 @@ void Camera::UpdateMatrix(float FOVdeg, float nearPlane, float farPlane)
 	projection = glm::perspective(glm::radians(FOVdeg), (float)width / height, nearPlane, farPlane);
 
 	cameraMatrix = projection * view;
+	this->projection = projection;
+	this->view = view;
 }
 
 

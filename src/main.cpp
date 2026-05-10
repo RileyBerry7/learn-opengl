@@ -30,6 +30,48 @@
 // std
 #include <iostream>
 #include <string>
+unsigned int loadCubemap(std::vector<std::string> faces)
+{
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+    int width, height, nrChannels;
+
+    // IMPORTANT: Cubemaps usually should NOT be flipped vertically,
+    // unlike 2D textures, as it messes up the face orientations.
+    stbi_set_flip_vertically_on_load(false);
+
+    for (unsigned int i = 0; i < faces.size(); i++)
+    {
+        // Force 4 channels (RGBA) to ensure 4-byte memory alignment
+        unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 4);
+
+        if (data)
+        {
+            // Use GL_RGBA for both internalFormat and format to match the '4' above
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+                         0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+            stbi_image_free(data);
+        }
+        else
+        {
+            std::cout << "Cubemap failed to load at path: " << faces[i] << std::endl;
+            stbi_image_free(data);
+        }
+    }
+
+    // Set essential filtering and wrapping
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Use GL_CLAMP_TO_EDGE to prevent visible seams between faces
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    return textureID;
+}
 
 // =====================================================================================================================
 int main() {
@@ -48,6 +90,23 @@ int main() {
     meshMap["cube.obj"]       = std::make_unique<Mesh>("cube.obj"  , defaultShader);
     meshMap["sphere.obj"]     = std::make_unique<Mesh>("sphere.obj", emisiveShader);
     meshMap["Floor.obj"]      = std::make_unique<Mesh>("Floor.obj" , defaultShader);
+
+    // Create cube map texture
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+    std::vector<std::string> textures_faces;
+    textures_faces.push_back("resources/textures/osaka.png");
+    textures_faces.push_back("resources/textures/osaka.png");
+    textures_faces.push_back("resources/textures/osaka.png");
+    textures_faces.push_back("resources/textures/osaka.png");
+    textures_faces.push_back("resources/textures/osaka.png");
+    textures_faces.push_back("resources/textures/osaka.png");
+
+    unsigned int cubemapTexture = loadCubemap(textures_faces);
+    auto skyboxShader = Shader("skybox.vert", "skybox.frag");
+    auto skybox = Mesh("cube.obj", skyboxShader);
 
     // ------------------------- Initialize lights -------------------------
     auto light0 = PointLight {};
@@ -114,6 +173,24 @@ int main() {
         lights.spotBucket.push_back(light2);
 
         renderer.renderScene(objects, lights, camera, defaultShader);
+
+
+        // Skybox
+        // glDepthFunc(GL_LEQUAL); // Allow drawing at depth 1.0
+        skyboxShader.Activate();
+        // 1. Prepare Matrices
+        glm::mat4 view = glm::mat4(glm::mat3(camera.view)); // Strip movement!
+        skyboxShader.setUniform("projection", camera.projection);
+        skyboxShader.setUniform("view", view);
+        // 2. Bind Texture to Unit 2
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+        skyboxShader.setUniform("cubemap", 2);
+        // 3. Draw
+        skybox.vao->Bind();
+        // glDisable(GL_CULL_FACE);
+        skybox.draw(); // Assuming this handles glDrawElements/Arrays correctly
+        // glDepthFunc(GL_LESS); // Reset depth
 
         camera.Inputs(window.getWindow(), glfwGetTime() - lastTime);
         camera.UpdateMatrix(45.0f, 0.1f, 100.0f);
