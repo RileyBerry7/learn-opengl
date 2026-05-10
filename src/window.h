@@ -6,12 +6,16 @@
 
 class Window {
 public:
+    // Window attributes
     int width  = 800;
     int height = 600;
     std::string windowName = "Riley's Renderer";
     GLFWwindow* window;
 
-    Window() {
+    // Input attributes
+    bool f_toggle;
+
+    Window() : f_toggle(false) {
         // Initialize GLFW
         if (!glfwInit()) {
             // return -1;
@@ -32,7 +36,10 @@ public:
         }
 
         // Introduce window to the current context
+        glfwSetWindowUserPointer(getWindow(), this);
         glfwMakeContextCurrent(window);
+
+        glfwSetKeyCallback(window, key_callback_static);
     }
 
     ~Window() {
@@ -43,9 +50,27 @@ public:
     void processInput () {
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)  {
             // std::cout << "User pressed ESC\n";
-            glfwSetWindowShouldClose(window, true);
+            glfwSetWindowShouldClose(window, GL_TRUE);
+        }
+
+    }
+
+    // static bridge function
+    static void key_callback_static(GLFWwindow* win, int key, int scancode, int action, int mods) {
+        // retrieve class instance
+        Window* instance = static_cast<Window*>(glfwGetWindowUserPointer(win));
+        if (instance) {
+            instance->handleKey(key, action); // call actual member function
         }
     }
+
+    void handleKey(int key, int action) {
+        if (key == int(GLFW_KEY_F) && action == GLFW_PRESS) {
+            std::cout << "F down (" << (f_toggle ? "On)" : "Off)") << std::endl;
+            f_toggle = !f_toggle;
+        }
+    }
+
     bool shouldClose() const {
         return glfwWindowShouldClose(window);
     }

@@ -93,12 +93,12 @@ int main() {
 
     // Create texture atlas
     std::vector<std::string> cubemap_faces;
-    cubemap_faces.push_back("resources/cubemap/right.png");
-    cubemap_faces.push_back("resources/cubemap/left.png");
-    cubemap_faces.push_back("resources/cubemap/top.png");
-    cubemap_faces.push_back("resources/cubemap/bottom.png");
-    cubemap_faces.push_back("resources/cubemap/front.png");
-    cubemap_faces.push_back("resources/cubemap/back.png");
+    cubemap_faces.push_back("resources/cubemap/right.jpg");
+    cubemap_faces.push_back("resources/cubemap/left.jpg");
+    cubemap_faces.push_back("resources/cubemap/top.jpg");
+    cubemap_faces.push_back("resources/cubemap/bottom.jpg");
+    cubemap_faces.push_back("resources/cubemap/front.jpg");
+    cubemap_faces.push_back("resources/cubemap/back.jpg");
 
     unsigned int cubemapTexture = loadCubemap(cubemap_faces);
     auto skyboxShader = Shader("skybox.vert", "skybox.frag");
@@ -168,25 +168,22 @@ int main() {
         lights.spotBucket.pop_back();
         lights.spotBucket.push_back(light2);
 
+        defaultShader.Activate();
+        defaultShader.setUniform("toggleF", window.f_toggle);
+
         renderer.renderScene(objects, lights, camera, defaultShader);
 
-
         // Skybox
-        // glDepthFunc(GL_LEQUAL); // Allow drawing at depth 1.0
+        glDepthFunc(GL_LEQUAL); // Allow drawing at depth 1.0
         skyboxShader.Activate();
-        // 1. Prepare Matrices
         glm::mat4 view = glm::mat4(glm::mat3(camera.view)); // Strip movement!
-        skyboxShader.setUniform("projection", camera.projection);
-        skyboxShader.setUniform("view", view);
-        // 2. Bind Texture to Unit 2
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
         skyboxShader.setUniform("cubemap", 0);
-        // 3. Draw
-        skybox.vao->Bind();
-        // glDisable(GL_CULL_FACE);
-        skybox.draw(); // Assuming this handles glDrawElements/Arrays correctly
-        // glDepthFunc(GL_LESS); // Reset depth
+        skyboxShader.setUniform("projection", camera.projection);
+        skyboxShader.setUniform("view", view);
+        skybox.draw();
+        glDepthFunc(GL_LESS); // Reset depth
 
         camera.Inputs(window.getWindow(), glfwGetTime() - lastTime);
         camera.UpdateMatrix(45.0f, 0.1f, 100.0f);

@@ -50,15 +50,13 @@ layout (std140, binding = 0 ) uniform LightData { // Lighting data block
 uniform sampler2D tex0;     // Texture uniform
 uniform vec3      viewPos;  // View position uniform
 uniform Material  material; // Material uniform
-
-uniform samplerCube cubemap; // cubemap texture sampler
+uniform bool      toggleF;
 //----------------------------------------------------------------------------------------------------------------------
 // INPUT
 in vec3 objColor;
 in vec2 texCoord;
 in vec3 normal;
 in vec3 fragPos;
-in vec3 textureDir; // direction vector: a 3D texture coordinate
 //----------------------------------------------------------------------------------------------------------------------
 // OUTPUT
 out vec4 FragColor;
@@ -85,15 +83,14 @@ void main()
         totalLight += calculateDirLight(dirLights[i], norm, viewDir, specMap);
     for (int i = 0; i < pointCount; i++)
         totalLight += calculatePointLight(pointLights[i], norm, viewDir, specMap, fragPos);
-    for (int i = 0; i < spotCount; i++)
-        totalLight += calculateSpotLight(spotLights[i], norm, viewDir, specMap, fragPos);
-
+    if (toggleF) {
+        for (int i = 0; i < spotCount; i++)
+            totalLight += calculateSpotLight(spotLights[i], norm, viewDir, specMap, fragPos);
+    }
     vec3 finalColor = (totalLight + ambient) * albedo * objColor;// Combine color components
     finalColor = finalColor / (finalColor + vec3(1.0));// Reinhard tone mapping
     finalColor = pow(finalColor, vec3(1.0/2.2));       // Gamma correction
     FragColor = vec4(finalColor, 1.0);                 // Append alpha channel
-
-//    FragColor = texture(cubemap, textureDir);
 }
 //===================================V===================================================================================
 

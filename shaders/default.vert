@@ -10,7 +10,6 @@ out vec3 objColor;
 out vec2 texCoord;
 out vec3 normal;
 out vec3 fragPos;
-out vec3 textureDir; // direction vector: a 3D texture coordinate
 
 uniform mat4 camMatrix;
 uniform mat4 modelMatrix;
@@ -25,6 +24,4 @@ void main()
     // The Normal Matrix: inverse transpose of the 3x3 model matrix
     normal = mat3(transpose(inverse(modelMatrix))) * aNormal;
     fragPos = vec3(modelMatrix * vec4(aPos, 1.0));
-
-    textureDir = aPos;
 }
