@@ -92,15 +92,15 @@ int main() {
     meshMap["Floor.obj"]      = std::make_unique<Mesh>("Floor.obj" , defaultShader);
 
     // Create texture atlas
-    std::vector<std::string> textures_faces;
-    textures_faces.push_back("resources/textures/osaka.png");
-    textures_faces.push_back("resources/textures/osaka.png");
-    textures_faces.push_back("resources/textures/osaka.png");
-    textures_faces.push_back("resources/textures/osaka.png");
-    textures_faces.push_back("resources/textures/osaka.png");
-    textures_faces.push_back("resources/textures/osaka.png");
+    std::vector<std::string> cubemap_faces;
+    cubemap_faces.push_back("resources/cubemap/right.png");
+    cubemap_faces.push_back("resources/cubemap/left.png");
+    cubemap_faces.push_back("resources/cubemap/top.png");
+    cubemap_faces.push_back("resources/cubemap/bottom.png");
+    cubemap_faces.push_back("resources/cubemap/front.png");
+    cubemap_faces.push_back("resources/cubemap/back.png");
 
-    unsigned int cubemapTexture = loadCubemap(textures_faces);
+    unsigned int cubemapTexture = loadCubemap(cubemap_faces);
     auto skyboxShader = Shader("skybox.vert", "skybox.frag");
     auto skybox = Mesh("cube.obj", skyboxShader);
 
