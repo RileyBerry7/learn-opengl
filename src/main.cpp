@@ -91,11 +91,7 @@ int main() {
     meshMap["sphere.obj"]     = std::make_unique<Mesh>("sphere.obj", emisiveShader);
     meshMap["Floor.obj"]      = std::make_unique<Mesh>("Floor.obj" , defaultShader);
 
-    // Create cube map texture
-    GLuint textureID;
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
-
+    // Create texture atlas
     std::vector<std::string> textures_faces;
     textures_faces.push_back("resources/textures/osaka.png");
     textures_faces.push_back("resources/textures/osaka.png");
@@ -183,9 +179,9 @@ int main() {
         skyboxShader.setUniform("projection", camera.projection);
         skyboxShader.setUniform("view", view);
         // 2. Bind Texture to Unit 2
-        glActiveTexture(GL_TEXTURE2);
+        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
-        skyboxShader.setUniform("cubemap", 2);
+        skyboxShader.setUniform("cubemap", 0);
         // 3. Draw
         skybox.vao->Bind();
         // glDisable(GL_CULL_FACE);
