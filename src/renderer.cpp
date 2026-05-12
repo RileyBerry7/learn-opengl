@@ -62,45 +62,41 @@ void Renderer::prepare(){
 }
 
 // Render function
-void Renderer::draw(Object& obj, Camera& camera, Shader& shader){
+void Renderer::draw(Object& obj, Camera& camera){
 
-    // Extract: Get the Material and Mesh from the Object.
-    Mesh*     mesh     = obj.mesh;
-    mesh->materialList[0]->apply();
-    // Material* material = ;
+    // Apply default material
+    // obj.mesh->materialList[0]->apply();
 
-    // Bind: Tell the Material to apply its shader and textures.
-    // material->apply();
-    // material->getShader(activeShader);
-    activeShader = &shader;
+    // Activate material shader
+    // activeShader = ;
 
-    // Upload: Calculate the Model matrix from the Object's position/rotation/scale and send it to the shader as a uniform.
+    // Calculate model matrix
     auto modelMatrix = glm::mat4(1.0f);
     modelMatrix = glm::translate(modelMatrix, obj.position);
     modelMatrix = glm::rotate(modelMatrix, glm::radians(obj.rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
     modelMatrix = glm::rotate(modelMatrix, glm::radians(obj.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
     modelMatrix = glm::rotate(modelMatrix, glm::radians(obj.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
     modelMatrix = glm::scale(modelMatrix, obj.scale);
-    activeShader->setUniform("modelMatrix", modelMatrix);
 
-    // Set Camera Matrix Uniform
-    camera.Matrix(*activeShader, "camMatrix");
-    activeShader->setUniform("viewPos", camera.Position);
+    // // Set model matrix uniform
+    // activeShader->setUniform("modelMatrix", modelMatrix);
+    //
+    // // set camera matrix uniform
+    // camera.Matrix(*activeShader, "camMatrix");
+    // activeShader->setUniform("viewPos", camera.Position);
 
-    // Execute: Tell the Mesh to call its draw command
-    mesh->draw();
+    // Draw mesh
+    obj.mesh->draw(camera, modelMatrix);
 
-    activeShader = nullptr;
+    // activeShader = nullptr;
 }
 
 // Batch rendering
 void Renderer::renderScene(std::vector<Object>& objects,
                                   LightManager& lights,
-                                        Camera& camera,
-                                        Shader& shader) {
-    // 0. Uniform Buffers
-
-    // Copy lighting data into contiguous memory
+                                        Camera& camera)
+{
+    // 1. Copy lighting data into contiguous memory
     LightingData lightData{};              // Will crash if real lights exceed struct's max lights
     for (int i = 0; i < lights.dirBucket.size(); i++) lightData.dirLights[i] = lights.dirBucket[i];
     for (int i = 0; i < lights.pointBucket.size(); i++) lightData.pointLights[i] = lights.pointBucket[i];
@@ -109,21 +105,16 @@ void Renderer::renderScene(std::vector<Object>& objects,
     lightData.pointCount = lights.pointBucket.size();
     lightData.spotCount  = lights.spotBucket.size();
     uboLights->Bind();
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(lightData), &lightData); // Update uniform buffer
 
-    // 1. Prepare the frame (Clear buffers)
+    // 2.Set Uniform buffer (lighting data)
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(lightData), &lightData);
+
+    // 3. Prepare the frame (Clear buffers)
     prepare();
 
-    // 2. Identify the Shader
-    shader.Activate();
-    // This is temporary
-    // Shader should get passed in with an ObjectManager parameter
-
-    // 3. Inject Uniforms
-
-    // 4. THE OBJECT LOOP
+    // 4. Object loop
     for (auto object: objects) {
-            draw(object, camera, shader);
+            draw(object, camera);
     }
 }
 

@@ -40,11 +40,10 @@ public:
     // METHODS
     int  initOpenGL();
     void prepare();
-    void draw(Object& obj, Camera& camera, Shader& shader);
+    void draw(Object& obj, Camera& camera);
     void renderScene(std::vector<Object>& objects,
                             LightManager& lights,
-                                  Camera& camera,
-                                  Shader& shader);
+                                  Camera& camera);
 
     void setWireframe(bool state);
     void setViewportSize(int width, int height);

@@ -83,13 +83,16 @@ int main() {
     auto camera   = Camera(window.width, window.height, glm::vec3(2.3f, 0.0f, 7.0f)); // Initialize camera
     auto defaultShader = Shader("default.vert", "default.frag");      // Initialize default shader
     auto emisiveShader = Shader("default.vert", "emissive.frag");     // Initialize emissive shader
+    std::map<std::string, Shader*> shaderMap;
+    shaderMap["default"]  = &defaultShader;
+    shaderMap["emissive"] = &emisiveShader;
     float lastTime     = glfwGetTime(); // Initialize Timer
 
     // Mesh Map
     std::map<std::string, std::unique_ptr<Mesh>> meshMap;
-    meshMap["cube.obj"]       = std::make_unique<Mesh>("cube.obj"  , defaultShader);
-    meshMap["sphere.obj"]     = std::make_unique<Mesh>("sphere.obj", emisiveShader);
-    meshMap["Floor.obj"]      = std::make_unique<Mesh>("Floor.obj" , defaultShader);
+    meshMap["cube.obj"]       = std::make_unique<Mesh>("cube.obj", shaderMap);
+    meshMap["sphere.obj"]     = std::make_unique<Mesh>("sphere.obj", shaderMap);
+    meshMap["Floor.obj"]      = std::make_unique<Mesh>("Floor.obj", shaderMap);
 
     // Create texture atlas
     std::vector<std::string> cubemap_faces;
@@ -171,7 +174,7 @@ int main() {
         defaultShader.Activate();
         defaultShader.setUniform("toggleF", window.f_toggle);
 
-        renderer.renderScene(objects, lights, camera, defaultShader);
+        renderer.renderScene(objects, lights, camera);
 
         // Skybox
         glDepthFunc(GL_LEQUAL); // Allow drawing at depth 1.0
@@ -182,7 +185,7 @@ int main() {
         skyboxShader.setUniform("cubemap", 0);
         skyboxShader.setUniform("projection", camera.projection);
         skyboxShader.setUniform("view", view);
-        skybox.draw();
+        skybox.draw(camera, glm::mat4(1.0f));
         glDepthFunc(GL_LESS); // Reset depth
 
         camera.Inputs(window.getWindow(), glfwGetTime() - lastTime);
