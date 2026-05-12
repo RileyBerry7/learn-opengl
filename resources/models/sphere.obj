@@ -2,6 +2,13 @@
 # OBJ file format with ext .obj
 # vertex count = 10242
 # face count = 20480
+
+mtllib light.mtl
+o SphereLight
+usemtl light1
+
+
+newmtl
 v 5.2573100e-001 0.0000000e+000 -8.5065100e-001
 v 5.2573100e-001 0.0000000e+000 8.5065100e-001
 v -5.2573100e-001 0.0000000e+000 8.5065100e-001

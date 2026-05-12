@@ -1,0 +1,5 @@
+newmtl light1
+# Ke 0.6 0.6 0.1 # Gold
+
+Ke 1.0 1.0 1.0 # White
+illum 2

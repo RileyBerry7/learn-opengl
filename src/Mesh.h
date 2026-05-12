@@ -13,6 +13,7 @@
 #include "vbo.h"
 #include "ebo.h"
 #include "material.h"
+#include "camera.h"
 
 struct subMesh {
     int materialIndex;
@@ -34,8 +35,8 @@ public:
     std::unique_ptr<VBO>      vbo;
     std::unique_ptr<EBO>      ebo;
 
-    Shader* shader;
-    std::vector<std::unique_ptr<DefaultMaterial>> materialList;
+    std::map<std::string, Shader*> shaderMap;
+    std::vector<std::unique_ptr<Material>> materialList;
     std::vector<subMesh> subMeshes;
 
     // Obj Parse Atrributes
@@ -61,8 +62,8 @@ public:
     }
 
     // CONSTRUCTOR
-    Mesh(std::string fileName, Shader& shader) :
-    filename(fileName), matDir("resources/models/"), shader(&shader) {
+    Mesh(std::string fileName, std::map<std::string, Shader*> shaderMap) :
+    filename(fileName), matDir("resources/models/"), shaderMap(std::move(shaderMap)) {
 
         // Load model
         loadModel(matDir+fileName, matDir);
@@ -73,7 +74,7 @@ public:
         }
 
         // Load material
-        loadMaterial(shader);
+        loadMaterial();
 
         // Initialize VAO, VBO, EBO
         vao = std::make_unique<VAO>();
@@ -200,7 +201,7 @@ void loadModel(std::string objFile, std::string matFile) {
 }
 
 
-    void draw() const {
+    void draw(Camera camera, glm::mat4 modelMatrix) const {
         // if (materialList.empty()) return; // Safety check: No materials loaded yet
 
         vao->Bind();
@@ -209,45 +210,76 @@ void loadModel(std::string objFile, std::string matFile) {
             if (idx < 0 || idx >= (int)materialList.size()) {
                 idx = DEFAULT_MATERIAL_INDEX;
             }
+            // Apply batch material/shader
+            Shader* activeShader = materialList[idx]->shader;
+            activeShader->Activate(); // Add comparison to avoid unecessary activations
+
+            // Set material uniforms
             materialList[idx]->apply();
+
+            // Set model matrix uniform
+            activeShader->setUniform("modelMatrix", modelMatrix);
+
+            // set camera matrix uniform
+            camera.Matrix(*activeShader, "camMatrix");
+            activeShader->setUniform("viewPos", camera.Position);
+
+
+            // Draw batch
             glDrawElements(GL_TRIANGLES, sm.count, GL_UNSIGNED_INT, (void*)(uintptr_t)(sm.indexOffset * sizeof(unsigned int)));
         }
         vao->Unbind();
         // glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
     }
 
-    void loadMaterial(Shader& suggestedShader) {
+    void loadMaterial() {
         materialList.clear();
         std::string path = "resources/textures/";
         GLenum tt     = GL_TEXTURE_2D;
         GLenum pt     = GL_UNSIGNED_BYTE;
         auto difMap   = new Tex(path + "missing.png"  , tt, GL_TEXTURE0, pt); // Diffuse map
         auto specMap  = new Tex(path + "missing.png", tt, GL_TEXTURE1, pt); // Specular map
-        auto defaultMat = std::make_unique<DefaultMaterial>(suggestedShader, difMap, specMap);
+        auto defaultMat = std::make_unique<DefaultMaterial>(*shaderMap[std::string("default")], difMap, specMap);
         materialList.push_back(std::move(defaultMat));
 
-        // 1. Convert to your Class
+        // 1. Convert to material class
         for (const auto& mat : materials) {
+            // Emission Handling
+            bool has_emission = (mat.emission[0] > 0.0f ||
+                                 mat.emission[1] > 0.0f ||
+                                 mat.emission[2] > 0.0f);
+
             // 2. Create your class instance
-            auto material = std::make_unique<DefaultMaterial>(suggestedShader);
+            Shader* suggestedShader;
+            std::unique_ptr<Material> material;
+            if (has_emission) {
+                suggestedShader = shaderMap[std::string("emissive")];
+                auto emisMat = std::make_unique<EmissiveMaterial>(*suggestedShader);
+                emisMat->lightColor = glm::vec3(mat.emission[0], mat.emission[1], mat.emission[2]);
+                material = std::move(emisMat);
+            } else {
+                suggestedShader = shaderMap[std::string("default")];
+                auto defMat = std::make_unique<DefaultMaterial>(*suggestedShader);
 
-            // 3. Map colors
-            material->ambient   = glm::vec3(mat.ambient[0], mat.ambient[1], mat.ambient[2]);
-            material->diffuse   = glm::vec3(mat.diffuse[0], mat.diffuse[1], mat.diffuse[2]);
-            material->specular  = glm::vec3(mat.specular[0], mat.specular[1], mat.specular[2]);
-            material->shininess = mat.shininess;
+                // 3. Map colors
+                defMat->ambient   = glm::vec3(mat.ambient[0], mat.ambient[1], mat.ambient[2]);
+                defMat->diffuse   = glm::vec3(mat.diffuse[0], mat.diffuse[1], mat.diffuse[2]);
+                defMat->specular  = glm::vec3(mat.specular[0], mat.specular[1], mat.specular[2]);
+                defMat->shininess = mat.shininess;
 
-            // 4.Map texture maps
-            std::string texDir = "resources/textures/";
-            GLenum tt     = GL_TEXTURE_2D;
-            GLenum pt     = GL_UNSIGNED_BYTE;
-            if (!mat.diffuse_texname.empty()) {     // DANGLING POINTER !!!!!
-                std::string path = texDir + mat.diffuse_texname;
-                material->diffuseMap = new Tex(path, tt, GL_TEXTURE0, pt);
-            }
-            if (!mat.specular_texname.empty()) {
-                std::string path = texDir + mat.specular_texname;
-                material->specMap = new Tex(path, tt, GL_TEXTURE1, pt);
+                // 4.Map texture maps
+                std::string texDir = "resources/textures/";
+                GLenum tt     = GL_TEXTURE_2D;
+                GLenum pt     = GL_UNSIGNED_BYTE;
+                if (!mat.diffuse_texname.empty()) {     // DANGLING POINTER !!!!!
+                    std::string path = texDir + mat.diffuse_texname;
+                    defMat->diffuseMap = new Tex(path, tt, GL_TEXTURE0, pt);
+                }
+                if (!mat.specular_texname.empty()) {
+                    std::string path = texDir + mat.specular_texname;
+                    defMat->specMap = new Tex(path, tt, GL_TEXTURE1, pt);
+                }
+                material = std::move(defMat);
             }
             materialList.push_back(std::move(material));
         }
