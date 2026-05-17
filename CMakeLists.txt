@@ -55,6 +55,8 @@ add_executable(learn-opengl
         src/window.h
         src/light.h
         src/ubo.h
+        src/renderContext.cpp
+        src/renderContext.h
 )
 
 

@@ -9,6 +9,7 @@
 #include "material.h"
 #include "light.h"
 #include "ubo.h"
+#include "renderContext.h"
 
 // STD
 #include <vector>

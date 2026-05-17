@@ -83,7 +83,8 @@ int main() {
     auto camera   = Camera(window.width, window.height, glm::vec3(2.3f, 0.0f, 7.0f)); // Initialize camera
     auto defaultShader = Shader("default.vert", "default.frag");      // Initialize default shader
     auto emisiveShader = Shader("default.vert", "emissive.frag");     // Initialize emissive shader
-    auto skyboxShader = Shader("skybox.vert", "skybox.frag");
+    auto skyboxShader  = Shader("skybox.vert", "skybox.frag");
+    auto shadowShader  = Shader("shadow.vert", "shadow.frag");
     float lastTime     = glfwGetTime(); // Initialize Timer
 
     // Shader Map
@@ -91,6 +92,7 @@ int main() {
     shaderMap["default"]  = &defaultShader;
     shaderMap["emissive"] = &emisiveShader;
     shaderMap["skybox"]   = &skyboxShader;
+    shaderMap["shadow"]   = &shadowShader;
 
     // Mesh Map
     std::map<std::string, std::unique_ptr<Mesh>> meshMap;
@@ -202,6 +204,18 @@ int main() {
     while (!window.shouldClose()) {
 
         window.processInput();
+
+        // Shadow map
+        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        // configure shadow map shader / matrices
+        // RenderScene();
+        // renderer.renderScene(objects, lights, camera, *shadowShader); // my regular renderScene function
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        glViewport(0, 0, 800, 600); // reset viewport size
+        // 2. Render scene as normal
 
         // Update Flashlight
         light2.direction = glm::normalize(camera.Orientation);

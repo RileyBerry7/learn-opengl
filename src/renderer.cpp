@@ -64,26 +64,7 @@ void Renderer::prepare(){
 // Render function
 void Renderer::draw(Object& obj, Camera& camera){
 
-    // Apply default material
-    // obj.mesh->materialList[0]->apply();
-
-    // Activate material shader
-    // activeShader = ;
-
-    // Calculate model matrix
-    auto modelMatrix = glm::mat4(1.0f);
-    modelMatrix = glm::translate(modelMatrix, obj.position);
-    modelMatrix = glm::rotate(modelMatrix, glm::radians(obj.rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-    modelMatrix = glm::rotate(modelMatrix, glm::radians(obj.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-    modelMatrix = glm::rotate(modelMatrix, glm::radians(obj.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-    modelMatrix = glm::scale(modelMatrix, obj.scale);
-
-    // // Set model matrix uniform
-    // activeShader->setUniform("modelMatrix", modelMatrix);
-    //
-    // // set camera matrix uniform
-    // camera.Matrix(*activeShader, "camMatrix");
-    // activeShader->setUniform("viewPos", camera.Position);
+    const auto modelMatrix = obj.getModelMatrix();
 
     // Draw mesh
     obj.mesh->draw(camera, modelMatrix);

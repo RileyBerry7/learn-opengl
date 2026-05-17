@@ -14,6 +14,7 @@
 #include "ebo.h"
 #include "material.h"
 #include "camera.h"
+#include "renderContext.h"
 
 struct subMesh {
     int materialIndex;
@@ -212,7 +213,7 @@ void loadModel(std::string objFile, std::string matFile) {
             }
             // Apply batch material/shader
             Shader* activeShader = materialList[idx]->shader;
-            activeShader->Activate(); // Add comparison to avoid unecessary activations
+            activeShader->Activate(); // TODO: Add comparison to avoid necessary activations
 
             // Set material uniforms
             materialList[idx]->apply();
