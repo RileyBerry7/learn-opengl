@@ -26,6 +26,7 @@
 #include  "window.h"
 #include  "renderer.h"
 #include  "light.h"
+#include "renderContext.h"
 
 // std
 #include <iostream>
@@ -210,8 +211,9 @@ int main() {
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
         glClear(GL_DEPTH_BUFFER_BIT);
         // configure shadow map shader / matrices
-        // RenderScene();
-        // renderer.renderScene(objects, lights, camera, *shadowShader); // my regular renderScene function
+        RenderContext::setPass(RenderPass::Shadow);
+        renderer.renderScene(objects, lights, camera); // my regular renderScene function
+        RenderContext::setPass(RenderPass::Main);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         glViewport(0, 0, 800, 600); // reset viewport size

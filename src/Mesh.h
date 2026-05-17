@@ -202,7 +202,7 @@ void loadModel(std::string objFile, std::string matFile) {
 }
 
 
-    void draw(Camera camera, glm::mat4 modelMatrix) const {
+    void draw(Camera camera, glm::mat4 modelMatrix) {
         // if (materialList.empty()) return; // Safety check: No materials loaded yet
 
         vao->Bind();
@@ -211,10 +211,16 @@ void loadModel(std::string objFile, std::string matFile) {
             if (idx < 0 || idx >= (int)materialList.size()) {
                 idx = DEFAULT_MATERIAL_INDEX;
             }
-            // Apply batch material/shader
-            Shader* activeShader = materialList[idx]->shader;
-            activeShader->Activate(); // TODO: Add comparison to avoid necessary activations
+            Shader* activeShader = nullptr;
+            if (RenderContext::getPass() == RenderPass::Shadow) {
+                activeShader = shaderMap[std::string("shadow")];
+                activeShader->Activate();
 
+            } else {
+                // Apply batch material/shader
+                activeShader = materialList[idx]->shader;
+                activeShader->Activate(); // TODO: Add comparison to avoid necessary activations
+            }
             // Set material uniforms
             materialList[idx]->apply();
 
