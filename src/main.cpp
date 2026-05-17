@@ -114,6 +114,7 @@ int main() {
     auto light0 = PointLight {};
     light0.position  = glm::vec3(3.3f, 0.5f, 0.7f);
     light0.intensity = 0.5f;
+    // Disgusting please remove
     light0.color     = static_cast<EmissiveMaterial*>(meshMap["sphere.obj"]->materialList[1].get())->lightColor;
     light0.constant  = 1.0f;
     light0.linear    = 0.09f;
@@ -129,10 +130,16 @@ int main() {
     light2.color       = glm::vec3(1.0f);
     light2.outerCutOff = std::cos(std::numbers::pi/13);
 
+    auto light3 = DirLight{};
+    light3.color = glm::vec3(1.0f);
+    light3.direction = glm::vec3(0.4f, -10.0f, -3.0f);
+    light3.intensity = 0.05f;
+
     LightManager lights(defaultShader);
     lights.pointBucket.push_back(light0);
     lights.pointBucket.push_back(light1);
     lights.spotBucket.push_back(light2);
+    lights.dirBucket.push_back(light3);
 
     // ------------------------- Initialize objects -------------------------
 
@@ -140,6 +147,7 @@ int main() {
     Object object1(object0);
     Object object2(object0);
     Object object3(object0);
+    auto   object7 = Object(object0);
     Object object4(emisiveShader, *meshMap["sphere.obj"].get());
     Object object5(object4);
     Object object6(defaultShader, *meshMap["Floor.obj"].get());
@@ -151,6 +159,8 @@ int main() {
     object5.position = light1.position;object5.scale = glm::vec3(0.4);
     object6.position = glm::vec3(0.0f, -1.0f, 0.0f);
     object6.scale    = glm::vec3(0.1);
+    object7.position = glm::vec3(7.5f, 0.5f, 0.7f);
+
 
     std::vector<Object> objects;
     objects.push_back(object0);
@@ -160,6 +170,31 @@ int main() {
     objects.push_back(object4);
     objects.push_back(object5);
     objects.push_back(object6);
+    objects.push_back(object7);
+
+    // Create Frame Buffer
+    GLuint depthMapFBO;
+    glGenFramebuffers(1, &depthMapFBO);
+    // next create a 2D texture we'll use as the framebuffer's depth buffer
+    const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+
+    GLuint depthMap;
+    glGenTextures(1, &depthMap);
+    glBindTexture(GL_TEXTURE_2D, depthMap);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH,
+    SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // With the generated depth texture we can attach it to the framebuffer's depth buffer
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    // With a properly configured framebuffer, we can start the first pass
+
 
     //===================================================================================================
     // Render Loop
