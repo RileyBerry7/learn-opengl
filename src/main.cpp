@@ -116,7 +116,7 @@ int main() {
     // ------------------------- Initialize lights -------------------------
     auto light0 = PointLight {};
     light0.position  = glm::vec3(3.3f, 0.5f, 0.7f);
-    light0.intensity = 0.5f;
+    light0.intensity = 0.005f;
     // Disgusting please remove
     light0.color     = static_cast<EmissiveMaterial*>(meshMap["sphere.obj"]->materialList[1].get())->lightColor;
     light0.constant  = 1.0f;
@@ -136,7 +136,7 @@ int main() {
     auto light3 = DirLight{};
     light3.color = glm::vec3(1.0f);
     light3.direction = glm::vec3(0.4f, -10.0f, -3.0f);
-    light3.intensity = 0.05f;
+    light3.intensity = 0.5f;
 
     LightManager lights(defaultShader);
     lights.pointBucket.push_back(light0);
@@ -186,17 +186,25 @@ int main() {
     glBindTexture(GL_TEXTURE_2D, depthMap);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH,
     SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
     // With the generated depth texture we can attach it to the framebuffer's depth buffer
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    // With a properly configured framebuffer, we can start the first pass
+
+    float near_plane = 0.1f, far_plane = 50.0f;
+    glm::mat4 lightProjection = glm::ortho(-25.0f, 25.0f, -25.0f, 25.0f, near_plane, far_plane);
+    glm::vec3 lightPos = glm::vec3(0.0f) - glm::normalize(light3.direction) * 25.0f;
+    glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+    glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
 
     //===================================================================================================
@@ -207,6 +215,8 @@ int main() {
         window.processInput();
 
         // Shadow map
+        shadowShader.Activate();
+        shadowShader.setUniform("lightSpaceMatrix", lightSpaceMatrix);
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
         glClear(GL_DEPTH_BUFFER_BIT);
@@ -226,6 +236,10 @@ int main() {
         lights.spotBucket.push_back(light2);
 
         defaultShader.Activate();
+        glActiveTexture(GL_TEXTURE4);
+        glBindTexture(GL_TEXTURE_2D, depthMap);
+        defaultShader.setUniform("shadowMap", 4);
+        defaultShader.setUniform("lightSpaceMatrix", lightSpaceMatrix);
         defaultShader.setUniform("toggleF", window.f_toggle);
 
         renderer.renderScene(objects, lights, camera);

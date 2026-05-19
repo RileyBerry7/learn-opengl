@@ -51,12 +51,20 @@ uniform sampler2D tex0;     // Texture uniform
 uniform vec3      viewPos;  // View position uniform
 uniform Material  material; // Material uniform
 uniform bool      toggleF;
+uniform sampler2D shadowMap;
 //----------------------------------------------------------------------------------------------------------------------
 // INPUT
 in vec3 objColor;
 in vec2 texCoord;
 in vec3 normal;
 in vec3 fragPos;
+in vec4 fragPosLightSpace;
+//in VS_OUT {
+//    vec3 FragPos;
+//    vec3 Normal;
+//    vec2 TexCoords;
+//    vec4 FragPosLightSpace;
+//} fs_in;
 //----------------------------------------------------------------------------------------------------------------------
 // OUTPUT
 out vec4 FragColor;
@@ -105,7 +113,13 @@ vec3 calculateDirLight(DirLight light, vec3 normal, vec3 viewDir, vec3 specMap) 
     vec3 diffuse  = lightEnergy * diff;              // Diffuse lighting
     vec3 specular = calcSpecular(normal, lightDir, viewDir, material.shininess, lightEnergy, specMap);// Specular lighting
 
-    return diffuse + specular;
+    // Calculate Shadow
+    vec3 proj = fragPosLightSpace.xyz / fragPosLightSpace.w * 0.5 + 0.5; // Transform [-1,1] to range
+    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005); // Stop shadow acne
+    float shadow = (proj.z - bias > texture(shadowMap, proj.xy).r) ? 1.0 : 0.0;
+    if(proj.z > 1.0) shadow = 0.0; // Prevent out-of-bounds over-shadowing
+
+    return (1.0 - shadow) * (diffuse + specular);
 }
 
 //----------------------------

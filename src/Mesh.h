@@ -220,9 +220,10 @@ void loadModel(std::string objFile, std::string matFile) {
                 // Apply batch material/shader
                 activeShader = materialList[idx]->shader;
                 activeShader->Activate(); // TODO: Add comparison to avoid necessary activations
+
+                // Set material uniforms
+                materialList[idx]->apply();
             }
-            // Set material uniforms
-            materialList[idx]->apply();
 
             // Set model matrix uniform
             activeShader->setUniform("modelMatrix", modelMatrix);
