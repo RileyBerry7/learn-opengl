@@ -84,8 +84,8 @@ int main() {
     auto camera   = Camera(window.width, window.height, glm::vec3(2.3f, 0.0f, 7.0f)); // Initialize camera
     auto defaultShader = Shader("default.vert", "default.frag");      // Initialize default shader
     auto emisiveShader = Shader("default.vert", "emissive.frag");     // Initialize emissive shader
-    auto skyboxShader  = Shader("skybox.vert", "skybox.frag");
-    auto shadowShader  = Shader("shadow.vert", "shadow.frag");
+    auto skyboxShader  = Shader("skybox.glsl");
+    auto shadowShader  = Shader("shadow2d.glsl");
     float lastTime     = glfwGetTime(); // Initialize Timer
 
     // Shader Map
