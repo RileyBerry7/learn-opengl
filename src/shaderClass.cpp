@@ -123,32 +123,29 @@ ShaderComponents parseUnifiedShader(std::string &code) {
 
 //----------------------------------------------------------------------------------------------------------------------
 // CONSTRUCTOR OVERLOAD
-// Shader::Shader(const char* glslFile) {
-	// int success;       // Compilation status?
-	// char infoLog[512]; // Info Log
-	//
-	// // 1. Parse file
-	// std::string glslCode = get_file_contents(glslFile);
-	// ShaderComponents parsedCode = parseUnifiedShader(glslCode);
-	//
-	// // Compile vertex shader
-	// // Compile geometry shader
-	// // Compile fragment shader
-	//
-	// // 3. Link shader components together
-	// ID = glCreateProgram();
-	//
-	// glAttachShader(ID, vertexShader);
-	// glAttachShader(ID, vertexShader);
-	// glAttachShader(ID, fragmentShader);
-	//
-	// // Link shaders
-	// glLinkProgram(ID);
-	//
-	// // Delete 'useless' shader objects
-	// glDeleteShader(vertexShader);
-	// glDeleteShader(fragmentShader);
-// }
+Shader::Shader(const char* glslFile)
+{
+	// --- Parse file ---
+	std::string glslCode = get_file_contents(glslFile);
+	ShaderComponents parsedCode = parseUnifiedShader(glslCode);
+
+	// --- Compile Shaders ---
+	const GLuint vertexShader   = compileShaderCode(parsedCode.vertexCode.c_str(),   ShaderType::Vertex);
+	const GLuint geometryShader = compileShaderCode(parsedCode.geometryCode.c_str(), ShaderType::Geometry);
+	const GLuint fragmentShader = compileShaderCode(parsedCode.fragmentCode.c_str(), ShaderType::Fragment);
+
+	// --- Link/Build Shader Program ---
+	ID = glCreateProgram();				        // Create shader-program object
+	glAttachShader(ID, vertexShader);   // Attach vertex shader component
+	if (!parsedCode.geometryCode.empty())
+		glAttachShader(ID, geometryShader); // Attach geometry shader component
+	glAttachShader(ID, fragmentShader); // Attach fragment shader component
+	glLinkProgram(ID);						    // Link shader program
+
+	// --- Clean up ---
+	glDeleteShader(vertexShader);
+	glDeleteShader(fragmentShader);
+}
 //----------------------------------------------------------------------------------------------------------------------
 // CONSTRUCTOR
 Shader::Shader(const char* vertexFile, const char* fragmentFile)
