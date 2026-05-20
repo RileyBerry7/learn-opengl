@@ -203,9 +203,22 @@ int main() {
     glm::mat4 lightProjection = glm::ortho(-25.0f, 25.0f, -25.0f, 25.0f, near_plane, far_plane);
     glm::vec3 lightPos = glm::vec3(0.0f) - glm::normalize(light3.direction) * 25.0f;
     glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-
     glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
+    // Texture Array
+    GLuint textureArray;
+    glGenTextures(1, &textureArray);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, textureArray);//
+    int width = 2048, height = 2048;
+    int shadowCount = 8; // Max number of 2D shadow maps
+    // Allocate 3D storage block
+    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT24,
+               width, height, shadowCount, 0,GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+    // Standard shadow map filtering
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
     //===================================================================================================
     // Render Loop

@@ -45,6 +45,9 @@ layout (std140, binding = 0 ) uniform LightData { // Lighting data block
     SpotLight  spotLights[MAX_LIGHTS];  // Array of structs
     int dirCount, pointCount, spotCount;// Array element counts
 };
+// Global Uniforms
+layout(binding = 1) uniform sampler2DArray u_2DShadowMaps;
+layout(binding = 2) uniform samplerCubeArray u_CubeShadowMaps;
 //----------------------------------------------------------------------------------------------------------------------
 // UNIFORMS
 uniform sampler2D tex0;     // Texture uniform
