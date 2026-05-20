@@ -1,5 +1,21 @@
 #include"shaderClass.h"
 
+#include <chrono>
+#include <map>
+#include <memory>
+//----------------------------------------------------------------------------------------------------------------------
+struct ShaderComponents {
+	std::string vertexCode;
+	std::string geometryCode;
+	std::string fragmentCode;
+};
+//----------------------------------------------------------------------------------------------------------------------
+enum ShaderType {
+	Vertex,
+	Geometry,
+	Fragment
+};
+//----------------------------------------------------------------------------------------------------------------------
 // GET_FILE_CONTENTS
 // Reads a text file and outputs a string with everything in the text file
 std::string get_file_contents(const char* filename)
@@ -24,94 +40,142 @@ std::string get_file_contents(const char* filename)
 		in.close();
 		return contents;
 	}
-
 	std::cerr << "Failed to open file: " << path << std::endl;
 	throw errno;
 }
+//----------------------------------------------------------------------------------------------------------------------
+GLuint compileShaderCode(const char* code, ShaderType type) {
+	int success;       // Compilation status
+	char infoLog[512]; // Compilation log
+	GLuint shader;
 
+	switch (type) {
+		case ShaderType::Vertex:
+			shader = glCreateShader(GL_VERTEX_SHADER);     // Create shader Object
+			glShaderSource(shader, 1, &code, NULL);// Attach shader-source to shader-object
+			glCompileShader(shader);									 // Compile shader
+			glGetShaderiv(shader, GL_COMPILE_STATUS, &success); // Check status
+			if(!success) {
+				glGetShaderInfoLog(shader,512,NULL,infoLog);
+				std::cerr << "Vertex shader failed to compile.\n";
+				std::cout << infoLog << std::endl;
+			}
+			break;
+		case ShaderType::Geometry:
+			shader = glCreateShader(GL_GEOMETRY_SHADER);	 // Create shader object
+			glShaderSource(shader, 1, &code, NULL);// Attach shader-source to shader-object
+			glCompileShader(shader);									 // Compile geometry shader
+			glGetShaderiv(shader, GL_COMPILE_STATUS, &success);	 // Check status
+			if(!success) {
+				glGetShaderInfoLog(shader,512,NULL,infoLog);
+				std::cerr << "Geometry shader failed to compile.\n";
+				std::cout << infoLog << std::endl;
+			}
+			break;
+		case ShaderType::Fragment:
+			shader = glCreateShader(GL_FRAGMENT_SHADER);	 // Create shader object
+			glShaderSource(shader, 1, &code, NULL);// Attach shader-source to shader-object
+			glCompileShader(shader);									 // Compile fragment shader
+			glGetShaderiv(shader, GL_COMPILE_STATUS, &success);	 // Check status
+			if(!success) {
+				glGetShaderInfoLog(shader,512,NULL,infoLog);
+				std::cerr << "Fragment shader failed to compile.\n";
+				std::cout << infoLog << std::endl;
+			}
+			break;
+		}
+	return shader;
+	}
+//----------------------------------------------------------------------------------------------------------------------
+ShaderComponents parseUnifiedShader(std::string &code) {
+
+	ShaderComponents blocks = {"", "", ""};
+	std::vector<std::string> markers = {	"#type vertex", "#type geometry", "#type fragment"};
+	std::map<size_t, std::string> foundMarkers;
+
+	// 1. Locate all markers
+	for (const auto& marker : markers) {
+		size_t pos = code.find(marker);
+		if (pos != std::string::npos) {
+			foundMarkers[pos] = marker;
+		}
+	}
+
+	// 2. Slice string by marker location
+	for (auto it = foundMarkers.begin(); it != foundMarkers.end(); ++it) {
+		size_t currentPos = it->first;
+		std::string currentType = it->second;
+		size_t codeStart = currentPos + currentType.length();
+		auto nextIt = std::next(it);
+		size_t codeEnd = (nextIt != foundMarkers.end()) ? nextIt->first : code.length();
+
+
+
+		std::string codeBlock = code.substr(codeStart, codeEnd - codeStart);
+		if      (currentType == "#type vertex") blocks.vertexCode     += codeBlock;
+		else if (currentType == "#type geometry") blocks.geometryCode += codeBlock;
+		else if (currentType == "#type fragment") blocks.fragmentCode += codeBlock;
+		std::cout << "--- Found code for: " << currentType << std::endl;
+	}
+	return blocks;
+}
+
+
+//----------------------------------------------------------------------------------------------------------------------
+// CONSTRUCTOR OVERLOAD
+// Shader::Shader(const char* glslFile) {
+	// int success;       // Compilation status?
+	// char infoLog[512]; // Info Log
+	//
+	// // 1. Parse file
+	// std::string glslCode = get_file_contents(glslFile);
+	// ShaderComponents parsedCode = parseUnifiedShader(glslCode);
+	//
+	// // Compile vertex shader
+	// // Compile geometry shader
+	// // Compile fragment shader
+	//
+	// // 3. Link shader components together
+	// ID = glCreateProgram();
+	//
+	// glAttachShader(ID, vertexShader);
+	// glAttachShader(ID, vertexShader);
+	// glAttachShader(ID, fragmentShader);
+	//
+	// // Link shaders
+	// glLinkProgram(ID);
+	//
+	// // Delete 'useless' shader objects
+	// glDeleteShader(vertexShader);
+	// glDeleteShader(fragmentShader);
+// }
+//----------------------------------------------------------------------------------------------------------------------
 // CONSTRUCTOR
 Shader::Shader(const char* vertexFile, const char* fragmentFile)
 {
-	int success;       // Status of shader compilation
-	char infoLog[512]; //
-
-	// Read vertexFile/fragmentFile
 	std::string vertexCode   = get_file_contents(vertexFile);
 	std::string fragmentCode = get_file_contents(fragmentFile);
-	// Convert to c-strings
-	const char* vertexSource = vertexCode.c_str();
-	const char* fragmentSource = fragmentCode.c_str();
 
-	//----------------------------------------------------------------------
-	// VERTEX SHADER
+	// --- Compile Shaders ---
+	const GLuint vertexShader   = compileShaderCode(vertexCode.c_str(),   ShaderType::Vertex);
+	const GLuint fragmentShader = compileShaderCode(fragmentCode.c_str(), ShaderType::Fragment);
 
-	// Create shader Object
-	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	// --- Link/Build Shader Program ---
+	ID = glCreateProgram();				       // Create shader-program object
+	glAttachShader(ID, vertexShader);  // Attach shader component to program
+	glAttachShader(ID, fragmentShader);//
+	glLinkProgram(ID);						   // Link shader program
 
-	// Attach shader-source to shader-object
-	glShaderSource(vertexShader, 1, &vertexSource, NULL);
-
-	// Compile shader
-	glCompileShader(vertexShader);
-
-	// Check status
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-
-	// Compilation fail
-	if(!success) {
-		glGetShaderInfoLog(vertexShader,512,NULL,infoLog);
-		std::cerr << "Vertex shader failed to compile.\n";
-		std::cout << infoLog << std::endl;
-	}
-
-	//----------------------------------------------------------------------
-	// FRAGMENT SHADER
-
-	// Create shader object
-	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-
-	// Attach shader-source to shader-object
-	glShaderSource(fragmentShader, 1, &fragmentSource, NULL);
-
-	// Compile fragment shader
-	glCompileShader(fragmentShader);
-
-	// Check status
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-
-	// Compilation fail
-	if(!success) {
-		glGetShaderInfoLog(fragmentShader,512,NULL,infoLog);
-		std::cerr << "Fragment shader failed to compile.\n";
-		std::cout << infoLog << std::endl;
-	}
-
-	//----------------------------------------------------------------------
-	// SHADER PROGRAM
-
-	// Create shader-program object
-	ID = glCreateProgram();
-
-	// Attach the vert/frag shaders to the shader-program
-	glAttachShader(ID, vertexShader);
-	glAttachShader(ID, fragmentShader);
-
-	// Link shaders
-	glLinkProgram(ID);
-
-	// Delete 'useless' shader objects
+	// --- Clean up ---
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
-
 }
-
-// Activate shader-program
+//----------------------------------------------------------------------------------------------------------------------
 void Shader::Activate()
 {
 	glUseProgram(ID);
 }
-
-// Deletes the Shader Program
+//----------------------------------------------------------------------------------------------------------------------
 void Shader::Delete()
 {
 	glDeleteProgram(ID);

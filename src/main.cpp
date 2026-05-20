@@ -116,7 +116,7 @@ int main() {
     // ------------------------- Initialize lights -------------------------
     auto light0 = PointLight {};
     light0.position  = glm::vec3(3.3f, 0.5f, 0.7f);
-    light0.intensity = 0.005f;
+    light0.intensity = 0.45f;
     // Disgusting please remove
     light0.color     = static_cast<EmissiveMaterial*>(meshMap["sphere.obj"]->materialList[1].get())->lightColor;
     light0.constant  = 1.0f;
@@ -125,18 +125,17 @@ int main() {
     light0.radius    = 1.0f;
     auto light1 = light0;
     light1.position = glm::vec3(-1.0f, 0.0f, 0.2f);
-    auto light2 = SpotLight {};
+    auto light2 = SpotLight {}; // Flashlight
     light2.position    = glm::vec3(0.0f);
     light2.intensity   = 0.8f;
     light2.direction   = glm::vec3(0.0f);
     light2.cutOff      = std::cos(std::numbers::pi/17.0f);
     light2.color       = glm::vec3(1.0f);
     light2.outerCutOff = std::cos(std::numbers::pi/13);
-
-    auto light3 = DirLight{};
+    auto light3 = DirLight{}; // Moon
     light3.color = glm::vec3(1.0f);
     light3.direction = glm::vec3(0.4f, -10.0f, -3.0f);
-    light3.intensity = 0.5f;
+    light3.intensity = 0.55f;
 
     LightManager lights(defaultShader);
     lights.pointBucket.push_back(light0);
