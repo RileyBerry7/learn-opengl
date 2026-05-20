@@ -10,13 +10,14 @@ struct Material {
    Thus our struct size should be a factor of 16 in order to ensure alignment of contiguos
    memory, that is our uniform buffer arrays will perfectly map to the GLSL interface.
 */
-struct DirLight {    // Total: 32 bytes
+struct DirLight {    // Total: 96 bytes
     vec3  direction; // 12 bytes
     float intensity; // 4 bytes
     vec3  color;     // 12 bytes
     float padding;   // 4  bytes
+    mat4  lightSpaceMatrix; // 64 bytes
 };
-struct PointLight {   // Total: 48 bytes
+struct PointLight {   // Total: 112 bytes
     vec3  position;  // 12 bytes
     float intensity; // 4  bytes
     vec3  color;     // 12 bytes
@@ -25,14 +26,16 @@ struct PointLight {   // Total: 48 bytes
     float quadratic; // 4  bytes
     float radius;    // 4  bytes
     float padding;   // 4  bytes
+    mat4  lightSpaceMatrix; // 64 bytes
 };
-struct SpotLight {    // Total: 48 bytes
+struct SpotLight {    // Total: 112 bytes
     vec3  position;   // 12 bytes
     float intensity;  // 4  bytes
     vec3  direction;  // 12 bytes
     float cutOff;     // 4  bytes
     vec3  color;      // 12 bytes
     float outerCutOff;// 4  bytes
+    mat4  lightSpaceMatrix; // 64 bytes
 };
 //----------------------------------------------------------------------------------------------------------------------
 // CONFIGURATION
@@ -50,24 +53,15 @@ layout(binding = 4) uniform sampler2DArray shadowArray2D;
 //layout(binding = 2) uniform samplerCubeArray u_CubeShadowMaps;
 //----------------------------------------------------------------------------------------------------------------------
 // UNIFORMS
-uniform sampler2D tex0;     // Texture uniform
-uniform vec3      viewPos;  // View position uniform
-uniform Material  material; // Material uniform
-uniform bool      toggleF;
-//uniform sampler2D shadowMap;
+uniform vec3      viewPos;  // View position
+uniform Material  material; // Material
+uniform bool      toggleF;  // Flashlight control
 //----------------------------------------------------------------------------------------------------------------------
 // INPUT
 in vec3 objColor;
 in vec2 texCoord;
 in vec3 normal;
 in vec3 fragPos;
-in vec4 fragPosLightSpace;
-//in VS_OUT {
-//    vec3 FragPos;
-//    vec3 Normal;
-//    vec2 TexCoords;
-//    vec4 FragPosLightSpace;
-//} fs_in;
 //----------------------------------------------------------------------------------------------------------------------
 // OUTPUT
 out vec4 FragColor;
@@ -117,9 +111,9 @@ vec3 calculateDirLight(DirLight light, vec3 normal, vec3 viewDir, vec3 specMap) 
     vec3 specular = calcSpecular(normal, lightDir, viewDir, material.shininess, lightEnergy, specMap);// Specular lighting
 
     // Calculate Shadow
+    vec4 fragPosLightSpace = light.lightSpaceMatrix * vec4(fragPos, 1.0);
     vec3 proj = fragPosLightSpace.xyz / fragPosLightSpace.w * 0.5 + 0.5; // Transform [-1,1] to range
     float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005); // Stop shadow acne
-//    float shadow = (proj.z - bias > texture(shadowArray2D, proj.xy).r) ? 1.0 : 0.0;
     float shadow = (proj.z - bias > texture(shadowArray2D, vec3(proj.xy, 0.0)).r) ? 1.0 : 0.0;
     if(proj.z > 1.0) shadow = 0.0; // Prevent out-of-bounds over-shadowing
 

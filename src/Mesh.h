@@ -221,17 +221,14 @@ void loadModel(std::string objFile, std::string matFile) {
                 activeShader = materialList[idx]->shader;
                 activeShader->Activate(); // TODO: Add comparison to avoid necessary activations
 
-                // Set material uniforms
+                // Apply material
                 materialList[idx]->apply();
             }
 
-            // Set model matrix uniform
+            // Set common uniforms
             activeShader->setUniform("modelMatrix", modelMatrix);
-
-            // set camera matrix uniform
             camera.Matrix(*activeShader, "camMatrix");
             activeShader->setUniform("viewPos", camera.Position);
-
 
             // Draw batch
             glDrawElements(GL_TRIANGLES, sm.count, GL_UNSIGNED_INT, (void*)(uintptr_t)(sm.indexOffset * sizeof(unsigned int)));

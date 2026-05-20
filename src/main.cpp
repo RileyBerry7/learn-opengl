@@ -143,6 +143,7 @@ int main() {
     lights.pointBucket.push_back(light1);
     lights.spotBucket.push_back(light2);
     lights.dirBucket.push_back(light3);
+    lights.setAllLightSpaceMatrics();
 
     // ------------------------- Initialize objects -------------------------
 
@@ -200,11 +201,6 @@ int main() {
     glReadBuffer(GL_NONE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    float near_plane = 0.1f, far_plane = 50.0f;
-    glm::mat4 lightProjection = glm::ortho(-25.0f, 25.0f, -25.0f, 25.0f, near_plane, far_plane);
-    glm::vec3 lightPos = glm::vec3(0.0f) - glm::normalize(light3.direction) * 25.0f;
-    glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
     // Texture Array
     GLuint textureArray;
@@ -229,15 +225,19 @@ int main() {
         window.processInput();
 
         // Shadow map
-        shadowShader.Activate();                                       // Activate shadow shader
-        shadowShader.setUniform("lightSpaceMatrix", lightSpaceMatrix); // Inject light-space-matrix uniform
+        shadowShader.Activate();                           // Activate shadow shader
+        RenderContext::setPass(RenderPass::Shadow);        // Set renderer state to shadow pass
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT); // Set viewport size to shadow-map resolution
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO); // Set frame-buffer to texture
 
-        // execute for each light
-        glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureArray, 0, 0);
-        RenderContext::setPass(RenderPass::Shadow);            // Set renderer state to shadow pass
-        renderer.renderScene(objects, lights, camera);// Render scene (shadow pass)
+        // Light loop
+        int index = 0;
+        for (const DirLight& light : lights.dirBucket) {
+            shadowShader.setUniform("lightSpaceMatrix", light.lightSpaceMatrix);
+            glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureArray, 0, index++);
+            renderer.renderScene(objects, lights, camera);// Render scene (shadow pass)
+        }
+
         RenderContext::setPass(RenderPass::Main);             // Set renderer state to main pass
         glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Reset frame-buffer to default screen-buffer
         glViewport(0, 0, 800, 600);            // reset viewport size to default dimensions
@@ -253,7 +253,6 @@ int main() {
         defaultShader.setUniform("toggleF", window.f_toggle);
         glActiveTexture(GL_TEXTURE4);
         glBindTexture(GL_TEXTURE_2D_ARRAY, textureArray); // Bind your array to it
-        defaultShader.setUniform("lightSpaceMatrix", lightSpaceMatrix);
 
 
         // Main render pass
