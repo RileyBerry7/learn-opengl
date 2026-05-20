@@ -8,14 +8,14 @@
 
 //-------------------------------------------------------------------------------------
 
-struct DirLight {         // Total: 96 bytes
-    glm::vec3  direction; // 12 bytes
-    float intensity;      // 4 bytes
-    glm::vec3  color;     // 12 bytes
-    float padding;        // 4  bytes
-    glm::mat4  lightSpaceMatrix; // 64 bytes
+struct alignas(16) DirLight {        // Total: 96 bytes
+    glm::vec3 direction; // 12 bytes
+    float     intensity; // 4 bytes
+    glm::vec3 color;     // 12 bytes
+    int       shadowId;  // 4  bytes
+    glm::mat4 lightSpaceMatrix; // 64 bytes
 };
-struct PointLight {      // Total: 112 bytes
+struct alignas(16) PointLight {      // Total: 112 bytes
     glm::vec3  position; // 12 bytes
     float intensity;     // 4  bytes
     glm::vec3  color;    // 12 bytes
@@ -23,16 +23,20 @@ struct PointLight {      // Total: 112 bytes
     float linear;        // 4  bytes
     float quadratic;     // 4  bytes
     float radius;        // 4  bytes
-    float padding;       // 4  bytes
+    int   shadowId;      // 4  bytes
     glm::mat4  lightSpaceMatrix; // 64 bytes
 };
-struct SpotLight {       // Total: 112 bytes
+struct alignas(16) SpotLight {       // Total: 128 bytes
     glm::vec3  position; // 12 bytes
     float intensity;     // 4  bytes
     glm::vec3  direction;// 12 bytes
     float cutOff;        // 4  bytes
     glm::vec3  color;    // 12 bytes
     float outerCutOff;   // 4  bytes
+    int   shadowId;      // 4 bytes
+    float padding1;      // 4 bytes
+    float padding2;      // 4 bytes
+    float padding3;      // 4 bytes
     glm::mat4  lightSpaceMatrix; // 64 bytes
 };
 //----------------------------------------------------------------------------------------------------------------------
@@ -61,14 +65,21 @@ public:
 };
 //----------------------------------------------------------------------------------------------------------------------
 #define MAX_LIGHTS 10
-struct LightingData {
+struct alignas(16) LightingData {
     DirLight   dirLights[MAX_LIGHTS];   // 96 x n bytes
-    PointLight pointLights[MAX_LIGHTS]; // 112 x n bytes
-    SpotLight  spotLights[MAX_LIGHTS];  // 112 x n bytes
+    PointLight pointLights[MAX_LIGHTS]; // 112 x n byte
+    SpotLight  spotLights[MAX_LIGHTS];  // 128 x n bytes
     alignas(16) int dirCount; // 4 bytes
     int pointCount;           // 4 bytes
     int spotCount;            // 4 bytes
+    int padding;
 };
 //----------------------------------------------------------------------------------------------------------------------
+// HARDWARE ACCURACY ASSURANCES
+// If your compiler alters anything, compilation stops here instead of segfaulting at runtime!
+// static_assert(sizeof(DirLight) == 112, "Compiler padded DirLight incorrectly!");
+// static_assert(sizeof(PointLight) == 112, "Compiler padded PointLight incorrectly!");
+// static_assert(sizeof(SpotLight) == 128, "Compiler padded SpotLight incorrectly!");
+// static_assert(sizeof(LightingData) == 3536, "Global block size mismatch with GPU std140 layout!");
 
 #endif //LEARN_OPENGL_LIGHT_H

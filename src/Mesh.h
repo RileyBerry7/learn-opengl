@@ -213,7 +213,7 @@ void loadModel(std::string objFile, std::string matFile) {
             }
             Shader* activeShader = nullptr;
             if (RenderContext::getPass() == RenderPass::Shadow) {
-                activeShader = shaderMap[std::string("shadow")];
+                activeShader = shaderMap[std::string("shadow2d")];
                 activeShader->Activate();
 
             } else {

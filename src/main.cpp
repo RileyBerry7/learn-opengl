@@ -82,18 +82,20 @@ int main() {
     auto window   = Window();   // Initialize GLFW window
     auto renderer = Renderer(); // Initialize renderer
     auto camera   = Camera(window.width, window.height, glm::vec3(2.3f, 0.0f, 7.0f)); // Initialize camera
-    auto defaultShader = Shader("default.vert", "default.frag");      // Initialize default shader
-    auto emisiveShader = Shader("default.vert", "emissive.frag");     // Initialize emissive shader
-    auto skyboxShader  = Shader("skybox.glsl");
-    auto shadowShader  = Shader("shadow2d.glsl");
-    float lastTime     = glfwGetTime(); // Initialize Timer
+    auto defaultShader    = Shader("default.vert", "default.frag");      // Initialize default shader
+    auto emissiveShader   = Shader("default.vert", "emissive.frag");     // Initialize emissive shader
+    auto skyboxShader     = Shader("skybox.glsl");
+    auto shadow2dShader   = Shader("shadow2d.glsl");
+    // auto shadowCubeShader = Shader("shadowCube.glsl");
+    float lastTime        = glfwGetTime(); // Initialize Timer
 
     // Shader Map
     std::map<std::string, Shader*> shaderMap;
-    shaderMap["default"]  = &defaultShader;
-    shaderMap["emissive"] = &emisiveShader;
-    shaderMap["skybox"]   = &skyboxShader;
-    shaderMap["shadow"]   = &shadowShader;
+    shaderMap["default"]    = &defaultShader;
+    shaderMap["emissive"]   = &emissiveShader;
+    shaderMap["skybox"]     = &skyboxShader;
+    shaderMap["shadow2d"]   = &shadow2dShader;
+    // shaderMap["shadowCube"] = &shadow2dShader;
 
     // Mesh Map
     std::map<std::string, std::unique_ptr<Mesh>> meshMap;
@@ -151,7 +153,7 @@ int main() {
     Object object2(object0);
     Object object3(object0);
     auto   object7 = Object(object0);
-    Object object4(emisiveShader, *meshMap["sphere.obj"].get());
+    Object object4(emissiveShader, *meshMap["sphere.obj"].get());
     Object object5(object4);
     Object object6(defaultShader, *meshMap["Floor.obj"].get());
     object0.rotation = glm::vec3(0.0f, -44.0f, 0.0f);
@@ -224,15 +226,16 @@ int main() {
         window.processInput();
 
         // Shadow map
-        shadowShader.Activate();                           // Activate shadow shader
+        shadow2dShader.Activate();                           // Activate shadow shader
         RenderContext::setPass(RenderPass::Shadow);        // Set renderer state to shadow pass
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT); // Set viewport size to shadow-map resolution
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO); // Set frame-buffer to texture
 
         // Light loop
         int index = 0;
-        for (const DirLight& light : lights.dirBucket) {
-            shadowShader.setUniform("lightSpaceMatrix", light.lightSpaceMatrix);
+        for ( DirLight& light : lights.dirBucket) {
+            light.shadowId = index;
+            shadow2dShader.setUniform("lightSpaceMatrix", light.lightSpaceMatrix);
             glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureArray, 0, index++);
             renderer.renderScene(objects, lights, camera);// Render scene (shadow pass)
         }
@@ -242,10 +245,8 @@ int main() {
         glViewport(0, 0, 800, 600);            // reset viewport size to default dimensions
 
         // Update Flashlight
-        light2.direction = glm::normalize(camera.Orientation);
-        light2.position  = camera.Position;
-        lights.spotBucket.pop_back();
-        lights.spotBucket.push_back(light2);
+        lights.spotBucket[0].direction = glm::normalize(camera.Orientation);
+        lights.spotBucket[0].position  = camera.Position;
 
         // 2. Default Render
         defaultShader.Activate();

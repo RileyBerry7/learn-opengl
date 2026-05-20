@@ -14,27 +14,31 @@ struct DirLight {    // Total: 96 bytes
     vec3  direction; // 12 bytes
     float intensity; // 4 bytes
     vec3  color;     // 12 bytes
-    float padding;   // 4  bytes
+    int   shadowId;  // 4  bytes
     mat4  lightSpaceMatrix; // 64 bytes
 };
-struct PointLight {   // Total: 112 bytes
-    vec3  position;  // 12 bytes
-    float intensity; // 4  bytes
-    vec3  color;     // 12 bytes
-    float constant;  // 4  bytes
-    float linear;    // 4  bytes
-    float quadratic; // 4  bytes
-    float radius;    // 4  bytes
-    float padding;   // 4  bytes
+struct PointLight {     // Total: 112 bytes
+    vec3  position;     // 12 bytes
+    float intensity;    // 4  bytes
+    vec3  color;        // 12 bytes
+    float constant;     // 4  bytes
+    float linear;       // 4  bytes
+    float quadratic;    // 4  bytes
+    float radius;       // 4  bytes
+    int   shadowId;     // 4  bytes
     mat4  lightSpaceMatrix; // 64 bytes
 };
-struct SpotLight {    // Total: 112 bytes
+struct SpotLight {    // Total: 128 bytes
     vec3  position;   // 12 bytes
     float intensity;  // 4  bytes
     vec3  direction;  // 12 bytes
     float cutOff;     // 4  bytes
     vec3  color;      // 12 bytes
     float outerCutOff;// 4  bytes
+    int   shadowId;         // 4 bytes
+    float padding1;         // 4 bytes
+    float padding2;         // 4 bytes
+    float padding3;         // 4 bytes
     mat4  lightSpaceMatrix; // 64 bytes
 };
 //----------------------------------------------------------------------------------------------------------------------
@@ -95,7 +99,7 @@ void main()
     vec3 finalColor = (totalLight + ambient) * albedo * objColor;// Combine color components
     finalColor = finalColor / (finalColor + vec3(1.0));// Reinhard tone mapping
     finalColor = pow(finalColor, vec3(1.0/2.2));       // Gamma correction
-    FragColor = vec4(finalColor, 1.0);                 // Append alpha channel
+    FragColor  = vec4(finalColor, 1.0);                 // Append alpha channel
 }
 //===================================V===================================================================================
 
@@ -114,7 +118,7 @@ vec3 calculateDirLight(DirLight light, vec3 normal, vec3 viewDir, vec3 specMap) 
     vec4 fragPosLightSpace = light.lightSpaceMatrix * vec4(fragPos, 1.0);
     vec3 proj = fragPosLightSpace.xyz / fragPosLightSpace.w * 0.5 + 0.5; // Transform [-1,1] to range
     float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005); // Stop shadow acne
-    float shadow = (proj.z - bias > texture(shadowArray2D, vec3(proj.xy, 0.0)).r) ? 1.0 : 0.0;
+    float shadow = (proj.z - bias > texture(shadowArray2D, vec3(proj.xy, light.shadowId)).r) ? 1.0 : 0.0;
     if(proj.z > 1.0) shadow = 0.0; // Prevent out-of-bounds over-shadowing
 
     return (1.0 - shadow) * (diffuse + specular);
