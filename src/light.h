@@ -75,11 +75,5 @@ struct alignas(16) LightingData {
     int padding;
 };
 //----------------------------------------------------------------------------------------------------------------------
-// HARDWARE ACCURACY ASSURANCES
-// If your compiler alters anything, compilation stops here instead of segfaulting at runtime!
-// static_assert(sizeof(DirLight) == 112, "Compiler padded DirLight incorrectly!");
-// static_assert(sizeof(PointLight) == 112, "Compiler padded PointLight incorrectly!");
-// static_assert(sizeof(SpotLight) == 128, "Compiler padded SpotLight incorrectly!");
-// static_assert(sizeof(LightingData) == 3536, "Global block size mismatch with GPU std140 layout!");
 
 #endif //LEARN_OPENGL_LIGHT_H

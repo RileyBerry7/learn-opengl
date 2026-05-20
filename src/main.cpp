@@ -86,7 +86,7 @@ int main() {
     auto emissiveShader   = Shader("default.vert", "emissive.frag");     // Initialize emissive shader
     auto skyboxShader     = Shader("skybox.glsl");
     auto shadow2dShader   = Shader("shadow2d.glsl");
-    // auto shadowCubeShader = Shader("shadowCube.glsl");
+    auto shadowCubeShader = Shader("shadowCube.glsl");
     float lastTime        = glfwGetTime(); // Initialize Timer
 
     // Shader Map
@@ -95,7 +95,7 @@ int main() {
     shaderMap["emissive"]   = &emissiveShader;
     shaderMap["skybox"]     = &skyboxShader;
     shaderMap["shadow2d"]   = &shadow2dShader;
-    // shaderMap["shadowCube"] = &shadow2dShader;
+    shaderMap["shadowCube"] = &shadow2dShader;
 
     // Mesh Map
     std::map<std::string, std::unique_ptr<Mesh>> meshMap;
@@ -166,7 +166,6 @@ int main() {
     object6.scale    = glm::vec3(0.1);
     object7.position = glm::vec3(7.5f, 0.5f, 0.7f);
 
-
     std::vector<Object> objects;
     objects.push_back(object0);
     objects.push_back(object1);
@@ -177,33 +176,14 @@ int main() {
     objects.push_back(object6);
     objects.push_back(object7);
 
-    // Create Frame Buffer
-    GLuint depthMapFBO;
-    glGenFramebuffers(1, &depthMapFBO);
-    // next create a 2D texture we'll use as the framebuffer's depth buffer
+    // --- Shadow Frame Buffers ---
     const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+    GLuint shadow2dFBO;
+    glGenFramebuffers(1, &shadow2dFBO);
+    GLuint shadowCubeFBO;
+    glGenFramebuffers(1, &shadowCubeFBO);
 
-    GLuint depthMap;
-    glGenTextures(1, &depthMap);
-    glBindTexture(GL_TEXTURE_2D, depthMap);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH,
-    SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-
-    // With the generated depth texture we can attach it to the framebuffer's depth buffer
-    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-    glDrawBuffer(GL_NONE);
-    glReadBuffer(GL_NONE);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-
-    // Texture Array
+    // --- SHADOW 2D ARRAY ---
     GLuint textureArray;
     glGenTextures(1, &textureArray);
     glBindTexture(GL_TEXTURE_2D_ARRAY, textureArray);
@@ -218,6 +198,24 @@ int main() {
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
+    // --- SHADOW CUBE MAP ARRAY ---
+    std::vector<std::string> faces;
+    GLuint cubeArray = loadCubemap(faces); // TODO: create CubeMap class, let it handle arrays too
+    glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, cubeArray);
+
+    // --- Attach Arrays to FBOs ---
+    glBindFramebuffer(GL_FRAMEBUFFER, shadow2dFBO);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureArray, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, shadowCubeFBO);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, cubeArray, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
     //===================================================================================================
     // Render Loop
     // --------------------------------------------------------------------------------------------------
@@ -227,12 +225,12 @@ int main() {
 
         // Shadow map
         shadow2dShader.Activate();                           // Activate shadow shader
-        RenderContext::setPass(RenderPass::Shadow);        // Set renderer state to shadow pass
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT); // Set viewport size to shadow-map resolution
-        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO); // Set frame-buffer to texture
+        glBindFramebuffer(GL_FRAMEBUFFER, shadow2dFBO); // Set frame-buffer to texture
 
-        // Light loop
+        // Directional/Spot Light Loop // TODO: Remove this, push light loop into geometry shader
         int index = 0;
+        RenderContext::setPass(RenderPass::Shadow);        // Set renderer state to shadow pass
         for ( DirLight& light : lights.dirBucket) {
             light.shadowId = index;
             shadow2dShader.setUniform("lightSpaceMatrix", light.lightSpaceMatrix);
