@@ -46,15 +46,15 @@ layout (std140, binding = 0 ) uniform LightData { // Lighting data block
     int dirCount, pointCount, spotCount;// Array element counts
 };
 // Global Uniforms
-layout(binding = 1) uniform sampler2DArray u_2DShadowMaps;
-layout(binding = 2) uniform samplerCubeArray u_CubeShadowMaps;
+layout(binding = 4) uniform sampler2DArray shadowArray2D;
+//layout(binding = 2) uniform samplerCubeArray u_CubeShadowMaps;
 //----------------------------------------------------------------------------------------------------------------------
 // UNIFORMS
 uniform sampler2D tex0;     // Texture uniform
 uniform vec3      viewPos;  // View position uniform
 uniform Material  material; // Material uniform
 uniform bool      toggleF;
-uniform sampler2D shadowMap;
+//uniform sampler2D shadowMap;
 //----------------------------------------------------------------------------------------------------------------------
 // INPUT
 in vec3 objColor;
@@ -119,7 +119,8 @@ vec3 calculateDirLight(DirLight light, vec3 normal, vec3 viewDir, vec3 specMap) 
     // Calculate Shadow
     vec3 proj = fragPosLightSpace.xyz / fragPosLightSpace.w * 0.5 + 0.5; // Transform [-1,1] to range
     float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005); // Stop shadow acne
-    float shadow = (proj.z - bias > texture(shadowMap, proj.xy).r) ? 1.0 : 0.0;
+//    float shadow = (proj.z - bias > texture(shadowArray2D, proj.xy).r) ? 1.0 : 0.0;
+    float shadow = (proj.z - bias > texture(shadowArray2D, vec3(proj.xy, 0.0)).r) ? 1.0 : 0.0;
     if(proj.z > 1.0) shadow = 0.0; // Prevent out-of-bounds over-shadowing
 
     return (1.0 - shadow) * (diffuse + specular);

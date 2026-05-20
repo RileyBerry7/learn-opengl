@@ -192,6 +192,7 @@ int main() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
     glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
     // With the generated depth texture we can attach it to the framebuffer's depth buffer
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
@@ -208,8 +209,8 @@ int main() {
     // Texture Array
     GLuint textureArray;
     glGenTextures(1, &textureArray);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, textureArray);//
-    int width = 2048, height = 2048;
+    glBindTexture(GL_TEXTURE_2D_ARRAY, textureArray);
+    int width = 1024, height = 1024;
     int shadowCount = 8; // Max number of 2D shadow maps
     // Allocate 3D storage block
     glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT24,
@@ -228,19 +229,18 @@ int main() {
         window.processInput();
 
         // Shadow map
-        shadowShader.Activate();
-        shadowShader.setUniform("lightSpaceMatrix", lightSpaceMatrix);
-        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-        glClear(GL_DEPTH_BUFFER_BIT);
-        // configure shadow map shader / matrices
-        RenderContext::setPass(RenderPass::Shadow);
-        renderer.renderScene(objects, lights, camera); // my regular renderScene function
-        RenderContext::setPass(RenderPass::Main);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        shadowShader.Activate();                                       // Activate shadow shader
+        shadowShader.setUniform("lightSpaceMatrix", lightSpaceMatrix); // Inject light-space-matrix uniform
+        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT); // Set viewport size to shadow-map resolution
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO); // Set frame-buffer to texture
 
-        glViewport(0, 0, 800, 600); // reset viewport size
-        // 2. Render scene as normal
+        // execute for each light
+        glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureArray, 0, 0);
+        RenderContext::setPass(RenderPass::Shadow);            // Set renderer state to shadow pass
+        renderer.renderScene(objects, lights, camera);// Render scene (shadow pass)
+        RenderContext::setPass(RenderPass::Main);             // Set renderer state to main pass
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Reset frame-buffer to default screen-buffer
+        glViewport(0, 0, 800, 600);            // reset viewport size to default dimensions
 
         // Update Flashlight
         light2.direction = glm::normalize(camera.Orientation);
@@ -248,16 +248,18 @@ int main() {
         lights.spotBucket.pop_back();
         lights.spotBucket.push_back(light2);
 
+        // 2. Default Render
         defaultShader.Activate();
-        glActiveTexture(GL_TEXTURE4);
-        glBindTexture(GL_TEXTURE_2D, depthMap);
-        defaultShader.setUniform("shadowMap", 4);
-        defaultShader.setUniform("lightSpaceMatrix", lightSpaceMatrix);
         defaultShader.setUniform("toggleF", window.f_toggle);
+        glActiveTexture(GL_TEXTURE4);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, textureArray); // Bind your array to it
+        defaultShader.setUniform("lightSpaceMatrix", lightSpaceMatrix);
 
+
+        // Main render pass
         renderer.renderScene(objects, lights, camera);
 
-        // Skybox
+        // 3. Skybox Render
         glDepthFunc(GL_LEQUAL); // Allow drawing at depth 1.0
         skyboxShader.Activate();
         skybox.vao->Bind();
