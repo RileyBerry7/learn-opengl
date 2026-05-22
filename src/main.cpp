@@ -141,10 +141,10 @@ int main() {
     light3.color = glm::vec3(1.0f);
     light3.direction = glm::vec3(0.4f, -10.0f, -3.0f);
     light3.intensity = 0.55f;
-    auto light4 = light2; // Static directional light
-    light4.position = glm::vec3(0.0f, 15.0f, 20.0f);
+    auto light4 = SpotLight(light2); // Static Spot light
+    light4.position = glm::vec3(-3.0f, 3.0f, 5.0f);
     light4.direction = -light4.position;
-    light4.intensity = 1.0;
+    light4.intensity = 0.7f;
 
     LightManager lights(defaultShader);
     lights.pointBucket.push_back(light0);
@@ -175,6 +175,7 @@ int main() {
     object7.position = glm::vec3(7.5f, 0.5f, 0.7f);
     auto object8 = object4; // Static Dir light physical
     object8.position = light4.position;
+    object8.position.y += 1.0f;
 
     std::vector<Object> objects;
     objects.push_back(object0);
@@ -254,6 +255,7 @@ int main() {
         // 2. Default Render
         defaultShader.Activate();
         defaultShader.setUniform("toggleF", window.f_toggle);
+        lights.setAllLightSpaceMatrics();
         glActiveTexture(GL_TEXTURE4);
         glBindTexture(GL_TEXTURE_2D_ARRAY, textureArray); // Bind your array to it
 

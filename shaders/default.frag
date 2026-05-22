@@ -154,7 +154,21 @@ vec3 calculateSpotLight(SpotLight light, vec3 normal, vec3 viewDir, vec3 specMap
     float epsilon = phi - light.outerCutOff;   // cosine difference: cos(in) - cos(out)
     float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);// Formula
 
-    float shadow = calculateShadow2D(lightDir, normal, light.lightSpaceMatrix, light.shadowId);       // Shadow mapping
+    // Shadows
+    // Shadow mapping (inline, fixed)
+    vec4 lp = light.lightSpaceMatrix * vec4(fragPos, 1.0);
+    vec3 proj = lp.xyz / lp.w * 0.5 + 0.5;
+
+    float shadow = 1.0;
+
+    if (proj.x >= 0.0 && proj.x <= 1.0 &&
+    proj.y >= 0.0 && proj.y <= 1.0 &&
+    proj.z >= 0.0 && proj.z <= 1.0)
+    {
+        float closest = texture(shadowArray2D, vec3(proj.xy, float(light.shadowId))).r;
+        float bias = max(0.0015 * (1.0 - dot(normal, lightDir)), 0.0005);
+        shadow = (proj.z - bias > closest) ? 1.0 : 0.0;
+    }
     return (1.0 - shadow) * (diffuse + specular) * intensity;
 }
 
@@ -167,7 +181,6 @@ vec3 calcSpecular(vec3 normal, vec3 lightDir, vec3 viewDir, float materialShine,
     float  spec       = pow(max(dot(viewDir, reflectDir), 0.0), materialShine);
     return lightEnergy * spec * specMap * energyConservation;
 }
-
 //------------------------
 // SHADOW 2D CALCULATION  -
 //------------------------
@@ -181,5 +194,7 @@ float calculateShadow2D(vec3 lightDir, vec3 normal, mat4 lightSpaceMatrix, int s
     float shadow = (proj.z - bias > texture(shadowArray2D, vec3(proj.xy, float(shadowId))).r) ? 1.0 : 0.0;
 
     return shadow;
+
+
 }
 //======================================================================================================================
