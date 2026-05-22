@@ -3,7 +3,9 @@
 //-------------------------------------------------------------------------------------
 // CONSTRUCTOR / DESTRUCTOR
 
-Renderer::Renderer() {
+//----------------------------------------------------------------------------------------------------------------------
+Renderer::Renderer(std::map<std::string, Shader*> shaderMap) :
+    shaderMap(std::move(shaderMap)) {
 
     // Initialize attributes
     clearColor    = glm::vec4(0.07f, 0.13f, 0.17f, 1.0f);
@@ -18,14 +20,13 @@ Renderer::Renderer() {
     uboLights->BindToSLot(0);
 }
 
+//----------------------------------------------------------------------------------------------------------------------
 Renderer::~Renderer(){
     delete uboLights;
 }
 
 //-------------------------------------------------------------------------------------
-// METHODS
-
-// Initialize GL settings (Depth test, Face culling, Blending)
+// INITIALIZE OPENGL - Initialize GL settings (Depth test, Face culling, Blending)
 int Renderer::initOpenGL(){
 
     // Default viewport size
@@ -37,23 +38,15 @@ int Renderer::initOpenGL(){
         std::cout << "Failed to initialize GLAD\n";
         return -1;
     }
+    setViewportSize(defaultWidth, defaultHeight); // Set default viewport size
+    setWireframe(wireFrameMode);                  // Set default wireframe rendering
+    glEnable(GL_DEPTH_TEST);                  // Enable depth test
 
-    // Set default viewport size
-    setViewportSize(defaultWidth, defaultHeight);
-
-    // Set default wireframe rendering
-    setWireframe(wireFrameMode);
-
-    // Enable depth test
-    glEnable(GL_DEPTH_TEST);
-
-    // Enable SRGB Frame Buffer
-    // glEnable(GL_FRAMEBUFFER_SRGB);
-
-    return 0;
+    return 0; // Successful return
 }
 
-// Refresh color/depth buffers
+//----------------------------------------------------------------------------------------------------------------------
+// PREPARE - Refresh color/depth buffers
 void Renderer::prepare(){
 
     // Replace background color
@@ -61,18 +54,26 @@ void Renderer::prepare(){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-// Render function
-void Renderer::draw(Object& obj, Camera& camera){
-
+//----------------------------------------------------------------------------------------------------------------------
+// SHADOW 2D DRAW
+void Renderer::shadow2dDraw(Object& object, int lightCount)
+{
+    const auto modelMatrix = object.getModelMatrix();
+    object.mesh->vbo->Bind();
+    Shader* shadow2dShader = shaderMap[std::string("shadow2d")];
+    shadow2dShader->Activate();
+    shadow2dShader->setUniform("modelMatirx", modelMatrix);
+    glDrawElementsInstanced(GL_TRIANGLES, object.mesh->index_count,
+                             GL_UNSIGNED_INT, (void*)0,lightCount);}
+//--------------------------------------------------------------------------------------------
+// MAIN DRAW - draw each mesh
+void Renderer::mainDraw(Object& obj, Camera& camera)
+{
     const auto modelMatrix = obj.getModelMatrix();
-
-    // Draw mesh
-    obj.mesh->draw(camera, modelMatrix);
-
-    // activeShader = nullptr;
+    obj.mesh->drawBatches(camera, modelMatrix); // Renders each material-submesh
 }
-
-// Batch rendering
+//----------------------------------------------------------------------------------------------------------------------
+// RENDER SCENE - draw each object
 void Renderer::renderScene(std::vector<Object>& objects,
                                   LightManager& lights,
                                         Camera& camera)
@@ -95,7 +96,15 @@ void Renderer::renderScene(std::vector<Object>& objects,
 
     // 4. Object loop
     for (auto object: objects) {
-            draw(object, camera);
+        switch (RenderContext::getPass()) {
+            case RenderPass::Main:
+            mainDraw(object, camera);
+                break;
+            case RenderPass::Shadow2D:
+                int lightCount = lights.spotBucket.size() + lights.dirBucket.size();
+                shadow2dDraw(object, lightCount);
+                break;
+        }
     }
 }
 
@@ -111,6 +120,8 @@ void Renderer::setWireframe(bool state){
     }
 }
 
+//----------------------------------------------------------------------------------------------------------------------
 void Renderer::setViewportSize(int width, int height){
     glViewport(0, 0, width, height);
 }
+//----------------------------------------------------------------------------------------------------------------------

@@ -79,8 +79,10 @@ int main() {
 
     std::cout << "\nHello OpenGL!\n";
 
+    std::map<std::string, Shader*> shaderMap; // TODO: Abstract all shaders into renderer (private)
+
     auto window   = Window();   // Initialize GLFW window
-    auto renderer = Renderer(); // Initialize renderer
+    auto renderer = Renderer(shaderMap); // Initialize renderer
     auto camera   = Camera(window.width, window.height, glm::vec3(2.3f, 0.0f, 7.0f)); // Initialize camera
     auto defaultShader    = Shader("default.vert", "default.frag");      // Initialize default shader
     auto emissiveShader   = Shader("default.vert", "emissive.frag");     // Initialize emissive shader
@@ -90,7 +92,6 @@ int main() {
     float lastTime        = glfwGetTime(); // Initialize Timer
 
     // Shader Map
-    std::map<std::string, Shader*> shaderMap;
     shaderMap["default"]    = &defaultShader;
     shaderMap["emissive"]   = &emissiveShader;
     shaderMap["skybox"]     = &skyboxShader;

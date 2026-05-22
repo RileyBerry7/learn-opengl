@@ -7,7 +7,7 @@
 
 #pragma once
 
-enum class RenderPass {Main, Shadow};
+enum class RenderPass {Main, Shadow, Shadow2D, ShadowCube};
 
 class RenderContext {
 private:

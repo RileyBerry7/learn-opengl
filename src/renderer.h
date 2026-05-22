@@ -26,29 +26,35 @@ or OpenGL state. It handles:
     Uniform Injection: Passing Global data (like the Camera's View/Projection matrices) into the shader.
 */
 
+//----------------------------------------------------------------------------------------------------------------------
 class Renderer {
+//----------------------------------------------------------------------------------------------------------------------
 private:
     // ATTRIBUTES
     glm::vec4 clearColor{};
     bool      wireFrameMode;
     Shader*   activeShader;
     UBO*      uboLights;
+    std::map<std::string, Shader*> shaderMap;
+    //----------------------------------------------------------------------------------------------------------------------
 
 public:
-    Renderer();  // Constructor
+    Renderer(std::map<std::string, Shader*> shaderMap);  // Constructor
     ~Renderer(); // Destructor
 
     // METHODS
     int  initOpenGL();
     void prepare();
-    void draw(Object& obj, Camera& camera);
+    void shadow2dDraw(Object& object, int lightCount);
+    void mainDraw(Object& obj, Camera& camera);
     void renderScene(std::vector<Object>& objects,
                             LightManager& lights,
                                   Camera& camera);
+    //----------------------------------------------------------------------------------------------------------------------
 
     void setWireframe(bool state);
     void setViewportSize(int width, int height);
 };
-
+//----------------------------------------------------------------------------------------------------------------------
 
 #endif //LEARN_OPENGL_RENDERER_H

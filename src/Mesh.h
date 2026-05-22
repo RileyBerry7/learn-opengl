@@ -202,7 +202,7 @@ void loadModel(std::string objFile, std::string matFile) {
 }
 
 
-    void draw(Camera camera, glm::mat4 modelMatrix) {
+    void drawBatches(Camera camera, glm::mat4 modelMatrix) {
         // if (materialList.empty()) return; // Safety check: No materials loaded yet
 
         vao->Bind();
@@ -234,7 +234,6 @@ void loadModel(std::string objFile, std::string matFile) {
             glDrawElements(GL_TRIANGLES, sm.count, GL_UNSIGNED_INT, (void*)(uintptr_t)(sm.indexOffset * sizeof(unsigned int)));
         }
         vao->Unbind();
-        // glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
     }
 
     void loadMaterial() {

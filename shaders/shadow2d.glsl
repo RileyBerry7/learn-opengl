@@ -4,14 +4,41 @@
 //----------------------------------------------------------------------------------------------------------------------
 layout (location = 0) in vec3 aPos;
 uniform mat4 modelMatrix;
-uniform mat4 lightSpaceMatrix;
+//uniform mat4 lightSpaceMatrix;
+out VS_OUT {
+    vec4 worldPos;
+} vs_out;
 //======================================================================================================================
 void main()
 {
-    gl_Position = lightSpaceMatrix * modelMatrix * vec4(aPos, 1.0);
+//    gl_Position = lightSpaceMatrix * modelMatrix * vec4(aPos, 1.0);
+    worldPos = modelMatrix * vec4(aPos, 1.0);
 }
 //----------------------------------------------------------------------------------------------------------------------
 
+
+//======================================================================================================================
+#type geometry
+#version 420 core
+layout (triangles) in;
+layout (triangle_strip, max_vertices = 3) out;
+uniform mat4 lightSpaceMatrices[8];
+in VS_OUT {
+    vec4 worldPos;
+} gs_in[];
+//======================================================================================================================
+void main()
+{
+    int layer = gl_InstanceID;
+    gl_Layer  = layer;
+
+    for (int i = 0; i < 3; ++i) {
+        gl_Position = lightSpaceMatrices[layer] * gs_in[i].worldPos;
+        EmitVertex();
+    }
+    EndPrimitive();
+}
+//----------------------------------------------------------------------------------------------------------------------
 
 //======================================================================================================================
 #type fragment
