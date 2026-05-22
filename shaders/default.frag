@@ -92,8 +92,8 @@ void main()
         totalLight += calculateDirLight(dirLights[i], norm, viewDir, specMap);
     for (int i = 0; i < pointCount; i++)
         totalLight += calculatePointLight(pointLights[i], norm, viewDir, specMap, fragPos);
-    if (toggleF) {
-        for (int i = 0; i < spotCount; i++)
+        for (int i = 0; i < spotCount; i++){
+            if (!toggleF && i == 0) continue;
             totalLight += calculateSpotLight(spotLights[i], norm, viewDir, specMap, fragPos);
     }
     vec3 finalColor = (totalLight + ambient) * albedo * objColor;// Combine color components
