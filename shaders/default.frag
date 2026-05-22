@@ -75,6 +75,7 @@ vec3 calculateDirLight(DirLight   light, vec3 normal, vec3 viewDir, vec3 specMap
 vec3 calculatePointLight(PointLight   light, vec3 normal, vec3 viewDir, vec3 specMap, vec3 fragPos);
 vec3 calculateSpotLight(SpotLight   light, vec3 normal, vec3 viewDir, vec3 specMap, vec3 fragPos);
 vec3 calcSpecular(vec3 normal, vec3 lightDir, vec3 viewDir, float materialShine, vec3 lightEnergy, vec3 specMap);
+float calculateShadow2D(vec3 lightDir, vec3 normal, mat4 lightSpaceMatrix, int shadowId);
 //======================================================================================================================
 void main()
 {
@@ -109,17 +110,13 @@ void main()
 vec3 calculateDirLight(DirLight light, vec3 normal, vec3 viewDir, vec3 specMap) {
 
     vec3 lightEnergy = light.color * light.intensity;// Total emission power
-    vec3 lightDir = normalize(-light.direction);     // Direction->Light vector
-    float diff    = max(dot(normal, lightDir), 0.0); // Diffuse lighting
-    vec3 diffuse  = lightEnergy * diff;              // Diffuse lighting
+    vec3 lightDir = normalize(-light.direction);// Direction->Light vector
+    float diff    = max(dot(normal, lightDir), 0.0);// Diffuse lighting
+    vec3 diffuse  = lightEnergy * diff;// Diffuse lighting
     vec3 specular = calcSpecular(normal, lightDir, viewDir, material.shininess, lightEnergy, specMap);// Specular lighting
 
     // Calculate Shadow
-    vec4 fragPosLightSpace = light.lightSpaceMatrix * vec4(fragPos, 1.0);
-    vec3 proj = fragPosLightSpace.xyz / fragPosLightSpace.w * 0.5 + 0.5; // Transform [-1,1] to range
-    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005); // Stop shadow acne
-    float shadow = (proj.z - bias > texture(shadowArray2D, vec3(proj.xy, light.shadowId)).r) ? 1.0 : 0.0;
-    if(proj.z > 1.0) shadow = 0.0; // Prevent out-of-bounds over-shadowing
+    float shadow = calculateShadow2D(lightDir, normal, light.lightSpaceMatrix, light.shadowId);
 
     return (1.0 - shadow) * (diffuse + specular);
 }
@@ -171,5 +168,17 @@ vec3 calcSpecular(vec3 normal, vec3 lightDir, vec3 viewDir, float materialShine,
     vec3   reflectDir = reflect(-lightDir, normal); // Frag->Reflection vector
     float  spec       = pow(max(dot(viewDir, reflectDir), 0.0), materialShine);
     return lightEnergy * spec * specMap * energyConservation;
+}
+
+float calculateShadow2D(vec3 lightDir, vec3 normal, mat4 lightSpaceMatrix, int shadowId) {
+    vec4 fragPosLightSpace = lightSpaceMatrix * vec4(fragPos, 1.0);
+    vec3 proj = fragPosLightSpace.xyz / fragPosLightSpace.w * 0.5 + 0.5;
+
+    if (proj.z > 1.0) return 0.0; // Prevent out-of-bounds over-shadowing
+
+    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005); // Stop shadow acne
+    float shadow = (proj.z - bias > texture(shadowArray2D, vec3(proj.xy, float(shadowId))).r) ? 1.0 : 0.0;
+
+    return shadow;
 }
 //======================================================================================================================
