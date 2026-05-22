@@ -110,14 +110,11 @@ void main()
 vec3 calculateDirLight(DirLight light, vec3 normal, vec3 viewDir, vec3 specMap) {
 
     vec3 lightEnergy = light.color * light.intensity;// Total emission power
-    vec3 lightDir = normalize(-light.direction);// Direction->Light vector
-    float diff    = max(dot(normal, lightDir), 0.0);// Diffuse lighting
-    vec3 diffuse  = lightEnergy * diff;// Diffuse lighting
+    vec3 lightDir = normalize(-light.direction);     // Direction->Light vector
+    float diff    = max(dot(normal, lightDir), 0.0); // Diffuse lighting
+    vec3 diffuse  = lightEnergy * diff;              // Diffuse lighting
     vec3 specular = calcSpecular(normal, lightDir, viewDir, material.shininess, lightEnergy, specMap);// Specular lighting
-
-    // Calculate Shadow
-    float shadow = calculateShadow2D(lightDir, normal, light.lightSpaceMatrix, light.shadowId);
-
+    float shadow = calculateShadow2D(lightDir, normal, light.lightSpaceMatrix, light.shadowId);       // Shadow mapping
     return (1.0 - shadow) * (diffuse + specular);
 }
 
@@ -157,7 +154,8 @@ vec3 calculateSpotLight(SpotLight light, vec3 normal, vec3 viewDir, vec3 specMap
     float epsilon = phi - light.outerCutOff;   // cosine difference: cos(in) - cos(out)
     float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);// Formula
 
-    return (diffuse + specular) * intensity;
+    float shadow = calculateShadow2D(lightDir, normal, light.lightSpaceMatrix, light.shadowId);       // Shadow mapping
+    return (1.0 - shadow) * (diffuse + specular) * intensity;
 }
 
 //------------------------
@@ -170,6 +168,9 @@ vec3 calcSpecular(vec3 normal, vec3 lightDir, vec3 viewDir, float materialShine,
     return lightEnergy * spec * specMap * energyConservation;
 }
 
+//------------------------
+// SHADOW 2D CALCULATION  -
+//------------------------
 float calculateShadow2D(vec3 lightDir, vec3 normal, mat4 lightSpaceMatrix, int shadowId) {
     vec4 fragPosLightSpace = lightSpaceMatrix * vec4(fragPos, 1.0);
     vec3 proj = fragPosLightSpace.xyz / fragPosLightSpace.w * 0.5 + 0.5;
