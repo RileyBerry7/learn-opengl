@@ -1,49 +1,30 @@
 //======================================================================================================================
 #type vertex
-#version 420 core
-//----------------------------------------------------------------------------------------------------------------------
+#version 430 core
+#extension GL_ARB_shader_viewport_layer_array : require
+// Upgraded to 4.3 for native ARB_shader_viewport_layer_array
+
 layout (location = 0) in vec3 aPos;
+
 uniform mat4 modelMatrix;
-//uniform mat4 lightSpaceMatrix;
-out VS_OUT {
-    vec4 worldPos;
-} vs_out;
-//======================================================================================================================
-void main()
-{
-//    gl_Position = lightSpaceMatrix * modelMatrix * vec4(aPos, 1.0);
-    worldPos = modelMatrix * vec4(aPos, 1.0);
-}
-//----------------------------------------------------------------------------------------------------------------------
+uniform mat4 lightSpaceMatrices[20]; // Combined Max Dir + Spot lights
 
-
-//======================================================================================================================
-#type geometry
-#version 420 core
-layout (triangles) in;
-layout (triangle_strip, max_vertices = 3) out;
-uniform mat4 lightSpaceMatrices[8];
-in VS_OUT {
-    vec4 worldPos;
-} gs_in[];
-//======================================================================================================================
-void main()
-{
+void main() {
+    // 1. Calculate the layer index directly from the instance ID
     int layer = gl_InstanceID;
-    gl_Layer  = layer;
 
-    for (int i = 0; i < 3; ++i) {
-        gl_Position = lightSpaceMatrices[layer] * gs_in[i].worldPos;
-        EmitVertex();
-    }
-    EndPrimitive();
+    // 2. Set the hardware destination layer directly from the vertex shader!
+    gl_Layer = layer;
+
+    // 3. Compute final position immediately
+    gl_Position = lightSpaceMatrices[layer] * modelMatrix * vec4(aPos, 1.0);
 }
+
 //----------------------------------------------------------------------------------------------------------------------
 
 //======================================================================================================================
 #type fragment
-#version 420 core
-//----------------------------------------------------------------------------------------------------------------------
+#version 430 core
 //======================================================================================================================
 void main()
 {

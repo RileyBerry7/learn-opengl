@@ -97,6 +97,8 @@ int main() {
     shaderMap["skybox"]     = &skyboxShader;
     shaderMap["shadow2d"]   = &shadow2dShader;
     shaderMap["shadowCube"] = &shadow2dShader;
+    auto copyMap = shaderMap;
+    renderer.shaderMap = std::move(copyMap);  // TODO: remove when shaders are pushed into renderer
 
     // Mesh Map
     std::map<std::string, std::unique_ptr<Mesh>> meshMap;
@@ -229,17 +231,11 @@ int main() {
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT); // Set viewport size to shadow-map resolution
         glBindFramebuffer(GL_FRAMEBUFFER, shadow2dFBO); // Set frame-buffer to texture
 
-        // Directional/Spot Light Loop // TODO: Remove this, push light loop into geometry shader
-        int index = 0;
-        RenderContext::setPass(RenderPass::Shadow);        // Set renderer state to shadow pass
-        for ( DirLight& light : lights.dirBucket) {
-            light.shadowId = index;
-            shadow2dShader.setUniform("lightSpaceMatrix", light.lightSpaceMatrix);
-            glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureArray, 0, index++);
-            renderer.renderScene(objects, lights, camera);// Render scene (shadow pass)
-        }
-
+        RenderContext::setPass(RenderPass::Shadow2D);        // Set renderer state to shadow pass
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureArray, 0);
+        renderer.renderScene(objects, lights, camera);// Render scene (shadow pass)
         RenderContext::setPass(RenderPass::Main);             // Set renderer state to main pass
+
         glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Reset frame-buffer to default screen-buffer
         glViewport(0, 0, 800, 600);            // reset viewport size to default dimensions
 

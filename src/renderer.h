@@ -35,17 +35,17 @@ private:
     bool      wireFrameMode;
     Shader*   activeShader;
     UBO*      uboLights;
-    std::map<std::string, Shader*> shaderMap;
     //----------------------------------------------------------------------------------------------------------------------
 
 public:
+    std::map<std::string, Shader*> shaderMap;
     Renderer(std::map<std::string, Shader*> shaderMap);  // Constructor
     ~Renderer(); // Destructor
 
     // METHODS
     int  initOpenGL();
     void prepare();
-    void shadow2dDraw(Object& object, int lightCount);
+    void shadow2dDraw(Object& object, LightManager& lights);
     void mainDraw(Object& obj, Camera& camera);
     void renderScene(std::vector<Object>& objects,
                             LightManager& lights,

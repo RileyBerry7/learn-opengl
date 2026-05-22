@@ -56,15 +56,30 @@ void Renderer::prepare(){
 
 //----------------------------------------------------------------------------------------------------------------------
 // SHADOW 2D DRAW
-void Renderer::shadow2dDraw(Object& object, int lightCount)
+void Renderer::shadow2dDraw(Object& object, LightManager& lights)
 {
     const auto modelMatrix = object.getModelMatrix();
-    object.mesh->vbo->Bind();
+    object.mesh->vao->Bind();
     Shader* shadow2dShader = shaderMap[std::string("shadow2d")];
     shadow2dShader->Activate();
-    shadow2dShader->setUniform("modelMatirx", modelMatrix);
+    shadow2dShader->setUniform("modelMatrix", modelMatrix);
+
+    int shadowIndex = 0;
+    for (DirLight& light : lights.dirBucket) {
+        light.shadowId = shadowIndex;
+        std::string uniformName = std::format("lightSpaceMatrices[{}]", shadowIndex++);
+        shadow2dShader->setUniform(uniformName.c_str(), light.lightSpaceMatrix);
+    }
+    for (SpotLight& light : lights.spotBucket) {
+        light.shadowId = shadowIndex;
+        std::string uniformName = std::format("lightSpaceMatrices[{}]", shadowIndex++);
+        shadow2dShader->setUniform(uniformName.c_str(), light.lightSpaceMatrix);
+    }
+
     glDrawElementsInstanced(GL_TRIANGLES, object.mesh->index_count,
-                             GL_UNSIGNED_INT, (void*)0,lightCount);}
+                             GL_UNSIGNED_INT, (void*)0,shadowIndex);
+    object.mesh->vao->Unbind();
+}
 //--------------------------------------------------------------------------------------------
 // MAIN DRAW - draw each mesh
 void Renderer::mainDraw(Object& obj, Camera& camera)
@@ -95,14 +110,13 @@ void Renderer::renderScene(std::vector<Object>& objects,
     prepare();
 
     // 4. Object loop
-    for (auto object: objects) {
+    for (auto& object: objects) {
         switch (RenderContext::getPass()) {
             case RenderPass::Main:
             mainDraw(object, camera);
                 break;
             case RenderPass::Shadow2D:
-                int lightCount = lights.spotBucket.size() + lights.dirBucket.size();
-                shadow2dDraw(object, lightCount);
+                shadow2dDraw(object, lights);
                 break;
         }
     }
