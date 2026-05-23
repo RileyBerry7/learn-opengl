@@ -65,26 +65,30 @@ public:
         glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         return lightProjection * lightView;
     }
-glm::mat4 calcLightSpaceMatrix(SpotLight &light) {
+    glm::mat4 calcLightSpaceMatrix(PointLight &light) {
+        float near_plane = 0.1f;
+        float far_plane = 50.0f;
+        float aspect = 1.0f;
+        // 1. Get the actual half-angle of the cone
+        fov = glm::clamp(fov, 0.1f, glm::radians(175.0f));
+        glm::mat4 lightProjection = glm::perspective(fov, aspect, near_plane, far_plane);
+        glm::mat4 lightView = glm::lookAt(light.position, targetPos, up);
+        return lightProjection * lightView;
+    }
+    glm::mat4 calcLightSpaceMatrix(SpotLight &light) {
     float near_plane = 0.1f;
     float far_plane = 50.0f;
     float aspect = 1.0f;
-
     // 1. Get the actual half-angle of the cone
     float halfConeAngle = std::acos(light.outerCutOff);
-
     // 2. Correctly scale the tangent to cover the diagonal corners of the square texture
     float fov = 2.0f * std::atan(std::tan(halfConeAngle) * 1.41421356f);
-
     // 3. Prevent mathematical explosion if the spotlight is close to 180 degrees
     fov = glm::clamp(fov, 0.1f, glm::radians(175.0f));
-
     glm::mat4 lightProjection = glm::perspective(fov, aspect, near_plane, far_plane);
-
     glm::vec3 safeDir = (glm::length(light.direction) > 0.001f) ? glm::normalize(light.direction) : glm::vec3(0.0f, 0.0f, -1.0f);
     glm::vec3 targetPos = light.position + safeDir;
     glm::vec3 up = (std::abs(safeDir.y) > 0.99f) ? glm::vec3(0.0f, 0.0f, -1.0f) : glm::vec3(0.0f, 1.0f, 0.0f);
-
     glm::mat4 lightView = glm::lookAt(light.position, targetPos, up);
     return lightProjection * lightView;
 }
