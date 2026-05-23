@@ -53,8 +53,8 @@ layout (std140, binding = 0 ) uniform LightData { // Lighting data block
     int dirCount, pointCount, spotCount;// Array element counts
 };
 // Global Uniforms
-layout(binding = 4) uniform sampler2DArray shadowArray2D;
-//layout(binding = 2) uniform samplerCubeArray u_CubeShadowMaps;
+layout(binding = 4) uniform sampler2DArray   shadowArray2D;
+layout(binding = 5) uniform samplerCubeArray shadowArrayCube;
 //----------------------------------------------------------------------------------------------------------------------
 // UNIFORMS
 uniform vec3      viewPos;  // View position

@@ -140,17 +140,17 @@ int main() {
     auto light3 = DirLight{}; // Moon
     light3.color = glm::vec3(1.0f);
     light3.direction = glm::vec3(0.4f, -10.0f, -3.0f);
-    light3.intensity = 0.55f;
+    light3.intensity = 0.35f;
     auto light4 = SpotLight(light2); // Static Spot light
     light4.position = glm::vec3(-3.0f, 3.0f, 5.0f);
     light4.direction = -light4.position;
-    light4.intensity = 0.7f;
+    light4.intensity = 0.75f;
 
     LightManager lights(defaultShader);
     lights.pointBucket.push_back(light0);
     lights.pointBucket.push_back(light1);
     lights.spotBucket.push_back(light2);
-    // lights.dirBucket.push_back(light3); // Moonlight
+    lights.dirBucket.push_back(light3); // Moonlight
     lights.spotBucket.push_back(light4);
     lights.setAllLightSpaceMatrics();
 
@@ -190,30 +190,39 @@ int main() {
 
     // --- Shadow Frame Buffers ---
     const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+    int width = SHADOW_WIDTH, height = SHADOW_HEIGHT;
+    int shadowCount = 8; // Max number of 2D shadow maps
     GLuint shadow2dFBO;
     glGenFramebuffers(1, &shadow2dFBO);
+
     GLuint shadowCubeFBO;
     glGenFramebuffers(1, &shadowCubeFBO);
 
-    // --- SHADOW 2D ARRAY ---
+    // --- Create texture 2D Array ---
     GLuint textureArray;
-    glGenTextures(1, &textureArray);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, textureArray);
-    int width = 1024, height = 1024;
-    int shadowCount = 8; // Max number of 2D shadow maps
-    // Allocate 3D storage block
-    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT24,
-               width, height, shadowCount, 0,GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+    glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &textureArray);
+    glTextureStorage3D(textureArray, 1, GL_DEPTH_COMPONENT24, width, height, shadowCount);
     // Standard shadow map filtering
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    glTextureParameteri(textureArray, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTextureParameteri(textureArray, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTextureParameteri(textureArray, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTextureParameteri(textureArray, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    // Set border color for shadow maps to prevent artifacts outside frustum
+    float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    glTextureParameterfv(textureArray, GL_TEXTURE_BORDER_COLOR, borderColor);
 
-    // --- SHADOW CUBE MAP ARRAY ---
-    std::vector<std::string> faces;
-    GLuint cubeArray = loadCubemap(faces); // TODO: create CubeMap class, let it handle arrays too
-    glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, cubeArray);
+    // --- Create cube map array ---
+    // TODO: create CubeMap class, let it handle arrays too
+    GLuint cubeMapArray;
+    glCreateTextures(GL_TEXTURE_CUBE_MAP_ARRAY, 1, &cubeMapArray);
+    int maxCubeMaps = 10; // x * 6 = total 2D textures
+    glTextureStorage3D(cubeMapArray, 1, GL_RGBA8, 1024, 1024, maxCubeMaps * 6);
+    // Set parameters
+    glTextureParameteri(cubeMapArray, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(cubeMapArray, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureParameteri(cubeMapArray, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(cubeMapArray, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(cubeMapArray, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
     // --- Attach Arrays to FBOs ---
     glBindFramebuffer(GL_FRAMEBUFFER, shadow2dFBO);
@@ -223,7 +232,7 @@ int main() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     glBindFramebuffer(GL_FRAMEBUFFER, shadowCubeFBO);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, cubeArray, 0);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, cubeMapArray, 0);
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -235,16 +244,24 @@ int main() {
 
         window.processInput();
 
-        // Shadow map
-        shadow2dShader.Activate();                           // Activate shadow shader
+        // Prepare shadow mapping passes
+        shadow2dShader.Activate();                         // Activate shadow shader
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT); // Set viewport size to shadow-map resolution
-        glBindFramebuffer(GL_FRAMEBUFFER, shadow2dFBO); // Set frame-buffer to texture
 
+        // Render Shadow 2D Textures
         RenderContext::setPass(RenderPass::Shadow2D);        // Set renderer state to shadow pass
+        glBindFramebuffer(GL_FRAMEBUFFER, shadow2dFBO); // Set frame-buffer to texture
         glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureArray, 0);
         renderer.renderScene(objects, lights, camera);// Render scene (shadow pass)
-        RenderContext::setPass(RenderPass::Main);             // Set renderer state to main pass
 
+        // Render Shadow CubeMaps
+        RenderContext::setPass(RenderPass::ShadowCube); // Set renderer state
+        glBindFramebuffer(GL_FRAMEBUFFER, shadowCubeFBO); // Set frame-buffer to texture
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, cubeMapArray, 0);
+        renderer.renderScene(objects, lights, camera);// Render scene (shadow pass)
+
+        // Reset renderer settings
+        RenderContext::setPass(RenderPass::Main);       // Reset renderer state
         glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Reset frame-buffer to default screen-buffer
         glViewport(0, 0, 800, 600);            // reset viewport size to default dimensions
 
@@ -256,8 +273,8 @@ int main() {
         defaultShader.Activate();
         defaultShader.setUniform("toggleF", window.f_toggle);
         lights.setAllLightSpaceMatrics();
-        glActiveTexture(GL_TEXTURE4);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, textureArray); // Bind your array to it
+        glBindTextureUnit(4, textureArray);
+        glBindTextureUnit(5, cubeMapArray);
 
 
         // Main render pass

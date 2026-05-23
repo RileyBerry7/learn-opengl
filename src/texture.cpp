@@ -22,19 +22,18 @@ Tex::Tex(const std::string imagePath, GLenum texType, GLenum slot, GLenum pixelT
     glTexParameteri(texType, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(texType, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-    // float flatColor[] = {1.0f, 1.0f, 1.0f, 1.0f};
-    // glParameterfv(texType, GL_TEXTURE_BORDER_COLOR, flatColor);
+    // Fill texture with image
+    if (imagePath != "None") {
+        unsigned char* image = this->getImage(imagePath.c_str(), widthImg, heightImg, numColorCh);
 
-    unsigned char* image = this->getImage(imagePath.c_str(), widthImg, heightImg, numColorCh);
+        // Get pixel format
+        GLenum format = (numColorCh == 4) ? GL_RGBA : GL_RGB;
+        glTexImage2D(texType, 0, format, widthImg, heightImg, 0, format, pixelType, image);
 
-    // Get pixel format
-    GLenum format = (numColorCh == 4) ? GL_RGBA : GL_RGB;
-    glTexImage2D(texType, 0, format, widthImg, heightImg, 0, format, pixelType, image);
-
-    glGenerateMipmap(texType);
-    stbi_image_free(image);
-    glBindTexture(texType, 0);
-
+        glGenerateMipmap(texType);
+        stbi_image_free(image);
+    }
+        glBindTexture(texType, 0);
 }
 
 unsigned char* Tex::getImage(const char* fileName, int& widthImg, int& heightImg, int& numColorCh) {
