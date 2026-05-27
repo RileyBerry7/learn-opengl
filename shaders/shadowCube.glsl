@@ -29,7 +29,12 @@ struct PointLight {     // Total: 112 bytes
     float quadratic;    // 4  bytes
     float radius;       // 4  bytes
     int   shadowId;     // 4  bytes
-    mat4  lightSpaceMatrix; // 64 bytes
+    mat4  leftLSM;  // 64 bytes
+    mat4  rightLSM; // 64 bytes
+    mat4  frontLSM; // 64 bytes
+    mat4  backLSM;  // 64 bytes
+    mat4  topLSM;   // 64 bytes
+    mat4  bottomLSM;// 64 bytes
 };
 struct SpotLight {    // Total: 128 bytes
     vec3  position;   // 12 bytes

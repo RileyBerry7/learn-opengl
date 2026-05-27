@@ -24,12 +24,12 @@ struct alignas(16) PointLight {      // Total: 112 bytes
     float quadratic;     // 4  bytes
     float radius;        // 4  bytes
     int   shadowId;      // 4  bytes
-    glm::mat4  leftLSP;  // 64 bytes
-    glm::mat4  rightLSP; // 64 bytes
-    glm::mat4  frontLSP; // 64 bytes
-    glm::mat4  backLSP;  // 64 bytes
-    glm::mat4  topLSP;   // 64 bytes
-    glm::mat4  bottomLSP;// 64 bytes
+    glm::mat4  leftLSM;  // 64 bytes
+    glm::mat4  rightLSM; // 64 bytes
+    glm::mat4  frontLSM; // 64 bytes
+    glm::mat4  backLSM;  // 64 bytes
+    glm::mat4  topLSM;   // 64 bytes
+    glm::mat4  bottomLSM;// 64 bytes
 };
 struct alignas(16) SpotLight {       // Total: 128 bytes
     glm::vec3  position; // 12 bytes
@@ -63,7 +63,7 @@ public:
             light.lightSpaceMatrix = calcLightSpaceMatrix(light);
         }
         for (PointLight& light : pointBucket) {
-            setPointLSP(light);
+            setPointLSM(light);
         }
     }
     glm::mat4 calcLightSpaceMatrix(DirLight &light) {
@@ -73,19 +73,18 @@ public:
         glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         return lightProjection * lightView;
     }
-    void setPointLSP(PointLight &light) {
-        float near_plane = 0.1f;
+    void setPointLSM(PointLight &light) {
         float near_plane = 0.1f;
         float far_plane  = light.radius;
         float aspect     = 1.0f;
         // Point lights always use a perfect 90-degree perspective projection
         glm::mat4 lightProjection = glm::perspective(glm::radians(90.0f), aspect, near_plane, far_plane);
-        light.rightLSP = lightProjection * glm::lookAt(light.position, light.position + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
-        light.leftLSP = lightProjection * glm::lookAt(light.position, light.position + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
-        light.topLSP = lightProjection * glm::lookAt(light.position, light.position + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        light.bottomLSP = lightProjection * glm::lookAt(light.position, light.position + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f));
-        light.backLSP = lightProjection * glm::lookAt(light.position, light.position + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f));
-        light.frontLSP = lightProjection * glm::lookAt(light.position, light.position + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+        light.rightLSM = lightProjection * glm::lookAt(light.position, light.position + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+        light.leftLSM = lightProjection * glm::lookAt(light.position, light.position + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+        light.topLSM = lightProjection * glm::lookAt(light.position, light.position + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        light.bottomLSM = lightProjection * glm::lookAt(light.position, light.position + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f));
+        light.backLSM = lightProjection * glm::lookAt(light.position, light.position + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+        light.frontLSM = lightProjection * glm::lookAt(light.position, light.position + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f));
     }
     glm::mat4 calcLightSpaceMatrix(SpotLight &light) {
     float near_plane = 0.1f;
