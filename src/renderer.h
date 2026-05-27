@@ -46,6 +46,7 @@ public:
     int  initOpenGL();
     void prepare();
     void shadow2dDraw(Object& object, LightManager& lights);
+    void shadowCubeDraw(Object& object, LightManager& lights);
     void mainDraw(Object& obj, Camera& camera);
     void renderScene(std::vector<Object>& objects,
                             LightManager& lights,

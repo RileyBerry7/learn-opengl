@@ -201,25 +201,25 @@ float calculateShadow2D(vec3 lightDir, vec3 normal, mat4 lightSpaceMatrix, int s
     float shadow = (proj.z - bias > texture(shadowArray2D, vec3(proj.xy, float(shadowId))).r) ? 1.0 : 0.0;
     return shadow;
 }
-// Note: Changed vec3 lightDir to vec3 fragPos (World Space position)
-float calculateShadowCube(vec3 fragPos, vec3 normal, int shadowId, vec3 lightPos, float lightRadius) {
-
-    // 1. Get the raw 3D vector pointing from light source to the world fragment
+float calculateShadowCube(vec3 fragPos, vec3 normal, int shadowId, vec3 lightPos, float lightRadius)
+{
     vec3 lightToFrag = fragPos - lightPos;
-    // 2. Sample the cubemap array using the 3D direction + Shadow ID layer index
-    vec4 sampleCoords = vec4(lightToFrag, float(shadowId));
-    float closestDepth = texture(shadowArrayCube, sampleCoords).r;
-    // 3. Convert the normalized depth value (0.0 to 1.0) back into real world distance
-    closestDepth *= lightRadius;
-    // 4. Get current fragment's true world distance from light
+
     float currentDepth = length(lightToFrag);
-    // 5. Calculate a directional bias (your code was great here!)
-    vec3 lightDirNormalized = normalize(-lightToFrag);
-    float bias = max(0.05 * (1.0 - dot(normal, lightDirNormalized)), 0.005);
-    // 6. Compare depth values
-    float shadow = (currentDepth - bias > closestDepth) ? 1.0 : 0.0;
-    // 7. Prevent out-of-bounds over-shadowing if fragment is beyond light radius
-    if (currentDepth > lightRadius) return 0.0;
-    return shadow;
-}
-//======================================================================================================================
+
+    // IMPORTANT: must normalize for cubemap lookup
+    vec3 dir = normalize(lightToFrag);
+
+    float closestDepth = texture(
+    shadowArrayCube,
+    vec4(dir, float(shadowId))
+    ).r;
+
+    // stored depth is raw distance
+    if (currentDepth > lightRadius)
+    return 0.0;
+
+    float bias = 0.005;
+
+    return (currentDepth - bias > closestDepth) ? 1.0 : 0.0;
+}//======================================================================================================================

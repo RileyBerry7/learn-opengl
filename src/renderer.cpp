@@ -89,16 +89,12 @@ void Renderer::shadow2dDraw(Object& object, LightManager& lights) {
         shadowCubeShader->Activate();
         shadowCubeShader->setUniform("modelMatrix", modelMatrix);
         int shadowIndex = 0;
-        for (PointLight& light : lights.pointBucket) {
+        for (PointLight& light : lights.pointBucket)
             light.shadowId = shadowIndex++;
-            // std::string uniformName = std::format("lightSpaceMatrices[{}]", shadowIndex++);
-            // shadowCubeShader->setUniform(uniformName.c_str(), light.lightSpaceMatrix);
-        }
         glDrawElementsInstanced(GL_TRIANGLES, object.mesh->index_count,
-                                 GL_UNSIGNED_INT, (void*)0,shadowIndex);
+                                 GL_UNSIGNED_INT, (void*)0,shadowIndex * 6);
         object.mesh->vao->Unbind();
     }
-}
 //--------------------------------------------------------------------------------------------
 // MAIN DRAW - draw each mesh
 void Renderer::mainDraw(Object& obj, Camera& camera)

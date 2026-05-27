@@ -96,7 +96,7 @@ int main() {
     shaderMap["emissive"]   = &emissiveShader;
     shaderMap["skybox"]     = &skyboxShader;
     shaderMap["shadow2d"]   = &shadow2dShader;
-    shaderMap["shadowCube"] = &shadow2dShader;
+    shaderMap["shadowCube"] = &shadowCubeShader;
     auto copyMap = shaderMap;
     renderer.shaderMap = std::move(copyMap);  // TODO: remove when shaders are pushed into renderer
 
@@ -121,7 +121,8 @@ int main() {
     // ------------------------- Initialize lights -------------------------
     auto light0 = PointLight {};
     light0.position  = glm::vec3(3.3f, 0.5f, 0.7f);
-    light0.intensity = 0.45f;
+    // light0.intensity = 0.45f;
+    light0.intensity = 0.95f;
     // Disgusting please remove
     light0.color     = static_cast<EmissiveMaterial*>(meshMap["sphere.obj"]->materialList[1].get())->lightColor;
     light0.constant  = 1.0f;
@@ -151,7 +152,7 @@ int main() {
     LightManager lights(defaultShader);
     lights.pointBucket.push_back(light0);
     lights.pointBucket.push_back(light1);
-    lights.spotBucket.push_back(light2);
+    lights.spotBucket.push_back(light2); // Flashlight
     lights.dirBucket.push_back(light3); // Moonlight
     lights.spotBucket.push_back(light4); // Static spot light
     lights.setAllLightSpaceMatrics();
