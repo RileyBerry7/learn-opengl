@@ -81,6 +81,7 @@ vec3 calculatePointLight(PointLight   light, vec3 normal, vec3 viewDir, vec3 spe
 vec3 calculateSpotLight(SpotLight   light, vec3 normal, vec3 viewDir, vec3 specMap, vec3 fragPos);
 vec3 calcSpecular(vec3 normal, vec3 lightDir, vec3 viewDir, float materialShine, vec3 lightEnergy, vec3 specMap);
 float calculateShadow2D(vec3 lightDir, vec3 normal, mat4 lightSpaceMatrix, int shadowId);
+float calculateShadowCube(vec3 fragPos, vec3 normal, int shadowId, vec3 lightPos, float lightRadius);
 //======================================================================================================================
 void main()
 {
@@ -138,7 +139,10 @@ vec3 calculatePointLight(PointLight light, vec3 normal, vec3 viewDir, vec3 specM
     float distance    = length(light.position - fragPos);
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
 
-    return (diffuse + specular) * attenuation;
+    // Shadow
+    float shadow = calculateShadowCube(fragPos, normal, light.shadowId, light.position, light.radius);
+
+    return (1 - shadow) * (diffuse + specular) * attenuation;
 }
 
 //---------------------------
@@ -160,7 +164,6 @@ vec3 calculateSpotLight(SpotLight light, vec3 normal, vec3 viewDir, vec3 specMap
     float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);// Formula
 
     // Shadows
-    // Shadow mapping (inline, fixed)
     vec4 lp = light.lightSpaceMatrix * vec4(fragPos, 1.0);
     vec3 proj = lp.xyz / lp.w * 0.5 + 0.5;
 
@@ -189,17 +192,34 @@ vec3 calcSpecular(vec3 normal, vec3 lightDir, vec3 viewDir, float materialShine,
 //------------------------
 // SHADOW 2D CALCULATION  -
 //------------------------
-float calculateShadow2D(vec3 lightDir, vec3 normal, mat4 lightSpaceMatrix, int shadowId) {
+float calculateShadow2D(vec3 lightDir, vec3 normal, mat4 lightSpaceMatrix, int shadowId)
+{
     vec4 fragPosLightSpace = lightSpaceMatrix * vec4(fragPos, 1.0);
-    vec3 proj = fragPosLightSpace.xyz / fragPosLightSpace.w * 0.5 + 0.5;
-
+    vec3 proj              = fragPosLightSpace.xyz / fragPosLightSpace.w * 0.5 + 0.5;
     if (proj.z > 1.0) return 0.0; // Prevent out-of-bounds over-shadowing
-
     float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005); // Stop shadow acne
     float shadow = (proj.z - bias > texture(shadowArray2D, vec3(proj.xy, float(shadowId))).r) ? 1.0 : 0.0;
-
     return shadow;
+}
+// Note: Changed vec3 lightDir to vec3 fragPos (World Space position)
+float calculateShadowCube(vec3 fragPos, vec3 normal, int shadowId, vec3 lightPos, float lightRadius) {
 
-
+    // 1. Get the raw 3D vector pointing from light source to the world fragment
+    vec3 lightToFrag = fragPos - lightPos;
+    // 2. Sample the cubemap array using the 3D direction + Shadow ID layer index
+    vec4 sampleCoords = vec4(lightToFrag, float(shadowId));
+    float closestDepth = texture(shadowArrayCube, sampleCoords).r;
+    // 3. Convert the normalized depth value (0.0 to 1.0) back into real world distance
+    closestDepth *= lightRadius;
+    // 4. Get current fragment's true world distance from light
+    float currentDepth = length(lightToFrag);
+    // 5. Calculate a directional bias (your code was great here!)
+    vec3 lightDirNormalized = normalize(-lightToFrag);
+    float bias = max(0.05 * (1.0 - dot(normal, lightDirNormalized)), 0.005);
+    // 6. Compare depth values
+    float shadow = (currentDepth - bias > closestDepth) ? 1.0 : 0.0;
+    // 7. Prevent out-of-bounds over-shadowing if fragment is beyond light radius
+    if (currentDepth > lightRadius) return 0.0;
+    return shadow;
 }
 //======================================================================================================================

@@ -56,8 +56,7 @@ void Renderer::prepare(){
 
 //----------------------------------------------------------------------------------------------------------------------
 // SHADOW 2D DRAW
-void Renderer::shadow2dDraw(Object& object, LightManager& lights)
-{
+void Renderer::shadow2dDraw(Object& object, LightManager& lights) {
     const auto modelMatrix = object.getModelMatrix();
     object.mesh->vao->Bind();
     Shader* shadow2dShader = shaderMap[std::string("shadow2d")];
@@ -79,6 +78,26 @@ void Renderer::shadow2dDraw(Object& object, LightManager& lights)
     glDrawElementsInstanced(GL_TRIANGLES, object.mesh->index_count,
                              GL_UNSIGNED_INT, (void*)0,shadowIndex);
     object.mesh->vao->Unbind();
+    }
+    //----------------------------------------------------------------------------------------------------------------------
+    // SHADOW CUBE DRAW
+    void Renderer::shadowCubeDraw(Object& object, LightManager& lights)
+    {
+        const auto modelMatrix = object.getModelMatrix();
+        object.mesh->vao->Bind();
+        Shader* shadowCubeShader = shaderMap[std::string("shadowCube")];
+        shadowCubeShader->Activate();
+        shadowCubeShader->setUniform("modelMatrix", modelMatrix);
+        int shadowIndex = 0;
+        for (PointLight& light : lights.pointBucket) {
+            light.shadowId = shadowIndex++;
+            // std::string uniformName = std::format("lightSpaceMatrices[{}]", shadowIndex++);
+            // shadowCubeShader->setUniform(uniformName.c_str(), light.lightSpaceMatrix);
+        }
+        glDrawElementsInstanced(GL_TRIANGLES, object.mesh->index_count,
+                                 GL_UNSIGNED_INT, (void*)0,shadowIndex);
+        object.mesh->vao->Unbind();
+    }
 }
 //--------------------------------------------------------------------------------------------
 // MAIN DRAW - draw each mesh
@@ -117,6 +136,9 @@ void Renderer::renderScene(std::vector<Object>& objects,
                 break;
             case RenderPass::Shadow2D:
                 shadow2dDraw(object, lights);
+                break;
+            case RenderPass::ShadowCube:
+                shadowCubeDraw(object, lights);
                 break;
         }
     }
