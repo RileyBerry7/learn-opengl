@@ -95,14 +95,14 @@ void main()
     vec3 ambient  = albedo * 0.05;
 
     // Calculate total light
-    for (int i = 0; i < dirCount; i++)
-        totalLight += calculateDirLight(dirLights[i], norm, viewDir, specMap);
+//    for (int i = 0; i < dirCount; i++)
+//        totalLight += calculateDirLight(dirLights[i], norm, viewDir, specMap);
     for (int i = 0; i < pointCount; i++)
         totalLight += calculatePointLight(pointLights[i], norm, viewDir, specMap, fragPos);
-        for (int i = 0; i < spotCount; i++){
-            if (!toggleF && i == 0) continue;
-            totalLight += calculateSpotLight(spotLights[i], norm, viewDir, specMap, fragPos);
-    }
+//    for (int i = 0; i < spotCount; i++){
+//        if (!toggleF && i == 0) continue;
+//        totalLight += calculateSpotLight(spotLights[i], norm, viewDir, specMap, fragPos);
+//    }
     vec3 finalColor = (totalLight + ambient) * albedo * objColor;// Combine color components
     finalColor = finalColor / (finalColor + vec3(1.0));// Reinhard tone mapping
     finalColor = pow(finalColor, vec3(1.0/2.2));       // Gamma correction
@@ -201,25 +201,39 @@ float calculateShadow2D(vec3 lightDir, vec3 normal, mat4 lightSpaceMatrix, int s
     float shadow = (proj.z - bias > texture(shadowArray2D, vec3(proj.xy, float(shadowId))).r) ? 1.0 : 0.0;
     return shadow;
 }
-float calculateShadowCube(vec3 fragPos, vec3 normal, int shadowId, vec3 lightPos, float lightRadius)
+//-------------------------------
+// SHADOW CUBE MAP CALCULATION  -
+//-------------------------------
+float calculateShadowCube(
+vec3 fragPos,
+vec3 normal,
+int shadowId,
+vec3 lightPos,
+float lightRadius)
 {
+    // Vector from light → fragment
     vec3 lightToFrag = fragPos - lightPos;
 
-    float currentDepth = length(lightToFrag);
+    float currentDepth = length(lightToFrag) / lightRadius;
 
-    // IMPORTANT: must normalize for cubemap lookup
+    // Early exit: outside light range
+    if (currentDepth > lightRadius)
+        return 0.0;
+
+    // Direction for cubemap lookup
     vec3 dir = normalize(lightToFrag);
 
-    float closestDepth = texture(
-    shadowArrayCube,
-    vec4(dir, float(shadowId))
-    ).r;
+    // Sample stored depth (normalized 0..1)
+    float closestDepth = texture(shadowArrayCube, vec4(dir, float(shadowId))).r;
 
-    // stored depth is raw distance
-    if (currentDepth > lightRadius)
-    return 0.0;
+    // Convert back to world space
+    closestDepth *= lightRadius;
 
-    float bias = 0.005;
+    // Correct bias (normal-aware)
+    vec3 lightDir = normalize(lightPos - fragPos);
 
+    float bias = max(0.02 * (1.0 - dot(normal, lightDir)), 0.005);
+
+    // Shadow test
     return (currentDepth - bias > closestDepth) ? 1.0 : 0.0;
 }//======================================================================================================================

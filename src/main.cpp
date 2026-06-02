@@ -128,9 +128,9 @@ int main() {
     light0.constant  = 1.0f;
     light0.linear    = 0.09f;
     light0.quadratic = 0.032f;
-    light0.radius    = 1.0f;
+    light0.radius    = 25.0f;
     auto light1 = light0;
-    light1.position = glm::vec3(-1.0f, 0.0f, 0.2f);
+    light1.position = glm::vec3(-2.0f, 0.0f, 0.2f);
     auto light2 = SpotLight {}; // Flashlight
     light2.position    = glm::vec3(0.0f);
     light2.intensity   = 0.8f;
@@ -151,28 +151,33 @@ int main() {
 
     LightManager lights(defaultShader);
     lights.pointBucket.push_back(light0);
-    lights.pointBucket.push_back(light1);
+    // lights.pointBucket.push_back(light1);
     lights.spotBucket.push_back(light2); // Flashlight
     lights.dirBucket.push_back(light3); // Moonlight
     lights.spotBucket.push_back(light4); // Static spot light
     lights.setAllLightSpaceMatrics();
 
+    // set shadow id for point lights
+    for (int i = 0; i < lights.pointBucket.size(); i++)
+        lights.pointBucket[i].shadowId = i;
+
     // ------------------------- Initialize objects -------------------------
 
-    Object object0(defaultShader, *meshMap["cube.obj"].get());
-    Object object1(object0);
-    Object object2(object0);
-    Object object3(object0);
-    auto   object7 = Object(object0);
-    Object object4(emissiveShader, *meshMap["sphere.obj"].get());
-    Object object5(object4);
+    Object object0(defaultShader, *meshMap["cube.obj"].get()); // Cube
+    Object object1(object0); // Cube
+    Object object2(object0); // Cube
+    Object object3(object0); // Cube
+    auto   object7 = Object(object0); // Cube
+    Object object4(emissiveShader, *meshMap["sphere.obj"].get()); // Sphere
+    Object object5(object4);                                               // Sphere
     Object object6(defaultShader, *meshMap["Floor.obj"].get());
     object0.rotation = glm::vec3(0.0f, -44.0f, 0.0f);
     object1.position += glm::vec3(1.8f, 0.3f, -1.3f);object1.rotation.z += 10;
     object2.position = glm::vec3(5.0f, 0.7f, 0.3f);object2.rotation.x += 8;object2.rotation.z += 15;
     object3.position = glm::vec3(3.0f, 0.1f, -1.0f);
     object4.position = glm::vec3(3.3f, 0.5f, 0.7f); object4.scale = glm::vec3(0.4);
-    object5.position = light1.position;object5.scale = glm::vec3(0.4);
+    object5.position = light1.position;
+    object5.scale = glm::vec3(0.4);
     object6.position = glm::vec3(0.0f, -1.0f, 0.0f);
     object6.scale    = glm::vec3(0.1);
     object7.position = glm::vec3(7.5f, 0.5f, 0.7f);
@@ -195,6 +200,8 @@ int main() {
     const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
     int width = SHADOW_WIDTH, height = SHADOW_HEIGHT;
     int shadowCount = 8; // Max number of 2D shadow maps
+    int maxCubeMaps = 10; // x * 6 = total 2D textures
+
     GLuint shadow2dFBO;
     glGenFramebuffers(1, &shadow2dFBO);
 
@@ -218,14 +225,15 @@ int main() {
     // TODO: create CubeMap class, let it handle arrays too
     GLuint cubeMapArray;
     glCreateTextures(GL_TEXTURE_CUBE_MAP_ARRAY, 1, &cubeMapArray);
-    int maxCubeMaps = 10; // x * 6 = total 2D textures
-    glTextureStorage3D(cubeMapArray, 1, GL_RGBA8, 1024, 1024, maxCubeMaps * 6);
+    glTextureStorage3D(cubeMapArray, 1, GL_DEPTH_COMPONENT24, SHADOW_WIDTH, SHADOW_HEIGHT, maxCubeMaps * 6);
     // Set parameters
     glTextureParameteri(cubeMapArray, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTextureParameteri(cubeMapArray, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTextureParameteri(cubeMapArray, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(cubeMapArray, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTextureParameteri(cubeMapArray, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    glTextureParameteri(cubeMapArray, GL_TEXTURE_COMPARE_MODE, GL_NONE);
 
     // --- Attach Arrays to FBOs ---
     glBindFramebuffer(GL_FRAMEBUFFER, shadow2dFBO);
@@ -248,7 +256,7 @@ int main() {
         window.processInput();
 
         // Prepare shadow mapping passes
-        shadow2dShader.Activate();                         // Activate shadow shader
+        // shadow2dShader.Activate();                         // Activate shadow shader
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT); // Set viewport size to shadow-map resolution
 
         // Render Shadow 2D Textures
@@ -257,10 +265,12 @@ int main() {
         glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureArray, 0);
         renderer.renderScene(objects, lights, camera);// Render scene (shadow pass)
 
+
         // Render Shadow CubeMaps
         RenderContext::setPass(RenderPass::ShadowCube); // Set renderer state
         glBindFramebuffer(GL_FRAMEBUFFER, shadowCubeFBO); // Set frame-buffer to texture
         glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, cubeMapArray, 0);
+        glClear(GL_DEPTH_BUFFER_BIT);
         renderer.renderScene(objects, lights, camera);// Render scene (shadow pass)
 
         // Reset renderer settings

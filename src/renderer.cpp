@@ -82,19 +82,22 @@ void Renderer::shadow2dDraw(Object& object, LightManager& lights) {
     //----------------------------------------------------------------------------------------------------------------------
     // SHADOW CUBE DRAW
     void Renderer::shadowCubeDraw(Object& object, LightManager& lights)
-    {
-        const auto modelMatrix = object.getModelMatrix();
-        object.mesh->vao->Bind();
-        Shader* shadowCubeShader = shaderMap[std::string("shadowCube")];
-        shadowCubeShader->Activate();
-        shadowCubeShader->setUniform("modelMatrix", modelMatrix);
-        int shadowIndex = 0;
-        for (PointLight& light : lights.pointBucket)
-            light.shadowId = shadowIndex++;
-        glDrawElementsInstanced(GL_TRIANGLES, object.mesh->index_count,
-                                 GL_UNSIGNED_INT, (void*)0,shadowIndex * 6);
-        object.mesh->vao->Unbind();
+{
+    object.mesh->vao->Bind();
+
+    Shader* shader = shaderMap["shadowCube"];
+    shader->Activate();
+
+    shader->setUniform("modelMatrix", object.getModelMatrix());
+
+    // Point light loop
+    for (int i = 0; i < lights.pointBucket.size(); i++) {
+        shader->setUniform("cubeMapIndex", i);
+        int faceCount = 6;
+        glDrawElementsInstanced(GL_TRIANGLES, object.mesh->index_count, GL_UNSIGNED_INT, nullptr, faceCount);
     }
+    object.mesh->vao->Unbind();
+}
 //--------------------------------------------------------------------------------------------
 // MAIN DRAW - draw each mesh
 void Renderer::mainDraw(Object& obj, Camera& camera)

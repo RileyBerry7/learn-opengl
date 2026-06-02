@@ -65,40 +65,39 @@ layout (std140, binding = 0 ) uniform LightData { // Lighting data block
 //======================================================================================================================
 layout (location = 0) in vec3 aPos;
 uniform mat4 modelMatrix;
+uniform int  cubeMapIndex;
 out vec3  fragPos;
 flat out vec3  lightPos;  // The world-space position of the point light
 flat out float farPlane;  // The far clipping plane of the light's projection matrix
 
 void main() {
 
-    int lightIndex = gl_InstanceID / 6;            //
-    int sideIndex  = gl_InstanceID % 6;            //
-    vec4 worldPos = modelMatrix * vec4(aPos, 1.0); //
-    gl_Layer = gl_InstanceID;                      // Render destination
-    PointLight light = pointLights[lightIndex];     //
-
+    int lightIndex   = cubeMapIndex;  // Light index
+    int faceIndex    = gl_InstanceID; // Face  index
+    gl_Layer         = (6 * lightIndex) + faceIndex;
+    vec4 worldPos    = modelMatrix * vec4(aPos, 1.0); //
+    PointLight light = pointLights[lightIndex];       //
 
     mat4 lightSpaceMatrix;
-    switch(sideIndex){
-        case 0: lightSpaceMatrix = light.frontLSM;
+    switch(faceIndex){
+        case 0: lightSpaceMatrix = light.rightLSM;
                 break;
-        case 1: lightSpaceMatrix = light.rightLSM;
+        case 1: lightSpaceMatrix = light.leftLSM;
                 break;
-        case 2: lightSpaceMatrix = light.leftLSM;
+        case 2: lightSpaceMatrix = light.topLSM;
                 break;
-        case 3: lightSpaceMatrix = light.backLSM;
+        case 3: lightSpaceMatrix = light.bottomLSM;
                 break;
-        case 4: lightSpaceMatrix = light.topLSM;
+        case 4: lightSpaceMatrix = light.frontLSM;
                 break;
-        case 5: lightSpaceMatrix = light.bottomLSM;
+        case 5: lightSpaceMatrix = light.backLSM;
+                break;
     }
-
-
     // Compute final position using the specific face matrix
     gl_Position = lightSpaceMatrix * worldPos;
     fragPos  = vec3(worldPos);
     lightPos = light.position;
-    farPlane = 50.0; // Temporary
+    farPlane = light.radius;
 }
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -113,8 +112,7 @@ flat in vec3 lightPos;   // The world-space position of the point light
 flat in float farPlane;  // The far clipping plane of the light's projection matrix
 
 void main() {
-    // Calculate distance between fragment and light source
-    float lightDistance = length(fragPos - lightPos);
+    float lightDistance = length(fragPos - lightPos); // Distance (light -> fragment)
 
     // Map to [0, 1] range by dividing by farPlane
     lightDistance = lightDistance / farPlane;
