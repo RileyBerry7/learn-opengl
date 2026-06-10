@@ -77,7 +77,8 @@ unsigned int loadCubemap(std::vector<std::string> faces)
 // =====================================================================================================================
 int main() {
 
-    std::cout << "\nHello OpenGL!\n";
+    std::cout << "\nHello OpenGL!" << std::endl;
+    std::cout << std::string(100, '=') << std::endl << std::endl;
 
     std::map<std::string, Shader*> shaderMap; // TODO: Abstract all shaders into renderer (private)
 
@@ -99,6 +100,7 @@ int main() {
     shaderMap["shadowCube"] = &shadowCubeShader;
     auto copyMap = shaderMap;
     renderer.shaderMap = std::move(copyMap);  // TODO: remove when shaders are pushed into renderer
+    std::cout << std::string(100, '=') << std::endl << std::endl;
 
     // Mesh Map
     std::map<std::string, std::unique_ptr<Mesh>> meshMap;

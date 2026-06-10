@@ -126,6 +126,7 @@ std::string parseIncludes(std::string code) {
 //----------------------------------------------------------------------------------------------------------------------
 // PARSE TYPE BLOCKS
 ShaderComponents parseTypeBlocks(std::string &code) {
+	std::cout << "--- Parsing type blocks:";
 
 	ShaderComponents blocks = {"", "", ""};
 	std::vector<std::string> markers = {	"#type vertex", "#type geometry", "#type fragment"};
@@ -150,11 +151,20 @@ ShaderComponents parseTypeBlocks(std::string &code) {
 
 
 		std::string codeBlock = code.substr(codeStart, codeEnd - codeStart);
-		if      (currentType == "#type vertex") blocks.vertexCode     += codeBlock;
-		else if (currentType == "#type geometry") blocks.geometryCode += codeBlock;
-		else if (currentType == "#type fragment") blocks.fragmentCode += codeBlock;
-		std::cout << "--- Found code for: " << currentType << std::endl;
+		if (currentType == "#type vertex") {
+			blocks.vertexCode     += codeBlock;
+			std::cout << " vertex";
+		}
+		else if (currentType == "#type geometry") {
+			blocks.geometryCode += codeBlock;
+			std::cout << " geometry";
+		}
+		else if (currentType == "#type fragment") {
+			blocks.fragmentCode += codeBlock;
+			std::cout << " fragment";
+		}
 	}
+	std::cout << std::endl;
 	return blocks;
 }
 
@@ -170,6 +180,7 @@ Shader::Shader(const char* glslFile)
 	ShaderComponents parsedCode = parseTypeBlocks(glslCode);
 
 	// --- Compile Shaders ---
+	std::cout << "--- Compiling shader: " << std::string(glslFile).substr(0, std::string(glslFile).find('.')) << std::endl;
 	const GLuint vertexShader   = compileShaderCode(parsedCode.vertexCode.c_str(),   ShaderType::Vertex);
 	const GLuint geometryShader = compileShaderCode(parsedCode.geometryCode.c_str(), ShaderType::Geometry);
 	const GLuint fragmentShader = compileShaderCode(parsedCode.fragmentCode.c_str(), ShaderType::Fragment);
@@ -195,7 +206,14 @@ Shader::Shader(const char* vertexFile, const char* fragmentFile)
 	vertexCode   = parseIncludes(vertexCode);
 	fragmentCode = parseIncludes(fragmentCode);
 
+	// Extract shader name
+	const char* p = fragmentFile + 1;
+	while (*p && !std::isupper(static_cast<unsigned char>(*p)) && *p != '.')
+		++p;
+	std:: string firstWord(fragmentFile, p - fragmentFile);
+
 	// --- Compile Shaders ---
+	std::cout << "--- Compiling shader: " << firstWord << std::endl;
 	const GLuint vertexShader   = compileShaderCode(vertexCode.c_str(),   ShaderType::Vertex);
 	const GLuint fragmentShader = compileShaderCode(fragmentCode.c_str(), ShaderType::Fragment);
 
