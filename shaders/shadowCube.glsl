@@ -88,9 +88,9 @@ void main() {
                 break;
         case 3: lightSpaceMatrix = light.bottomLSM;
                 break;
-        case 4: lightSpaceMatrix = light.frontLSM;
+        case 5: lightSpaceMatrix = light.frontLSM; // TODO: front/back calculations are swapped, pls fix
                 break;
-        case 5: lightSpaceMatrix = light.backLSM;
+        case 4: lightSpaceMatrix = light.backLSM;
                 break;
     }
     // Compute final position using the specific face matrix

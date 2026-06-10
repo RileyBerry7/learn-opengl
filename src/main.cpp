@@ -120,7 +120,7 @@ int main() {
 
     // ------------------------- Initialize lights -------------------------
     auto light0 = PointLight {};
-    light0.position  = glm::vec3(3.3f, 3.5f, 0.7f);
+    light0.position  = glm::vec3(3.3f, 0.5f, 0.9f);
     // light0.intensity = 0.45f;
     light0.intensity = 1.95f;
     // Disgusting please remove

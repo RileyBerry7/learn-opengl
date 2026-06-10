@@ -218,10 +218,10 @@ float calculateShadowCube(vec3 fragPos, vec3 normal, int shadowId, vec3 lightPos
     float bias = 0.005;
     if(currentDepth - bias > closestDepth) {
         // TRAPPED IN SHADOW (Pitch Black)
-        return 0.0;
+        return 1.0;
     } else {
         // ILLUMINATED (Apply colors/specular)
-        return 1.0;
+        return 0.0;
     }
 }
 //======================================================================================================================
