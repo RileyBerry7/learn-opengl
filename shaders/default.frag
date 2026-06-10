@@ -95,14 +95,14 @@ void main()
     vec3 ambient  = albedo * 0.05;
 
     // Calculate total light
-//    for (int i = 0; i < dirCount; i++)
-//        totalLight += calculateDirLight(dirLights[i], norm, viewDir, specMap);
+    for (int i = 0; i < dirCount; i++)
+        totalLight += calculateDirLight(dirLights[i], norm, viewDir, specMap);
     for (int i = 0; i < pointCount; i++)
         totalLight += calculatePointLight(pointLights[i], norm, viewDir, specMap, fragPos);
-//    for (int i = 0; i < spotCount; i++){
-//        if (!toggleF && i == 0) continue;
-//        totalLight += calculateSpotLight(spotLights[i], norm, viewDir, specMap, fragPos);
-//    }
+    for (int i = 0; i < spotCount; i++){
+        if (!toggleF && i == 0) continue;
+        totalLight += calculateSpotLight(spotLights[i], norm, viewDir, specMap, fragPos);
+    }
     vec3 finalColor = (totalLight + ambient) * albedo * objColor;// Combine color components
     finalColor = finalColor / (finalColor + vec3(1.0));// Reinhard tone mapping
     finalColor = pow(finalColor, vec3(1.0/2.2));       // Gamma correction

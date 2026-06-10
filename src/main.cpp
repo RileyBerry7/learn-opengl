@@ -121,8 +121,7 @@ int main() {
     // ------------------------- Initialize lights -------------------------
     auto light0 = PointLight {};
     light0.position  = glm::vec3(3.3f, 0.5f, 0.9f);
-    // light0.intensity = 0.45f;
-    light0.intensity = 1.95f;
+    light0.intensity = 0.45f;
     // Disgusting please remove
     light0.color     = static_cast<EmissiveMaterial*>(meshMap["sphere.obj"]->materialList[1].get())->lightColor;
     light0.constant  = 1.0f;
@@ -141,17 +140,15 @@ int main() {
     auto light3 = DirLight{}; // Moon
     light3.color = glm::vec3(1.0f);
     light3.direction = glm::vec3(0.4f, -10.0f, -3.0f);
-    // light3.intensity = 0.35f;
-    light3.intensity = 0.0f;
+    light3.intensity = 0.15f;
     auto light4 = SpotLight(light2); // Static Spot light
     light4.position = glm::vec3(-3.0f, 3.0f, 5.0f);
     light4.direction = -light4.position;
-    // light4.intensity = 0.75f;
     light4.intensity = 0.0f;
 
     LightManager lights(defaultShader);
     lights.pointBucket.push_back(light0);
-    // lights.pointBucket.push_back(light1);
+    lights.pointBucket.push_back(light1);
     lights.spotBucket.push_back(light2); // Flashlight
     lights.dirBucket.push_back(light3); // Moonlight
     lights.spotBucket.push_back(light4); // Static spot light
