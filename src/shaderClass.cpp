@@ -3,6 +3,8 @@
 #include <chrono>
 #include <map>
 #include <memory>
+#include <regex>
+
 //----------------------------------------------------------------------------------------------------------------------
 struct ShaderComponents {
 	std::string vertexCode;
@@ -87,6 +89,40 @@ GLuint compileShaderCode(const char* code, ShaderType type) {
 	return shader;
 	}
 //----------------------------------------------------------------------------------------------------------------------
+std::string parseIncludes(std::string code) {
+	std::map<std::string, std::string> libraries;
+	std::string output;
+	std::stringstream stream(code);
+	std::string currentLine;
+	int lineIndex = 0;
+	std::regex pattern(R"regex(^\s*#\s*include\s*"([^"]+)")regex");
+	std::smatch match;
+	std::string libName;
+
+	// Loop line by line
+	while (std::getline(stream, currentLine)) {
+		lineIndex++;
+
+		// Search current line for pattern
+		if (std::regex_search(currentLine, match, pattern)) {
+			libName = match.str(1);
+			auto iterator = libraries.find(libName);
+			if (iterator == libraries.end()) {
+				// Not found
+				std::string libraryContent = get_file_contents(libName.c_str());
+				libraries[libName] = libraryContent;
+			}
+			output.append(libraries[libName]);
+
+		} else {
+			output.append(currentLine);
+		}
+		output.push_back('\n');
+	}
+	return output;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 // PARSE TYPE BLOCKS
 ShaderComponents parseTypeBlocks(std::string &code) {
 
@@ -129,7 +165,7 @@ Shader::Shader(const char* glslFile)
 	// --- Parse file ---
 	std::string glslCode;
 	glslCode = get_file_contents(glslFile);
-	// glslCode = parseIncludes(glslCode);
+	glslCode = parseIncludes(glslCode);
 	ShaderComponents parsedCode = parseTypeBlocks(glslCode);
 
 	// --- Compile Shaders ---
