@@ -20,7 +20,7 @@ struct DirLight {    // Total: 96 bytes
     int   shadowId;  // 4  bytes
     mat4  lightSpaceMatrix; // 64 bytes
 };
-struct PointLight {     // Total: 112 bytes
+struct PointLight {     //
     vec3  position;     // 12 bytes
     float intensity;    // 4  bytes
     vec3  color;        // 12 bytes
@@ -66,7 +66,7 @@ layout (std140, binding = 0 ) uniform LightData { // Lighting data block
 layout (location = 0) in vec3 aPos;
 uniform mat4 modelMatrix;
 uniform int  cubeMapIndex;
-out vec3  fragPos;
+out vec3     fragPos;
 flat out vec3  lightPos;  // The world-space position of the point light
 flat out float farPlane;  // The far clipping plane of the light's projection matrix
 

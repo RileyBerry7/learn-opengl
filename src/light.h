@@ -73,28 +73,35 @@ public:
         glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         return lightProjection * lightView;
     }
-    void setPointLSM(PointLight &light)
-    {
-        float near_plane = 0.1f;
+
+    void setPointLSM(PointLight &light) {
+        float near_plane = 0.5f;
         float far_plane  = light.radius;
         float aspect     = 1.0f;
 
+        // 90 degree field of view is mandatory for cube maps
         glm::mat4 proj = glm::perspective(glm::radians(90.0f), aspect, near_plane, far_plane);
-        glm::vec3 pos = light.position;
+        glm::vec3 pos  = light.position;
 
-        // +X right
-        light.rightLSM = proj * glm::lookAt(pos, pos + glm::vec3(1, 0, 0), glm::vec3(0,-1, 0));
-        // -X left
-        light.leftLSM = proj * glm::lookAt(pos, pos + glm::vec3(-1, 0, 0), glm::vec3(0,-1, 0));
-        // +Y top
-        light.topLSM = proj * glm::lookAt(pos, pos + glm::vec3(0, 1, 0), glm::vec3(0, 0, 1));
-        // -Y bottom
-        light.bottomLSM = proj * glm::lookAt(pos, pos + glm::vec3(0,-1, 0), glm::vec3(0, 0,-1));
-        // +Z front
-        light.frontLSM = proj * glm::lookAt(pos, pos + glm::vec3(0, 0, 1), glm::vec3(0,-1, 0));
-        // -Z back
-        light.backLSM = proj * glm::lookAt(pos, pos + glm::vec3(0, 0,-1),glm::vec3(0,-1, 0));
+        // +X (Right) -> Look right, Up is down
+        light.rightLSM  = proj * glm::lookAt(pos, pos + glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f));
+
+        // -X (Left)  -> Look left, Up is down
+        light.leftLSM   = proj * glm::lookAt(pos, pos + glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f));
+
+        // +Y (Top)   -> Look up, Up is forward
+        light.topLSM    = proj * glm::lookAt(pos, pos + glm::vec3( 0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f));
+
+        // -Y (Bottom)-> Look down, Up is backward
+        light.bottomLSM = proj * glm::lookAt(pos, pos + glm::vec3( 0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f));
+
+        // +Z (Back)   -> Look backward, Up is down
+        light.backLSM   = proj * glm::lookAt(pos, pos + glm::vec3( 0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f));
+
+        // -Z (Front)  -> Look forward, Up is down
+        light.frontLSM  = proj * glm::lookAt(pos, pos + glm::vec3( 0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f));
     }
+
     glm::mat4 calcLightSpaceMatrix(SpotLight &light) {
     float near_plane = 0.1f;
     float far_plane = 50.0f;

@@ -120,9 +120,9 @@ int main() {
 
     // ------------------------- Initialize lights -------------------------
     auto light0 = PointLight {};
-    light0.position  = glm::vec3(3.3f, 0.5f, 0.7f);
+    light0.position  = glm::vec3(3.3f, 3.5f, 0.7f);
     // light0.intensity = 0.45f;
-    light0.intensity = 0.95f;
+    light0.intensity = 1.95f;
     // Disgusting please remove
     light0.color     = static_cast<EmissiveMaterial*>(meshMap["sphere.obj"]->materialList[1].get())->lightColor;
     light0.constant  = 1.0f;
@@ -175,7 +175,8 @@ int main() {
     object1.position += glm::vec3(1.8f, 0.3f, -1.3f);object1.rotation.z += 10;
     object2.position = glm::vec3(5.0f, 0.7f, 0.3f);object2.rotation.x += 8;object2.rotation.z += 15;
     object3.position = glm::vec3(3.0f, 0.1f, -1.0f);
-    object4.position = glm::vec3(3.3f, 0.5f, 0.7f); object4.scale = glm::vec3(0.4);
+    object4.position = light0.position;;
+    object4.scale = glm::vec3(0.4);
     object5.position = light1.position;
     object5.scale = glm::vec3(0.4);
     object6.position = glm::vec3(0.0f, -1.0f, 0.0f);

@@ -204,36 +204,24 @@ float calculateShadow2D(vec3 lightDir, vec3 normal, mat4 lightSpaceMatrix, int s
 //-------------------------------
 // SHADOW CUBE MAP CALCULATION  -
 //-------------------------------
-float calculateShadowCube(
-vec3 fragPos,
-vec3 normal,
-int shadowId,
-vec3 lightPos,
-float lightRadius)
+float calculateShadowCube(vec3 fragPos, vec3 normal, int shadowId, vec3 lightPos, float lightRadius)
 {
-    // Vector from light → fragment
-    vec3 lightToFrag = fragPos - lightPos;
+    // Inside your MAIN lighting pass fragment shader:
+    vec3 fragToLight   = fragPos - lightPos;
+    float currentDepth = length(fragToLight) / lightRadius; // Matches shadow shader linear math
 
-    float currentDepth = length(lightToFrag) / lightRadius;
+    // Sample the custom linear depth from the cubemap array
+    vec4  sampleCoords = vec4(normalize(fragToLight), float(shadowId));
+    float closestDepth = texture(shadowArrayCube, sampleCoords).r;
 
-    // Early exit: outside light range
-    if (currentDepth > lightRadius)
+    // Apply a tiny bias to prevent self-shadowing acne
+    float bias = 0.005;
+    if(currentDepth - bias > closestDepth) {
+        // TRAPPED IN SHADOW (Pitch Black)
         return 0.0;
-
-    // Direction for cubemap lookup
-    vec3 dir = normalize(lightToFrag);
-
-    // Sample stored depth (normalized 0..1)
-    float closestDepth = texture(shadowArrayCube, vec4(dir, float(shadowId))).r;
-
-    // Convert back to world space
-    closestDepth *= lightRadius;
-
-    // Correct bias (normal-aware)
-    vec3 lightDir = normalize(lightPos - fragPos);
-
-    float bias = max(0.02 * (1.0 - dot(normal, lightDir)), 0.005);
-
-    // Shadow test
-    return (currentDepth - bias > closestDepth) ? 1.0 : 0.0;
-}//======================================================================================================================
+    } else {
+        // ILLUMINATED (Apply colors/specular)
+        return 1.0;
+    }
+}
+//======================================================================================================================
