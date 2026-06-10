@@ -105,6 +105,7 @@ std::string parseIncludes(std::string code) {
 
 		// Search current line for pattern
 		if (std::regex_search(currentLine, match, pattern)) {
+			std::cout << "--- Expanding: " << match.str() << std::endl;
 			libName = match.str(1);
 			auto iterator = libraries.find(libName);
 			if (iterator == libraries.end()) {
@@ -191,6 +192,8 @@ Shader::Shader(const char* vertexFile, const char* fragmentFile)
 {
 	std::string vertexCode   = get_file_contents(vertexFile);
 	std::string fragmentCode = get_file_contents(fragmentFile);
+	vertexCode   = parseIncludes(vertexCode);
+	fragmentCode = parseIncludes(fragmentCode);
 
 	// --- Compile Shaders ---
 	const GLuint vertexShader   = compileShaderCode(vertexCode.c_str(),   ShaderType::Vertex);
