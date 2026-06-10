@@ -87,13 +87,14 @@ GLuint compileShaderCode(const char* code, ShaderType type) {
 	return shader;
 	}
 //----------------------------------------------------------------------------------------------------------------------
-ShaderComponents parseUnifiedShader(std::string &code) {
+// PARSE TYPE BLOCKS
+ShaderComponents parseTypeBlocks(std::string &code) {
 
 	ShaderComponents blocks = {"", "", ""};
 	std::vector<std::string> markers = {	"#type vertex", "#type geometry", "#type fragment"};
 	std::map<size_t, std::string> foundMarkers;
 
-	// 1. Locate all markers
+	// 1. Locate all type markers
 	for (const auto& marker : markers) {
 		size_t pos = code.find(marker);
 		if (pos != std::string::npos) {
@@ -126,8 +127,10 @@ ShaderComponents parseUnifiedShader(std::string &code) {
 Shader::Shader(const char* glslFile)
 {
 	// --- Parse file ---
-	std::string glslCode = get_file_contents(glslFile);
-	ShaderComponents parsedCode = parseUnifiedShader(glslCode);
+	std::string glslCode;
+	glslCode = get_file_contents(glslFile);
+	// glslCode = parseIncludes(glslCode);
+	ShaderComponents parsedCode = parseTypeBlocks(glslCode);
 
 	// --- Compile Shaders ---
 	const GLuint vertexShader   = compileShaderCode(parsedCode.vertexCode.c_str(),   ShaderType::Vertex);

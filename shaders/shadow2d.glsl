@@ -3,6 +3,8 @@
 #version 430 core
 #extension GL_ARB_shader_viewport_layer_array : require
 // Upgraded to 4.3 for native ARB_shader_viewport_layer_array
+//#include "/shaders/lightUBO.slsl.h"
+
 
 layout (location = 0) in vec3 aPos;
 
