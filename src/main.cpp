@@ -319,6 +319,7 @@ int main() {
             std::string FPS = std::to_string((1.0 / timeDiff) * frameCounter);
             std::string title = window.windowName + "\t-\tFPS: " + std::string(FPS);
             glfwSetWindowTitle(window.getWindow(), title.c_str());
+            frameCounter = 0;
         }
 
         window.swapBuffers();
