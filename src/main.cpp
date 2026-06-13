@@ -316,8 +316,9 @@ int main() {
         lastTime = static_cast<float>(glfwGetTime());
         frameCounter++;
         if (timeDiff >= 1.0 / 30.0) {
-            std::string FPS = std::to_string((1.0 / timeDiff) * frameCounter);
-            std::string title = window.windowName + "\t-\tFPS: " + std::string(FPS);
+            std::string FPS   = std::to_string((1.0 / timeDiff) * frameCounter);
+            std::string ms    = std::to_string((timeDiff / frameCounter) * 1000);
+            std::string title = window.windowName + "\t-\tFPS: " + std::string(FPS) + " / " + ms + "ms";
             glfwSetWindowTitle(window.getWindow(), title.c_str());
             frameCounter = 0;
         }
