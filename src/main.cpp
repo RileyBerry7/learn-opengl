@@ -90,7 +90,11 @@ int main() {
     auto skyboxShader     = Shader("skybox.glsl");
     auto shadow2dShader   = Shader("shadow2d.glsl");
     auto shadowCubeShader = Shader("shadowCube.glsl");
-    float lastTime        = glfwGetTime(); // Initialize Timer
+    double lastTime        = glfwGetTime(); // Initialize Timer
+    double currentTime = 0.0;
+    double timeDiff;
+    unsigned int frameCounter = 0;
+
 
     // Shader Map
     shaderMap["default"]    = &defaultShader;
@@ -306,9 +310,16 @@ int main() {
         glDrawElements(GL_TRIANGLES, skybox.index_count,GL_UNSIGNED_INT, 0);
         glDepthFunc(GL_LESS); // Reset depth
 
-        camera.Inputs(window.getWindow(), glfwGetTime() - lastTime);
+        timeDiff = glfwGetTime() - lastTime;
+        camera.Inputs(window.getWindow(), timeDiff);
         camera.UpdateMatrix(45.0f, 0.1f, 100.0f);
         lastTime = static_cast<float>(glfwGetTime());
+        frameCounter++;
+        if (timeDiff >= 1.0 / 30.0) {
+            std::string FPS = std::to_string((1.0 / timeDiff) * frameCounter);
+            std::string title = window.windowName + "\t-\tFPS: " + std::string(FPS);
+            glfwSetWindowTitle(window.getWindow(), title.c_str());
+        }
 
         window.swapBuffers();
     }

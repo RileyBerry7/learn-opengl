@@ -9,6 +9,7 @@ public:
     // Window attributes
     int width  = 800;
     int height = 600;
+    double framerate = 0.0;
     std::string windowName = "Riley's Renderer";
     GLFWwindow* window;
 
