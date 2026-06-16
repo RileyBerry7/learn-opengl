@@ -32,48 +32,6 @@
 // std
 #include <iostream>
 #include <string>
-unsigned int loadCubemap(std::vector<std::string> faces)
-{
-    unsigned int textureID;
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
-
-    int width, height, nrChannels;
-
-    // IMPORTANT: Cubemaps usually should NOT be flipped vertically,
-    // unlike 2D textures, as it messes up the face orientations.
-    stbi_set_flip_vertically_on_load(false);
-
-    for (unsigned int i = 0; i < faces.size(); i++)
-    {
-        // Force 4 channels (RGBA) to ensure 4-byte memory alignment
-        unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 4);
-
-        if (data)
-        {
-            // Use GL_RGBA for both internalFormat and format to match the '4' above
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                         0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-            stbi_image_free(data);
-        }
-        else
-        {
-            std::cout << "Cubemap failed to load at path: " << faces[i] << std::endl;
-            stbi_image_free(data);
-        }
-    }
-
-    // Set essential filtering and wrapping
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    // Use GL_CLAMP_TO_EDGE to prevent visible seams between faces
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-    return textureID;
-}
 
 /* TODO:
  *      - Make an FBO class
@@ -119,18 +77,12 @@ int main() {
     meshMap["cube.obj"]       = std::make_unique<Mesh>("cube.obj",   shaderMap);
     meshMap["sphere.obj"]     = std::make_unique<Mesh>("sphere.obj", shaderMap);
     meshMap["Floor.obj"]      = std::make_unique<Mesh>("Floor.obj",  shaderMap);
-    auto skybox = Mesh("cube.obj", shaderMap);
 
-    // Create texture atlas
-    std::vector<std::string> cubemap_faces;
-    cubemap_faces.push_back("resources/cubemap/right.jpg");
-    cubemap_faces.push_back("resources/cubemap/left.jpg");
-    cubemap_faces.push_back("resources/cubemap/top.jpg");
-    cubemap_faces.push_back("resources/cubemap/bottom.jpg");
-    cubemap_faces.push_back("resources/cubemap/front.jpg");
-    cubemap_faces.push_back("resources/cubemap/back.jpg");
+    auto skyboxMesh = Mesh("cube.obj", shaderMap);
 
-    unsigned int cubemapTexture = loadCubemap(cubemap_faces);
+    // Skybox Initialization
+    auto skybox = BetterTexture(GL_TEXTURE_CUBE_MAP);
+    skybox.loadCubemap("skybox2");
 
     // ------------------------- Initialize lights -------------------------
     auto light0 = PointLight {};
@@ -154,7 +106,7 @@ int main() {
     auto light3 = DirLight{}; // Moon
     light3.color = glm::vec3(1.0f);
     light3.direction = glm::vec3(0.4f, -10.0f, -3.0f);
-    light3.intensity = 0.15f;
+    light3.intensity = 1.15f;
     auto light4 = SpotLight(light2); // Static Spot light
     light4.position = glm::vec3(-3.0f, 3.0f, 5.0f);
     light4.direction = -light4.position;
@@ -211,10 +163,8 @@ int main() {
     // ================= SHADOW MAPPING ===========================
 
     // --- Configuration ---
-    const unsigned int SHADOW_WIDTH = 1024;
-    const unsigned int SHADOW_HEIGHT = 1024;
-    int width  = SHADOW_WIDTH;
-    int height = SHADOW_HEIGHT;
+    const unsigned int width  = 1024;
+    const unsigned int height = 1024;
     int shadowCount = 8; // Max number of 2D shadow maps
     int maxCubeMaps = 10; // x * 6 = total 2D textures
 
@@ -227,39 +177,21 @@ int main() {
     glGenFramebuffers(1, &shadowCubeFBO);
 
     // --- Create 2D Texture Array ---
-    BetterTexture textureArray(GL_TEXTURE_2D_ARRAY);
+    auto textureArray = BetterTexture(GL_TEXTURE_2D_ARRAY);
     textureArray.create2DArray(width, height, shadowCount, GL_DEPTH_COMPONENT24);
-
-    // GLuint textureArray;
-    // glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &textureArray);
-    // glTextureStorage3D(textureArray, 1, GL_DEPTH_COMPONENT24, width, height, shadowCount);
-
-    // -- Set 2D Array Attributes
+    // Set parameters
     textureArray.setFilter(GL_NEAREST, GL_NEAREST);
     textureArray.setWrap(GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER);
     textureArray.setBorderColor(1.0f, 1.0f, 1.0f, 1.0f);
-    // Standard shadow map filtering
-    // glTextureParameteri(textureArray, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    // glTextureParameteri(textureArray, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    // glTextureParameteri(textureArray, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    // glTextureParameteri(textureArray, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    // // Set border color for shadow maps to prevent artifacts outside frustum
-    // float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-    // glTextureParameterfv(textureArray, GL_TEXTURE_BORDER_COLOR, borderColor);
 
     // --- Create Cube Map Array ---
-    GLuint cubeMapArray;
-    glCreateTextures(GL_TEXTURE_CUBE_MAP_ARRAY, 1, &cubeMapArray);
-    glTextureStorage3D(cubeMapArray, 1, GL_DEPTH_COMPONENT24, SHADOW_WIDTH, SHADOW_HEIGHT, maxCubeMaps * 6);
-
-    // Set Cube Map parameters
-    glTextureParameteri(cubeMapArray, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTextureParameteri(cubeMapArray, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTextureParameteri(cubeMapArray, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(cubeMapArray, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(cubeMapArray, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-    glTextureParameteri(cubeMapArray, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+    auto cubemapArray = BetterTexture(GL_TEXTURE_CUBE_MAP_ARRAY);
+    cubemapArray.createCubemapArray(width, height, maxCubeMaps, GL_DEPTH_COMPONENT24);
+    // Set parameters
+    cubemapArray.setFilter(GL_LINEAR, GL_LINEAR);
+    cubemapArray.setWrap(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+    cubemapArray.setBorderColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glTextureParameteri(cubemapArray.getID(), GL_TEXTURE_COMPARE_MODE, GL_NONE);
 
     // --- Attach 2D Texture Array to FBO
     glBindFramebuffer(GL_FRAMEBUFFER, shadow2dFBO);
@@ -270,7 +202,7 @@ int main() {
 
     // -- Attach CubeMap Array to FBO
     glBindFramebuffer(GL_FRAMEBUFFER, shadowCubeFBO);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, cubeMapArray, 0);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, cubemapArray.getID(), 0);
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -311,10 +243,8 @@ int main() {
         defaultShader.Activate();
         defaultShader.setUniform("toggleF", window.f_toggle);
         lights.setAllLightSpaceMatrics();
-        // glBindTextureUnit(4, textureArray);
         textureArray.bindUnit(4);
-        glBindTextureUnit(5, cubeMapArray);
-
+        cubemapArray.bindUnit(5);
 
         // Main render pass
         renderer.renderScene(objects, lights, camera);
@@ -322,14 +252,12 @@ int main() {
         // 3. Skybox Render
         glDepthFunc(GL_LEQUAL); // Allow drawing at depth 1.0
         skyboxShader.Activate();
-        skybox.vao->Bind();
+        skyboxMesh.vao->Bind();
         glm::mat4 view = glm::mat4(glm::mat3(camera.view)); // Strip movement!
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
-        skyboxShader.setUniform("cubemap", 0);
+        skybox.bindUnit(0);
         skyboxShader.setUniform("projection", camera.projection);
         skyboxShader.setUniform("view", view);
-        glDrawElements(GL_TRIANGLES, skybox.index_count,GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, skyboxMesh.index_count,GL_UNSIGNED_INT, 0);
         glDepthFunc(GL_LESS); // Reset depth
 
 

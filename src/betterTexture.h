@@ -7,6 +7,10 @@
 #include "glad/glad.h"
 #include <string>
 #include <vector>
+#include <iostream>
+#include "stb/stb_image.h"
+#include <filesystem>
+namespace fs = std::filesystem;
 //======================================================================================================================
 class BetterTexture {
 
@@ -17,10 +21,11 @@ private:
     int width  = 0;
     int height = 0;
     int depth  = 0;
+    int numColorCh = 0;
 //----------------------------------------------------------------------------------------------------------------------
 
 public:
-    BetterTexture();              // Default Constructor
+    // BetterTexture();              // Default Constructor
     BetterTexture(GLenum target); // Parameterized Constructor
 
     // ~BetterTexture(); // Destructor
@@ -35,7 +40,7 @@ public:
     // CREATION
 
     void load2D(const std::string& path);
-    void loadCubemap(const std::vector<std::string>& faces);
+    void loadCubemap(const std::string& fileName);
 
     void create2D(int width, int height, GLenum internalFormat);
     void create2DArray(int width, int height, int layers, GLenum internalFormat);

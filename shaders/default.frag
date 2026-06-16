@@ -155,7 +155,7 @@ float calculateShadowCube(vec3 fragPos, vec3 normal, int shadowId, vec3 lightPos
     vec3 fragToLight   = fragPos - lightPos;
     float currentDepth = length(fragToLight) / lightRadius; // Matches shadow shader linear math
 
-    // Sample the custom linear depth from the cubemap array
+    // Sample the custom linear depth from the cubemaps array
     vec4  sampleCoords = vec4(normalize(fragToLight), float(shadowId));
     float closestDepth = texture(shadowArrayCube, sampleCoords).r;
 
