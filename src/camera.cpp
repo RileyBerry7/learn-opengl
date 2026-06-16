@@ -1,12 +1,12 @@
 #include"Camera.h"
-
+#include "window.h"
 
 
 Camera::Camera(int width, int height, glm::vec3 position)
 {
-	Camera::width = width;
-	Camera::height = height;
-	Position = position;
+	Camera::width 	= width;
+	Camera::height 	= height;
+	Position 		= position;
 }
 
 void Camera::Matrix(Shader& shader, const char* uniform) {
@@ -33,9 +33,10 @@ void Camera::UpdateMatrix(float FOVdeg, float nearPlane, float farPlane)
 
 
 
-void Camera::Inputs(GLFWwindow* window, float delta_time)
-{
+void Camera::handleInputs(Window& windowRef) {
 
+	GLFWwindow* window = windowRef.getWindow();
+	float delta_time = windowRef.timeDiff;
 
 	// Handles key inputs
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
@@ -118,4 +119,5 @@ void Camera::Inputs(GLFWwindow* window, float delta_time)
 		// Makes sure the next time the camera looks around it doesn't jump
 		firstClick = true;
 	}
+	UpdateMatrix(45.0f, 0.1f, 100.0f);
 }

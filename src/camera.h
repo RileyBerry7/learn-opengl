@@ -17,6 +17,7 @@
 #include <glm/gtx/vector_angle.hpp>
 
 #include "shaderClass.h"
+#include "window.h"
 
 class Camera {
 public:
@@ -41,10 +42,12 @@ public:
     // Prevents the camera from jumping around when first clicking left click
     bool firstClick = true;
 
+    GLFWwindow* window;
+
     Camera(int width, int height, glm::vec3 position);
     void Matrix(Shader& shader, const char* uniform);
     void UpdateMatrix(float FOVdeg, float nearPlane, float farPlane);
-    void Inputs(GLFWwindow* window, float delta_time);
+    void handleInputs(Window& windowRef);
 
 };
 

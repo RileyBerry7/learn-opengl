@@ -254,11 +254,10 @@ int main() {
     while (!window.shouldClose()) {
 
         window.processInput(); // Window Inputs
-        window.tick(); // Window Timing
+        window.tick();         // Window Timing
 
         // Camera inputs
-        camera.Inputs(window.getWindow(), static_cast<float>(window.timeDiff));
-        camera.UpdateMatrix(45.0f, 0.1f, 100.0f);
+        camera.handleInputs(window);
 
         // Prepare shadow mapping passes
         // shadow2dShader.Activate();                         // Activate shadow shader
