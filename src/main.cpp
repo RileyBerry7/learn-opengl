@@ -74,6 +74,15 @@ unsigned int loadCubemap(std::vector<std::string> faces)
     return textureID;
 }
 
+/* TODO:
+ *      - Make an FBO class
+ *      - Implement 2D textures and cubemaps and their arrays into texture class.
+ *       (each texture will have a target: GLenum target; )
+ *      - Create Shadow2DArray class
+ *      - Create ShadowCube
+ *
+ */
+
 // =====================================================================================================================
 int main() {
 
@@ -85,12 +94,13 @@ int main() {
     auto window   = Window();   // Initialize GLFW window
     auto renderer = Renderer(shaderMap); // Initialize renderer
     auto camera   = Camera(window.width, window.height, glm::vec3(2.3f, 0.0f, 7.0f)); // Initialize camera
+
+
     auto defaultShader    = Shader("default.vert", "default.frag");      // Initialize default shader
     auto emissiveShader   = Shader("default.vert", "emissive.frag");     // Initialize emissive shader
     auto skyboxShader     = Shader("skybox.glsl");
     auto shadow2dShader   = Shader("shadow2d.glsl");
     auto shadowCubeShader = Shader("shadowCube.glsl");
-
 
     // Shader Map
     shaderMap["default"]    = &defaultShader;
@@ -100,6 +110,7 @@ int main() {
     shaderMap["shadowCube"] = &shadowCubeShader;
     auto copyMap = shaderMap;
     renderer.shaderMap = std::move(copyMap);  // TODO: remove when shaders are pushed into renderer
+
     std::cout << std::string(100, '=') << std::endl << std::endl;
 
     // Mesh Map
@@ -196,22 +207,30 @@ int main() {
     objects.push_back(object7);
     objects.push_back(object8);
 
-    // --- Shadow Frame Buffers ---
-    const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
-    int width = SHADOW_WIDTH, height = SHADOW_HEIGHT;
+    // ================= SHADOW MAPPING ===========================
+
+    // --- Configuration ---
+    const unsigned int SHADOW_WIDTH = 1024;
+    const unsigned int SHADOW_HEIGHT = 1024;
+    int width  = SHADOW_WIDTH;
+    int height = SHADOW_HEIGHT;
     int shadowCount = 8; // Max number of 2D shadow maps
     int maxCubeMaps = 10; // x * 6 = total 2D textures
 
+    // -- Create 2D Frame Buffer
     GLuint shadow2dFBO;
     glGenFramebuffers(1, &shadow2dFBO);
 
+    // -- Create Cube Map Frame Buffer
     GLuint shadowCubeFBO;
     glGenFramebuffers(1, &shadowCubeFBO);
 
-    // --- Create texture 2D Array ---
+    // --- Create 2D Texture Array ---
     GLuint textureArray;
     glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &textureArray);
     glTextureStorage3D(textureArray, 1, GL_DEPTH_COMPONENT24, width, height, shadowCount);
+
+    // -- Set 2D Array Attributes
     // Standard shadow map filtering
     glTextureParameteri(textureArray, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTextureParameteri(textureArray, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -221,12 +240,12 @@ int main() {
     float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
     glTextureParameterfv(textureArray, GL_TEXTURE_BORDER_COLOR, borderColor);
 
-    // --- Create cube map array ---
-    // TODO: create CubeMap class, let it handle arrays too
+    // --- Create Cube Map Array ---
     GLuint cubeMapArray;
     glCreateTextures(GL_TEXTURE_CUBE_MAP_ARRAY, 1, &cubeMapArray);
     glTextureStorage3D(cubeMapArray, 1, GL_DEPTH_COMPONENT24, SHADOW_WIDTH, SHADOW_HEIGHT, maxCubeMaps * 6);
-    // Set parameters
+
+    // Set Cube Map parameters
     glTextureParameteri(cubeMapArray, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTextureParameteri(cubeMapArray, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTextureParameteri(cubeMapArray, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -235,13 +254,14 @@ int main() {
 
     glTextureParameteri(cubeMapArray, GL_TEXTURE_COMPARE_MODE, GL_NONE);
 
-    // --- Attach Arrays to FBOs ---
+    // --- Attach 2D Texture Array to FBO
     glBindFramebuffer(GL_FRAMEBUFFER, shadow2dFBO);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureArray, 0);
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+    // -- Attach CubeMap Array to FBO
     glBindFramebuffer(GL_FRAMEBUFFER, shadowCubeFBO);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, cubeMapArray, 0);
     glDrawBuffer(GL_NONE);
@@ -253,27 +273,22 @@ int main() {
     // --------------------------------------------------------------------------------------------------
     while (!window.shouldClose()) {
 
-        window.processInput(); // Window Inputs
-        window.tick();         // Window Timing
-
-        // Camera inputs
-        camera.handleInputs(window);
+        window.tick();                  // Timing
+        window.processInput();          // Window Inputs
+        camera.handleInputs(window); // Camera inputs
 
         // Prepare shadow mapping passes
-        // shadow2dShader.Activate();                         // Activate shadow shader
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT); // Set viewport size to shadow-map resolution
 
         // Render Shadow 2D Textures
         RenderContext::setPass(RenderPass::Shadow2D);        // Set renderer state to shadow pass
         glBindFramebuffer(GL_FRAMEBUFFER, shadow2dFBO); // Set frame-buffer to texture
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureArray, 0);
         renderer.renderScene(objects, lights, camera);// Render scene (shadow pass)
 
 
         // Render Shadow CubeMaps (Reduce performance by ~1/6)
         RenderContext::setPass(RenderPass::ShadowCube); // Set renderer state
         glBindFramebuffer(GL_FRAMEBUFFER, shadowCubeFBO); // Set frame-buffer to texture
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, cubeMapArray, 0);
         glClear(GL_DEPTH_BUFFER_BIT);
         renderer.renderScene(objects, lights, camera);// Render scene (shadow pass)
 
@@ -309,7 +324,6 @@ int main() {
         skyboxShader.setUniform("view", view);
         glDrawElements(GL_TRIANGLES, skybox.index_count,GL_UNSIGNED_INT, 0);
         glDepthFunc(GL_LESS); // Reset depth
-
 
 
         window.swapBuffers();

@@ -57,6 +57,7 @@ add_executable(learn-opengl
         src/ubo.h
         src/renderContext.cpp
         src/renderContext.h
+        src/cubeMap.h
 )
 
 
