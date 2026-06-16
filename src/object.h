@@ -22,12 +22,10 @@ public:
     Mesh* mesh;
 
     // Texture Attributes
-    Tex* texture;
+    BetterTexture* texture;
 
     // Shader Attributes
     Shader*   shader;
-
-    // Material* material;
 
     Object(Shader& shader_program, Mesh& model_mesh) :
     // Assign references

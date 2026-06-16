@@ -18,7 +18,6 @@
 #include "vbo.h"
 #include "vao.h"
 #include "ebo.h"
-#include "texture.h"
 #include "camera.h"
 #include "Mesh.h"
 #include "object.h"

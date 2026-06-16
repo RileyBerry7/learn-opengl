@@ -42,8 +42,6 @@ add_executable(learn-opengl
         src/vao.cpp
         src/vao.h
         src/stb.cpp
-        src/texture.cpp
-        src/texture.h
         src/camera.cpp
         src/camera.h
         src/Mesh.h
