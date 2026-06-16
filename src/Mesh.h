@@ -239,10 +239,13 @@ void loadModel(std::string objFile, std::string matFile) {
     void loadMaterial() {
         materialList.clear();
         std::string path = "resources/textures/";
-        GLenum tt     = GL_TEXTURE_2D;
-        GLenum pt     = GL_UNSIGNED_BYTE;
-        auto difMap   = new Tex(path + "missing.png"  , tt, GL_TEXTURE0, pt); // Diffuse map
-        auto specMap  = new Tex(path + "missing.png", tt, GL_TEXTURE1, pt); // Specular map
+
+        auto difMap   = new BetterTexture(GL_TEXTURE_2D);
+        difMap->load2D(path + "missing.png");
+
+        auto specMap  = new BetterTexture(GL_TEXTURE_2D);
+        specMap->load2D(path + "missing.png");
+
         auto defaultMat = std::make_unique<DefaultMaterial>(*shaderMap[std::string("default")], difMap, specMap);
         materialList.push_back(std::move(defaultMat));
 
@@ -273,15 +276,13 @@ void loadModel(std::string objFile, std::string matFile) {
 
                 // 4.Map texture maps
                 std::string texDir = "resources/textures/";
-                GLenum tt     = GL_TEXTURE_2D;
-                GLenum pt     = GL_UNSIGNED_BYTE;
                 if (!mat.diffuse_texname.empty()) {     // DANGLING POINTER !!!!!
-                    std::string path = texDir + mat.diffuse_texname;
-                    defMat->diffuseMap = new Tex(path, tt, GL_TEXTURE0, pt);
+                    defMat->diffuseMap = new BetterTexture(GL_TEXTURE_2D);
+                    defMat->diffuseMap->load2D(texDir + mat.diffuse_texname);
                 }
                 if (!mat.specular_texname.empty()) {
-                    std::string path = texDir + mat.specular_texname;
-                    defMat->specMap = new Tex(path, tt, GL_TEXTURE1, pt);
+                    defMat->specMap = new BetterTexture(GL_TEXTURE_2D);
+                    defMat->specMap->load2D(texDir + mat.specular_texname);
                 }
                 material = std::move(defMat);
             }

@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include "shaderClass.h"
 #include "texture.h"
+#include "betterTexture.h"
 
 //-------------------------------------------------------------------------------------
 // BASE CLASS
@@ -50,14 +51,15 @@ public:
     float     shininess;
 
     // Optional
-    Tex* specMap;
-    Tex* diffuseMap;
+    BetterTexture* specMap;
+    BetterTexture* diffuseMap;
 
-    DefaultMaterial(Shader& shader, Tex* diffMap = nullptr, Tex* specMap = nullptr) :
+    DefaultMaterial(Shader& shader, BetterTexture* diffMap = nullptr, BetterTexture* specMap = nullptr) :
         Material(shader),
         diffuseMap(diffMap),
         specMap(specMap),
-        // Default material
+
+        // Default material // Pretty sure this is redundant but default
         ambient( glm::vec3(0.25f, 0.25f, 0.25f)),
         diffuse( glm::vec3(0.4f, 0.4f, 0.4f)),
         specular(glm::vec3(0.77f, 0.77f, 0.77f)),
@@ -66,23 +68,21 @@ public:
     void apply() override {
 
         // Inject Material Uniforms
-        shader->setUniform("material.ambient", ambient);
-        shader->setUniform("material.diffuse", diffuse);
-        shader->setUniform("material.specular", specular);
+        shader->setUniform("material.ambient",   ambient);
+        shader->setUniform("material.diffuse",   diffuse);
+        shader->setUniform("material.specular",  specular);
         shader->setUniform("material.shininess", shininess);
 
         // Set diffuse map
         if (diffuseMap != nullptr) {
-            glActiveTexture(GL_TEXTURE0);
-            diffuseMap->Bind();
-            diffuseMap->setUniform(*shader, "material.diffuse", 0);
+            diffuseMap->bindUnit(0);
+            shader->setUniform("material.diffuse", 0);
         }
 
         // Set specular map
         if (specMap != nullptr) {
-            glActiveTexture(GL_TEXTURE1);
-            specMap->Bind();
-            specMap->setUniform(*shader, "material.specular", 1);
+            specMap->bindUnit(1);
+            shader->setUniform("material.specular", 1);
         }
     }
 
