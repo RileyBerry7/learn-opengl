@@ -277,8 +277,7 @@ int main() {
         window.processInput();          // Window Inputs
         camera.handleInputs(window); // Camera inputs
 
-        // Prepare shadow mapping passes
-        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT); // Set viewport size to shadow-map resolution
+        window.setViewportSize(width, height); // Set viewport size to shadow-map resolution
 
         // Render Shadow 2D Textures
         RenderContext::setPass(RenderPass::Shadow2D);        // Set renderer state to shadow pass
@@ -293,9 +292,9 @@ int main() {
         renderer.renderScene(objects, lights, camera);// Render scene (shadow pass)
 
         // Reset renderer settings
-        RenderContext::setPass(RenderPass::Main);       // Reset renderer state
+        RenderContext::setPass(RenderPass::Main);             // Reset renderer state
         glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Reset frame-buffer to default screen-buffer
-        glViewport(0, 0, 800, 600);            // reset viewport size to default dimensions
+        window.resetViewportSize();                            // reset viewport size to default dimensions
 
         // Update Flashlight
         lights.spotBucket[0].direction = glm::normalize(camera.Orientation);

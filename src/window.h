@@ -117,6 +117,13 @@ public:
         }
 
     }
+
+    void setViewportSize(int newWidth, int newHeight) {
+        glViewport(0, 0, newWidth, newHeight);
+    }
+    void resetViewportSize() {
+        glViewport(0, 0, width, height);
+    }
 };
 
 
