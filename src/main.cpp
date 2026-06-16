@@ -90,10 +90,6 @@ int main() {
     auto skyboxShader     = Shader("skybox.glsl");
     auto shadow2dShader   = Shader("shadow2d.glsl");
     auto shadowCubeShader = Shader("shadowCube.glsl");
-    double lastTime        = glfwGetTime(); // Initialize Timer
-    double currentTime = 0.0;
-    double timeDiff;
-    unsigned int frameCounter = 0;
 
 
     // Shader Map
@@ -257,7 +253,12 @@ int main() {
     // --------------------------------------------------------------------------------------------------
     while (!window.shouldClose()) {
 
-        window.processInput();
+        window.processInput(); // Window Inputs
+        window.tick(); // Window Timing
+
+        // Camera inputs
+        camera.Inputs(window.getWindow(), static_cast<float>(window.timeDiff));
+        camera.UpdateMatrix(45.0f, 0.1f, 100.0f);
 
         // Prepare shadow mapping passes
         // shadow2dShader.Activate();                         // Activate shadow shader
@@ -270,7 +271,7 @@ int main() {
         renderer.renderScene(objects, lights, camera);// Render scene (shadow pass)
 
 
-        // Render Shadow CubeMaps
+        // Render Shadow CubeMaps (Reduce performance by ~1/6)
         RenderContext::setPass(RenderPass::ShadowCube); // Set renderer state
         glBindFramebuffer(GL_FRAMEBUFFER, shadowCubeFBO); // Set frame-buffer to texture
         glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, cubeMapArray, 0);
@@ -310,18 +311,7 @@ int main() {
         glDrawElements(GL_TRIANGLES, skybox.index_count,GL_UNSIGNED_INT, 0);
         glDepthFunc(GL_LESS); // Reset depth
 
-        timeDiff = glfwGetTime() - lastTime;
-        camera.Inputs(window.getWindow(), timeDiff);
-        camera.UpdateMatrix(45.0f, 0.1f, 100.0f);
-        lastTime = static_cast<float>(glfwGetTime());
-        frameCounter++;
-        if (timeDiff >= 1.0 / 30.0) {
-            std::string FPS   = std::to_string((1.0 / timeDiff) * frameCounter);
-            std::string ms    = std::to_string((timeDiff / frameCounter) * 1000);
-            std::string title = window.windowName + "\t-\tFPS: " + std::string(FPS) + " / " + ms + "ms";
-            glfwSetWindowTitle(window.getWindow(), title.c_str());
-            frameCounter = 0;
-        }
+
 
         window.swapBuffers();
     }

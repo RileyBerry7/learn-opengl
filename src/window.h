@@ -9,14 +9,29 @@ public:
     // Window attributes
     int width  = 800;
     int height = 600;
-    double framerate = 0.0;
     std::string windowName = "Riley's Renderer";
     GLFWwindow* window;
+
+    // Timing
+    unsigned int frameCounter;
+    double lastTime;
+    double currentTime;
+    double timeDiff;
+    double frameRate;
+    double frameTime;
 
     // Input attributes
     bool f_toggle;
 
-    Window() : f_toggle(false) {
+    // Constructor
+    Window() :  f_toggle(false),
+                frameCounter(0),
+                lastTime(0.0),
+                currentTime(0.0),
+                timeDiff(0.0),
+                frameRate(0.0),
+                frameTime(0.0)
+    {
         // Initialize GLFW
         if (!glfwInit()) {
             // return -1;
@@ -41,6 +56,7 @@ public:
         glfwMakeContextCurrent(window);
 
         glfwSetKeyCallback(window, key_callback_static);
+        lastTime = glfwGetTime();
     }
 
     ~Window() {
@@ -85,6 +101,21 @@ public:
     }
     GLFWwindow* getWindow() const {
         return window;
+    }
+
+    void tick() {
+        currentTime = glfwGetTime();
+        timeDiff = currentTime - lastTime;
+        frameCounter++;
+        if (timeDiff >= 1.0 / 30.0) {
+            std::string FPS   = std::to_string(int((1.0 / timeDiff) * frameCounter));
+            std::string ms    = std::to_string((timeDiff / frameCounter) * 1000);
+            std::string title = windowName + "\t-\tFPS: " + std::string(FPS) + " / " + ms + "ms";
+            glfwSetWindowTitle(window, title.c_str());
+            frameCounter = 0;
+            lastTime = currentTime;
+        }
+
     }
 };
 
