@@ -27,6 +27,7 @@
 #include  "renderer.h"
 #include  "light.h"
 #include "renderContext.h"
+#include "betterTexture.h"
 
 // std
 #include <iostream>
@@ -226,19 +227,25 @@ int main() {
     glGenFramebuffers(1, &shadowCubeFBO);
 
     // --- Create 2D Texture Array ---
-    GLuint textureArray;
-    glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &textureArray);
-    glTextureStorage3D(textureArray, 1, GL_DEPTH_COMPONENT24, width, height, shadowCount);
+    BetterTexture textureArray(GL_TEXTURE_2D_ARRAY);
+    textureArray.create2DArray(width, height, shadowCount, GL_DEPTH_COMPONENT24);
+
+    // GLuint textureArray;
+    // glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &textureArray);
+    // glTextureStorage3D(textureArray, 1, GL_DEPTH_COMPONENT24, width, height, shadowCount);
 
     // -- Set 2D Array Attributes
+    textureArray.setFilter(GL_NEAREST, GL_NEAREST);
+    textureArray.setWrap(GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER);
+    textureArray.setBorderColor(1.0f, 1.0f, 1.0f, 1.0f);
     // Standard shadow map filtering
-    glTextureParameteri(textureArray, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTextureParameteri(textureArray, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTextureParameteri(textureArray, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTextureParameteri(textureArray, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    // Set border color for shadow maps to prevent artifacts outside frustum
-    float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-    glTextureParameterfv(textureArray, GL_TEXTURE_BORDER_COLOR, borderColor);
+    // glTextureParameteri(textureArray, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    // glTextureParameteri(textureArray, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    // glTextureParameteri(textureArray, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    // glTextureParameteri(textureArray, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    // // Set border color for shadow maps to prevent artifacts outside frustum
+    // float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    // glTextureParameterfv(textureArray, GL_TEXTURE_BORDER_COLOR, borderColor);
 
     // --- Create Cube Map Array ---
     GLuint cubeMapArray;
@@ -256,7 +263,7 @@ int main() {
 
     // --- Attach 2D Texture Array to FBO
     glBindFramebuffer(GL_FRAMEBUFFER, shadow2dFBO);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureArray, 0);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureArray.getID(), 0);
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -304,7 +311,8 @@ int main() {
         defaultShader.Activate();
         defaultShader.setUniform("toggleF", window.f_toggle);
         lights.setAllLightSpaceMatrics();
-        glBindTextureUnit(4, textureArray);
+        // glBindTextureUnit(4, textureArray);
+        textureArray.bindUnit(4);
         glBindTextureUnit(5, cubeMapArray);
 
 
