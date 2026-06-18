@@ -52,11 +52,13 @@ public:
     // Optional
     BetterTexture* specMap;
     BetterTexture* diffuseMap;
+    BetterTexture* normalMap;
 
-    DefaultMaterial(Shader& shader, BetterTexture* diffMap = nullptr, BetterTexture* specMap = nullptr) :
+    DefaultMaterial(Shader& shader, BetterTexture* diffMap = nullptr, BetterTexture* specMap = nullptr, BetterTexture* normMap = nullptr) :
         Material(shader),
         diffuseMap(diffMap),
         specMap(specMap),
+        normalMap(normMap),
 
         // Default material // Pretty sure this is redundant but default
         ambient( glm::vec3(0.25f, 0.25f, 0.25f)),
@@ -77,11 +79,14 @@ public:
             diffuseMap->bindUnit(0);
             shader->setUniform("material.diffuse", 0);
         }
-
         // Set specular map
         if (specMap != nullptr) {
             specMap->bindUnit(1);
             shader->setUniform("material.specular", 1);
+        }
+        if (normalMap != nullptr) {
+            normalMap->bindUnit(2);
+            shader->setUniform("material.normal", 2);
         }
     }
 
