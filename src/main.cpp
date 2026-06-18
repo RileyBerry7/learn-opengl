@@ -169,8 +169,9 @@ int main() {
     int maxCubeMaps = 10; // x * 6 = total 2D textures
 
     // -- Create 2D Frame Buffer
-    GLuint shadow2dFBO;
-    glGenFramebuffers(1, &shadow2dFBO);
+    auto shadow2dFBO = ShadowFBO(width, height);
+    // GLuint shadow2dFBO;
+    // glGenFramebuffers(1, &shadow2dFBO);
 
     // -- Create Cube Map Frame Buffer
     GLuint shadowCubeFBO;
@@ -192,11 +193,13 @@ int main() {
     glTextureParameteri(cubemapArray.getID(), GL_TEXTURE_COMPARE_MODE, GL_NONE);
 
     // --- Attach 2D Texture Array to FBO
-    glBindFramebuffer(GL_FRAMEBUFFER, shadow2dFBO);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureArray.getID(), 0);
-    glDrawBuffer(GL_NONE);
-    glReadBuffer(GL_NONE);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    shadow2dFBO.attachDepthArray(textureArray.getID());
+
+    // glBindFramebuffer(GL_FRAMEBUFFER, shadow2dFBO);
+    // glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureArray.getID(), 0);
+    // glDrawBuffer(GL_NONE);
+    // glReadBuffer(GL_NONE);
+    // glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // -- Attach CubeMap Array to FBO
     glBindFramebuffer(GL_FRAMEBUFFER, shadowCubeFBO);
@@ -218,7 +221,8 @@ int main() {
 
         // Render Shadow 2D Textures
         RenderContext::setPass(RenderPass::Shadow2D);        // Set renderer state to shadow pass
-        glBindFramebuffer(GL_FRAMEBUFFER, shadow2dFBO); // Set frame-buffer to texture
+        shadow2dFBO.bind();
+        // glBindFramebuffer(GL_FRAMEBUFFER, shadow2dFBO); // Set frame-buffer to texture
         renderer.renderScene(objects, lights, camera);// Render scene (shadow pass)
 
 
