@@ -32,17 +32,8 @@
 // std
 #include <iostream>
 #include <string>
-
-/* TODO:
- *      - Make an FBO class
- *      - Implement 2D textures and cubemaps and their arrays into texture class.
- *       (each texture will have a target: GLenum target; )
- *      - Create Shadow2DArray class
- *      - Create ShadowCube
- *
- */
-
 // =====================================================================================================================
+
 int main() {
 
     std::cout << "\nHello OpenGL!" << std::endl;
@@ -162,20 +153,13 @@ int main() {
 
     // ================= SHADOW MAPPING ===========================
 
-    // --- Configuration ---
     const unsigned int width  = 1024;
     const unsigned int height = 1024;
-    int shadowCount = 8; // Max number of 2D shadow maps
-    int maxCubeMaps = 10; // x * 6 = total 2D textures
+    int shadowCount = 8;   // Max number of 2D shadow maps
+    int maxCubeMaps = 10;  // x * 6 = total 2D textures
 
-    // -- Create 2D Frame Buffer
-    auto shadow2dFBO = ShadowFBO(width, height);
-    // GLuint shadow2dFBO;
-    // glGenFramebuffers(1, &shadow2dFBO);
-
-    // -- Create Cube Map Frame Buffer
-    GLuint shadowCubeFBO;
-    glGenFramebuffers(1, &shadowCubeFBO);
+    auto shadow2dFBO   = ShadowFBO(width, height); // Create texture framebuffer
+    auto shadowCubeFBO = ShadowFBO(width, height); // Create cubemap framebuffer
 
     // --- Create 2D Texture Array ---
     auto textureArray = BetterTexture(GL_TEXTURE_2D_ARRAY);
@@ -192,21 +176,8 @@ int main() {
     cubemapArray.setBorderColor(1.0f, 1.0f, 1.0f, 1.0f);
     glTextureParameteri(cubemapArray.getID(), GL_TEXTURE_COMPARE_MODE, GL_NONE);
 
-    // --- Attach 2D Texture Array to FBO
-    shadow2dFBO.attachDepthArray(textureArray.getID());
-
-    // glBindFramebuffer(GL_FRAMEBUFFER, shadow2dFBO);
-    // glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureArray.getID(), 0);
-    // glDrawBuffer(GL_NONE);
-    // glReadBuffer(GL_NONE);
-    // glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    // -- Attach CubeMap Array to FBO
-    glBindFramebuffer(GL_FRAMEBUFFER, shadowCubeFBO);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, cubemapArray.getID(), 0);
-    glDrawBuffer(GL_NONE);
-    glReadBuffer(GL_NONE);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    shadow2dFBO.attachDepthArray(textureArray.getID());     // Attach texture array to FBO
+    shadowCubeFBO.attachCubemapArray(cubemapArray.getID()); // Attach cubemap array to FBO
 
     //===================================================================================================
     // Render Loop
@@ -228,7 +199,7 @@ int main() {
 
         // Render Shadow CubeMaps (Reduce performance by ~1/6)
         RenderContext::setPass(RenderPass::ShadowCube); // Set renderer state
-        glBindFramebuffer(GL_FRAMEBUFFER, shadowCubeFBO); // Set frame-buffer to texture
+        shadowCubeFBO.bind();
         glClear(GL_DEPTH_BUFFER_BIT);
         renderer.renderScene(objects, lights, camera);// Render scene (shadow pass)
 
