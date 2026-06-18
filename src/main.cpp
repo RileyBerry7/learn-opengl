@@ -68,6 +68,7 @@ int main() {
     meshMap["cube.obj"]       = std::make_unique<Mesh>("cube.obj",   shaderMap);
     meshMap["sphere.obj"]     = std::make_unique<Mesh>("sphere.obj", shaderMap);
     meshMap["Floor.obj"]      = std::make_unique<Mesh>("Floor.obj",  shaderMap);
+    meshMap["brick_wall.obj"] = std::make_unique<Mesh>("brick_wall.obj", shaderMap);
 
     auto skyboxMesh = Mesh("cube.obj", shaderMap);
 
@@ -139,6 +140,9 @@ int main() {
     auto object8 = object4; // Static Dir light physical
     object8.position = light4.position;
     object8.position.y += 1.0f;
+    auto object9 = Object(defaultShader, *meshMap[("brick_wall.obj")].get());
+    object9.scale = glm::vec3(5.0f);
+    object9.position = glm::vec3(3.0f, 0.0f, -10.0f);
 
     std::vector<Object> objects;
     objects.push_back(object0);
@@ -150,6 +154,7 @@ int main() {
     objects.push_back(object6);
     objects.push_back(object7);
     objects.push_back(object8);
+    objects.push_back(object9);
 
     // ================= SHADOW MAPPING ===========================
 
