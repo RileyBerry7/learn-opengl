@@ -276,14 +276,22 @@ void loadModel(std::string objFile, std::string matFile) {
 
                 // 4.Map texture maps
                 std::string texDir = "resources/textures/";
+
                 if (!mat.diffuse_texname.empty()) {     // DANGLING POINTER !!!!!
                     defMat->diffuseMap = new BetterTexture(GL_TEXTURE_2D);
                     defMat->diffuseMap->load2D(texDir + mat.diffuse_texname);
                 }
+
                 if (!mat.specular_texname.empty()) {
                     defMat->specMap = new BetterTexture(GL_TEXTURE_2D);
                     defMat->specMap->load2D(texDir + mat.specular_texname);
                 }
+
+                if (!mat.bump_texname.empty()) {
+                    defMat->specMap = new BetterTexture(GL_TEXTURE_2D);
+                    defMat->specMap->load2D(texDir + mat.bump_texname);
+                }
+
                 material = std::move(defMat);
             }
             materialList.push_back(std::move(material));

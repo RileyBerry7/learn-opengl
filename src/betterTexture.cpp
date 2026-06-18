@@ -35,6 +35,9 @@ void BetterTexture::load2D(const std::string& path) {
             GLenum uploadFormat   = (numColorCh == 4) ? GL_RGBA  : GL_RGB;
             GLsizei levels = 4;
 
+            // fix?
+            // glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, uploadFormat, GL_UNSIGNED_BYTE, image);
+
             glTextureStorage2D(id, levels, internalFormat, width, height);
             glTextureSubImage2D(id, 0, 0, 0, width, height, uploadFormat, GL_UNSIGNED_BYTE, image);
             glGenerateTextureMipmap(id);

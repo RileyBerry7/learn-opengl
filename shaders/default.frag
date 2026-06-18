@@ -30,10 +30,13 @@ float calculateShadowCube(vec3 fragPos, vec3 normal, int shadowId, vec3 lightPos
 //======================================================================================================================
 void main()
 {
+    vec3 normalMap = texture(material.normal, texCoord).rgb;
+    vec3 norm = normalize(normalMap * 2.0 - 1.0);
+
     vec3 totalLight = vec3(0.0); // Light color accumulator
 
     // Calculate loop invariants
-    vec3 norm     = normalize(normal);
+//    vec3 norm     = normalize(normal);
     vec3 viewDir  = normalize(viewPos -fragPos);
     vec3 albedo   = pow(texture(material.diffuse, texCoord).rgb, vec3(2.2));//remove gamma from texture
     vec3 specMap  = texture(material.specular, texCoord).rgb;
