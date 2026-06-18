@@ -57,6 +57,7 @@ add_executable(learn-opengl
         src/renderContext.h
         src/betterTexture.h
         src/betterTexture.cpp
+        src/fbo.h
 )
 
 

@@ -18,6 +18,7 @@
 #include "vbo.h"
 #include "vao.h"
 #include "ebo.h"
+#include "fbo.h"
 #include "camera.h"
 #include "Mesh.h"
 #include "object.h"
@@ -178,7 +179,6 @@ int main() {
     // --- Create 2D Texture Array ---
     auto textureArray = BetterTexture(GL_TEXTURE_2D_ARRAY);
     textureArray.create2DArray(width, height, shadowCount, GL_DEPTH_COMPONENT24);
-    // Set parameters
     textureArray.setFilter(GL_NEAREST, GL_NEAREST);
     textureArray.setWrap(GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER);
     textureArray.setBorderColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -186,7 +186,6 @@ int main() {
     // --- Create Cube Map Array ---
     auto cubemapArray = BetterTexture(GL_TEXTURE_CUBE_MAP_ARRAY);
     cubemapArray.createCubemapArray(width, height, maxCubeMaps, GL_DEPTH_COMPONENT24);
-    // Set parameters
     cubemapArray.setFilter(GL_LINEAR, GL_LINEAR);
     cubemapArray.setWrap(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
     cubemapArray.setBorderColor(1.0f, 1.0f, 1.0f, 1.0f);
