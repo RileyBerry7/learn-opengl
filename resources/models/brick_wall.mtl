@@ -1,11 +1,11 @@
 newmtl wall
 Ka 0.2 0.2 0.2
-Kd 0.4 0.4 0.4
-Ks 0.77 0.77 0.77
-Ns 70.0
+Kd 0.5 0.5 0.5
+Ks 0.07 0.07 0.07
+Ns 20.0
 # Specular exponent (sharpness of highlight)
 illum 2
 # Enables Phong specular highlights
 map_Kd wall-9-brick-DIFFUSE.jpg
+map_Ks wall-9-brick-SPECULAR.jpg
 map_bump wall-9-brick-NORM.jpg
-# map_Ks crate_border.png

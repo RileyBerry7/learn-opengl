@@ -142,7 +142,7 @@ int main() {
     object8.position.y += 1.0f;
     auto object9 = Object(defaultShader, *meshMap[("brick_wall.obj")].get());
     object9.scale = glm::vec3(5.0f);
-    object9.position = glm::vec3(3.0f, 0.0f, -10.0f);
+    object9.position = glm::vec3(3.0f, 2.0f, -12.0f);
 
     std::vector<Object> objects;
     objects.push_back(object0);
