@@ -43,7 +43,7 @@ public:
     // Obj Parse Atrributes
     int vertex_count = 0;
     int index_count  = 0;
-    int stride       = 11;
+    int stride       = 14; // previously 11
 
     // TinyObjLoader Attributes
     tinyobj::attrib_t attrib;

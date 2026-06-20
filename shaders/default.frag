@@ -38,6 +38,8 @@ void main()
     if (material.hasNormalMap){
         vec3 normalMap = texture(material.normalMap, texCoord).rgb;
         norm = normalize(normalMap * 2.0 - 1.0);
+        norm.y = -normal.y;
+
     } else {
         norm      = normalize(normal);
     }
