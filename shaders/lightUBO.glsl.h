@@ -1,9 +1,10 @@
 //----------------------------------------------------------------------------------------------------------------------
 // TYPE DEFINITIONS
 struct Material {
-    sampler2D diffuse;   // Diffuse map  (texture)
-    sampler2D specular;  // Specular map (texture)
-    sampler2D normal;
+    sampler2D diffuseMap;   // Diffuse map  (texture)
+    sampler2D specularMap;  // Specular map (texture)
+    sampler2D normalMap;    // Normal map   (texture)
+    bool      hasNormalMap;
     float     shininess; // Surface gloss level
 };
 /* In GLSL data storage sizes are calculated based on 16-byte chunks. All elements reserve 16 bytes.

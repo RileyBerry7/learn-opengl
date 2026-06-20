@@ -44,21 +44,24 @@ public:
 class DefaultMaterial : public Material{
 
 public:
-    glm::vec3 ambient;
-    glm::vec3 diffuse;
-    glm::vec3 specular;
-    float     shininess;
+    glm::vec3 ambient;  // Redundant I think??
+    glm::vec3 diffuse;  //  --
+    glm::vec3 specular; //  --
+    float     shininess;//  --
 
     // Optional
     BetterTexture* specMap;
     BetterTexture* diffuseMap;
     BetterTexture* normalMap;
 
+    bool      hasNormalMap;
+
     DefaultMaterial(Shader& shader, BetterTexture* diffMap = nullptr, BetterTexture* specMap = nullptr, BetterTexture* normMap = nullptr) :
         Material(shader),
         diffuseMap(diffMap),
         specMap(specMap),
         normalMap(normMap),
+        hasNormalMap(false),
 
         // Default material // Pretty sure this is redundant but default
         ambient( glm::vec3(0.25f, 0.25f, 0.25f)),
@@ -77,17 +80,19 @@ public:
         // Set diffuse map
         if (diffuseMap != nullptr) {
             diffuseMap->bindUnit(0);
-            shader->setUniform("material.diffuse", 0);
+            shader->setUniform("material.diffuseMap", 0);
         }
         // Set specular map
         if (specMap != nullptr) {
             specMap->bindUnit(1);
-            shader->setUniform("material.specular", 1);
+            shader->setUniform("material.specularMap", 1);
         }
         if (normalMap != nullptr) {
             normalMap->bindUnit(2);
-            shader->setUniform("material.normal", 2);
+            shader->setUniform("material.normalMap", 2);
         }
+
+        shader->setUniform("material.hasNormalMap", hasNormalMap);
     }
 
 

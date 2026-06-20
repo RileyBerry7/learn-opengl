@@ -290,6 +290,7 @@ void loadModel(std::string objFile, std::string matFile) {
                 if (!mat.bump_texname.empty()) {
                     defMat->specMap = new BetterTexture(GL_TEXTURE_2D);
                     defMat->specMap->load2D(texDir + mat.bump_texname);
+                    defMat->hasNormalMap = true;
                 }
 
                 material = std::move(defMat);
