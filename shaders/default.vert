@@ -20,20 +20,24 @@ out mat3 TBN;
 //======================================================================================================================
 void main()
 {
-    // Apply scale and camera matrix
-    gl_Position = camMatrix * modelMatrix * vec4(aPos, 1.0);
-    objColor    = aColor;
-    texCoord    = aTex;
+    // World-space position
+    vec4 worldPos = modelMatrix * vec4(aPos, 1.0);
+    fragPos = worldPos.xyz;
 
-    // The Normal Matrix: inverse transpose of the 3x3 model matrix
-    normal = mat3(transpose(inverse(modelMatrix))) * aNormal;
-    fragPos = vec3(modelMatrix * vec4(aPos, 1.0));
+    // Final clip-space position
+    gl_Position = camMatrix * worldPos;
 
-    // TBN matrix calculation
-    vec3 T = normalize(vec3(modelMatrix * vec4(aTangent, 0.0)));
-    vec3 N = normalize(vec3(modelMatrix * vec4(aNormal, 0.0)));
-    vec3 B = cross(N, T);
-    TBN = mat3(T, B, N);
+    // Pass-through vertex data
+    objColor = aColor;
+    texCoord = aTex;
 
+    // Build TBN matrix
+    mat3 normalMatrix = transpose(inverse(mat3(modelMatrix)));
+    vec3 N = normalize(normalMatrix * aNormal);
+    vec3 T = normalize(normalMatrix * aTangent);
+    T = normalize(T - dot(T, N) * N); // Re-orthogonalize tangent against normal
+    vec3 B = normalize(cross(N, T)); // Construct bitangent
+    TBN    = mat3(T, B, N); // Final basis
+    normal = N;
 }
 //======================================================================================================================

@@ -88,7 +88,7 @@ public:
         vao->LinkAttrib(*vbo, 1, 3, GL_FLOAT, stride * sizeof(float), (void*)(3*sizeof(float)));
         vao->LinkAttrib(*vbo, 2, 2, GL_FLOAT, stride * sizeof(float), (void*)(6*sizeof(float)));
         vao->LinkAttrib(*vbo, 3, 3, GL_FLOAT, stride * sizeof(float), (void*)(8*sizeof(float)));
-
+        vao->LinkAttrib(*vbo, 4, 3, GL_FLOAT, stride * sizeof(float), (void*)(11 * sizeof(float)));
         vao->Unbind();
         vbo->Unbind();
 
@@ -145,6 +145,7 @@ public:
                 // Calculate tangent of this face
                 glm::vec3 faceTangent = calculateTriangleTangent(p0, p1, p2, uv0, uv1, uv2);
 
+                // VERTEX LOOP
                 for (size_t vi = 0; vi < 3; vi++) {
                     tinyobj::index_t index = shape.mesh.indices[3 * f + vi];
 
@@ -316,8 +317,8 @@ public:
                 }
 
                 if (!mat.bump_texname.empty()) {
-                    defMat->specMap = new BetterTexture(GL_TEXTURE_2D);
-                    defMat->specMap->load2D(texDir + mat.bump_texname);
+                    defMat->normalMap = new BetterTexture(GL_TEXTURE_2D);
+                    defMat->normalMap->load2D(texDir + mat.bump_texname);
                     defMat->hasNormalMap = true;
                 }
 
