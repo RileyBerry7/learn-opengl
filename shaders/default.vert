@@ -30,7 +30,7 @@ void main()
     fragPos = vec3(modelMatrix * vec4(aPos, 1.0));
 
     // TBN matrix calculation
-    vec3 T = normalize(vec3(modelMatrix * vec4(aTangent, 0,0)));
+    vec3 T = normalize(vec3(modelMatrix * vec4(aTangent, 0.0)));
     vec3 N = normalize(vec3(modelMatrix * vec4(aNormal, 0.0)));
     vec3 B = cross(N, T);
     TBN = mat3(T, B, N);
