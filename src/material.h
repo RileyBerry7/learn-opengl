@@ -44,10 +44,10 @@ public:
 class DefaultMaterial : public Material{
 
 public:
-    glm::vec3 ambient;  // Redundant I think??
-    glm::vec3 diffuse;  //  --
-    glm::vec3 specular; //  --
-    float     shininess;//  --
+    glm::vec3 ambient;  // Ambient scalar
+    glm::vec3 diffuse;  // Diffuse scalar
+    glm::vec3 specular; // Specular scalar
+    float     shininess;// Glossiness level
 
     // Optional
     BetterTexture* specMap;

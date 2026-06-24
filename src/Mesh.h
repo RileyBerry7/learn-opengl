@@ -302,6 +302,7 @@ public:
                 defMat->diffuse   = glm::vec3(mat.diffuse[0], mat.diffuse[1], mat.diffuse[2]);
                 defMat->specular  = glm::vec3(mat.specular[0], mat.specular[1], mat.specular[2]);
                 defMat->shininess = mat.shininess;
+                std::cout << "\nDIFFUSE: " << defMat->diffuse.x << std::endl;
 
                 // 4.Map texture maps
                 std::string texDir = "resources/textures/";

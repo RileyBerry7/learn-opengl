@@ -25,7 +25,7 @@ out vec4 FragColor;
 vec3 calculateDirLight(DirLight   light, vec3 normal, vec3 viewDir, vec3 specMap);
 vec3 calculatePointLight(PointLight   light, vec3 normal, vec3 viewDir, vec3 specMap, vec3 fragPos);
 vec3 calculateSpotLight(SpotLight   light, vec3 normal, vec3 viewDir, vec3 specMap, vec3 fragPos);
-vec3 calcSpecular(vec3 normal, vec3 lightDir, vec3 viewDir, float materialShine, vec3 lightEnergy, vec3 specMap);
+vec3 calcSpecular(vec3 normal, vec3 lightDir, vec3 viewDir, float materialShine, vec3 lightEnergy, vec3 specMap, vec3 specScalar);
 float calculateShadow2D(vec3 lightDir, vec3 normal, mat4 lightSpaceMatrix, int shadowId);
 float calculateShadowCube(vec3 fragPos, vec3 normal, int shadowId, vec3 lightPos, float lightRadius);
 //======================================================================================================================
@@ -70,11 +70,12 @@ void main()
 //----------------------------------
 vec3 calculateDirLight(DirLight light, vec3 normal, vec3 viewDir, vec3 specMap) {
 
-    vec3 lightEnergy = light.color * light.intensity;// Total emission power
-    vec3 lightDir = normalize(-light.direction);     // Direction->Light vector
-    float diff    = max(dot(normal, lightDir), 0.0); // Diffuse lighting
-    vec3 diffuse  = lightEnergy * diff;              // Diffuse lighting
-    vec3 specular = calcSpecular(normal, lightDir, viewDir, material.shininess, lightEnergy, specMap);// Specular lighting
+    vec3 lightEnergy = light.color * light.intensity;      // Total emission power
+    vec3 lightDir = normalize(-light.direction);           // Direction->Light vector
+    float diff    = max(dot(normal, lightDir), 0.0);       // Diffuse lighting
+    vec3 diffuse  = lightEnergy * diff * material.diffuse; // Diffuse lighting
+    // Specular lighting
+    vec3 specular = calcSpecular(normal, lightDir, viewDir, material.shininess, lightEnergy, specMap, material.specular);
     float shadow = calculateShadow2D(lightDir, normal, light.lightSpaceMatrix, light.shadowId);       // Shadow mapping
     return (1.0 - shadow) * (diffuse + specular);
 }
@@ -84,12 +85,12 @@ vec3 calculateDirLight(DirLight light, vec3 normal, vec3 viewDir, vec3 specMap) 
 //----------------------------
 vec3 calculatePointLight(PointLight light, vec3 normal, vec3 viewDir, vec3 specMap, vec3 fragPos) {
 
-    vec3 lightEnergy = light.color * light.intensity;   // Total emissive power
-    vec3 lightDir = normalize(light.position - fragPos);// Frag->Light vector
-    float diff    = max(dot(normal, lightDir), 0.0);    // Diffuse lighting
-    vec3 diffuse  = lightEnergy * diff;                 // Diffuse lighting
-    vec3 specular = calcSpecular(normal, lightDir, viewDir, material.shininess, lightEnergy, specMap);// Specular lighting
-    specular     *= material.specular;
+    vec3 lightEnergy = light.color * light.intensity;      // Total emissive power
+    vec3 lightDir = normalize(light.position - fragPos);   // Frag->Light vector
+    float diff    = max(dot(normal, lightDir), 0.0);       // Diffuse lighting
+    vec3 diffuse  = lightEnergy * diff * material.diffuse; // Diffuse lighting
+    // Specular lighting
+    vec3 specular = calcSpecular(normal, lightDir, viewDir, material.shininess, lightEnergy, specMap, material.specular);
 
     // Attenuation: intensity loss over distance
     float distance    = length(light.position - fragPos);
@@ -106,11 +107,12 @@ vec3 calculatePointLight(PointLight light, vec3 normal, vec3 viewDir, vec3 specM
 //---------------------------
 vec3 calculateSpotLight(SpotLight light, vec3 normal, vec3 viewDir, vec3 specMap, vec3 fragPos) {
 
-    vec3 lightEnergy = light.color * light.intensity;   // Total emissive power
-    vec3 lightDir = normalize(light.position - fragPos);// Frag->Light vector
-    float diff    = max(dot(normal, lightDir), 0.0);    // Diffuse lighting
-    vec3 diffuse  = lightEnergy * diff;                 // Diffuse lighting
-    vec3 specular = calcSpecular(normal, lightDir, viewDir, material.shininess, lightEnergy, specMap);// Specular lighting
+    vec3 lightEnergy = light.color * light.intensity;      // Total emissive power
+    vec3 lightDir = normalize(light.position - fragPos);   // Frag->Light vector
+    float diff    = max(dot(normal, lightDir), 0.0);       // Diffuse lighting
+    vec3 diffuse  = lightEnergy * diff * material.diffuse; // Diffuse lighting
+    // Specular lighting
+    vec3 specular = calcSpecular(normal, lightDir, viewDir, material.shininess, lightEnergy, specMap, material.specular);
 
     // Soft spotlight intensity calculation
     vec3 spotDir  = normalize(light.direction);// Spotlight direction vector
@@ -139,11 +141,12 @@ vec3 calculateSpotLight(SpotLight light, vec3 normal, vec3 viewDir, vec3 specMap
 //------------------------
 // SPECULAR CALCULATION  -
 //------------------------
-vec3 calcSpecular(vec3 normal, vec3 lightDir, vec3 viewDir, float materialShine, vec3 lightEnergy, vec3 specMap) {
+vec3 calcSpecular(vec3 normal, vec3 lightDir, vec3 viewDir, float materialShine, vec3 lightEnergy, vec3 specMap, vec3 specScalar)
+{
     float  energyConservation = (materialShine   + 2.0) / 8.0;// Scalar that increases as specular area decreases
     vec3   reflectDir = reflect(-lightDir, normal); // Frag->Reflection vector
     float  spec       = pow(max(dot(viewDir, reflectDir), 0.0), materialShine);
-    return lightEnergy * spec * specMap * energyConservation;
+    return lightEnergy * spec * specMap * energyConservation * specScalar;
 }
 //------------------------
 // SHADOW 2D CALCULATION  -

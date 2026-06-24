@@ -5,9 +5,9 @@ struct Material {
     sampler2D specularMap;  // Specular map (texture)
     sampler2D normalMap;    // Normal map   (texture)
     bool      hasNormalMap;
-    float     ambient;   // Ambient light scalar
-    float     diffuse;   // Diffuse light scalar
-    float     specular;  // Specular light scalar
+    vec3     ambient;   // Ambient light scalar
+    vec3     diffuse;   // Diffuse light scalar
+    vec3     specular;  // Specular light scalar
     float     shininess; // Surface gloss level
 };
 /* In GLSL data storage sizes are calculated based on 16-byte chunks. All elements reserve 16 bytes.
