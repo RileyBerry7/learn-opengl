@@ -1,7 +1,7 @@
 newmtl wall
 Ka 0.2 0.2 0.2
 Kd 0.4 0.4 0.4
-Ks 0.87 0.87 0.87
+Ks 0.77 0.77 0.77
 Ns 70.0
 # Specular exponent (sharpness of highlight)
 illum 2

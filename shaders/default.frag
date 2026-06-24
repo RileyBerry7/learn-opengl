@@ -89,6 +89,7 @@ vec3 calculatePointLight(PointLight light, vec3 normal, vec3 viewDir, vec3 specM
     float diff    = max(dot(normal, lightDir), 0.0);    // Diffuse lighting
     vec3 diffuse  = lightEnergy * diff;                 // Diffuse lighting
     vec3 specular = calcSpecular(normal, lightDir, viewDir, material.shininess, lightEnergy, specMap);// Specular lighting
+    specular     *= material.specular;
 
     // Attenuation: intensity loss over distance
     float distance    = length(light.position - fragPos);
