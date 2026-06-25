@@ -1,8 +1,8 @@
 newmtl wall
-Ka 0.2 0.2 0.2
-Kd 0.5 0.5 0.5
-Ks 0.77 0.77 0.77
-Ns 70.0
+Ka 0.1 0.1 0.1
+Kd 0.3 0.3 0.3
+Ks 0.17 0.17 0.17
+Ns 10.0
 # Specular exponent (sharpness of highlight)
 illum 2
 # Enables Phong specular highlights
