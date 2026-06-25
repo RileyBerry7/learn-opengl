@@ -11,6 +11,7 @@
 #include "ubo.h"
 #include "renderContext.h"
 #include "fbo.h"
+#include "betterTexture.h"
 
 // STD
 #include <vector>
@@ -43,8 +44,11 @@ private:
     bool      wireFrameMode;
     Shader*   activeShader;
     UBO*      uboLights;
-    ShadowFBO shadow2dFBO{SHADOW_MAP_RESOLUTION, SHADOW_MAP_RESOLUTION}; // Create texture framebuffer
-    ShadowFBO shadowCubeFBO{SHADOW_MAP_RESOLUTION, SHADOW_MAP_RESOLUTION}; // Create cubemap framebuffer
+
+    std::unique_ptr<ShadowFBO>     shadow2dFBO;   // Create texture framebuffer
+    std::unique_ptr<ShadowFBO>     shadowCubeFBO; // Create cubemap framebuffer
+    std::unique_ptr<BetterTexture> textureArray;
+    std::unique_ptr<BetterTexture> cubemapArray;
     //----------------------------------------------------------------------------------------------------------------------
 
 public:
@@ -57,6 +61,7 @@ public:
     void prepare();
     void shadow2dPass(std::vector<Object>& objects, LightManager& lights, Camera& camera);
     void shadowCubePass(std::vector<Object>& objects, LightManager& lights, Camera& camera);
+    void mainPass(std::vector<Object>& objects, LightManager& lights, Camera& camera);
     void shadow2dDraw(Object& object, LightManager& lights);
     void shadowCubeDraw(Object& object, LightManager& lights);
     void mainDraw(Object& obj, Camera& camera);
@@ -65,6 +70,8 @@ public:
 
     void setWireframe(bool state);
     void setViewportSize(int width, int height);
+
+    int getShadowMapResolution();
 };
 //----------------------------------------------------------------------------------------------------------------------
 

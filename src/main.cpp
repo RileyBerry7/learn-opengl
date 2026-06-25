@@ -166,28 +166,18 @@ int main() {
         window.processInput();          // Window Inputs
         camera.handleInputs(window); // Camera inputs
 
-        window.setViewportSize(1024, 1024); // Set viewport size to shadow-map resolution
-
-        // Render Shadow 2D Textures
-        renderer.shadow2dPass(objects, lights, camera);
-
-        // Render Shadow CubeMaps (Reduce performance by ~1/6)
-        renderer.shadowCubePass(objects, lights, camera);
-
-        // Reset renderer settings
-        RenderContext::setPass(RenderPass::Main);             // Reset renderer state
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Reset frame-buffer to default screen-buffer
-        window.resetViewportSize();                            // reset viewport size to default dimensions
-
-        // Update Flashlight
+        // Handle flashlight input
         lights.spotBucket[0].direction = glm::normalize(camera.Orientation);
         lights.spotBucket[0].position  = camera.Position;
-
-        // 2. Default Render
         defaultShader.Activate();
         defaultShader.setUniform("toggleF", window.f_toggle);
-        lights.setAllLightSpaceMatrics();
-        renderer.renderScene(objects, lights, camera);
+
+        int res = renderer.getShadowMapResolution();
+        window.setViewportSize(res, res);        // Set viewport size
+        renderer.shadow2dPass(objects, lights, camera);   // Shadow pass: 2D textures
+        renderer.shadowCubePass(objects, lights, camera); // Shadow pass: cubeMaps
+        window.resetViewportSize();                                // Reset viewport size
+        renderer.mainPass(objects, lights, camera);       // Main pass: lighting
 
         // 3. Skybox Render
         glDepthFunc(GL_LEQUAL); // Allow drawing at depth 1.0

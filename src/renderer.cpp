@@ -20,24 +20,26 @@ Renderer::Renderer(std::map<std::string, Shader*> shaderMap) :
     uboLights->BindToSLot(0);
 
     // ========== Shadow Mapping Setup ==========
+    shadow2dFBO   = std::make_unique<ShadowFBO>(SHADOW_MAP_RESOLUTION, SHADOW_MAP_RESOLUTION);
+    shadowCubeFBO = std::make_unique<ShadowFBO>(SHADOW_MAP_RESOLUTION, SHADOW_MAP_RESOLUTION);
 
-    // --- Create 2D Texture Array ---
-    auto textureArray = BetterTexture(GL_TEXTURE_2D_ARRAY);
-    textureArray.create2DArray(SHADOW_MAP_RESOLUTION, SHADOW_MAP_RESOLUTION, MAX_2D_SHADOWS, GL_DEPTH_COMPONENT24);
-    textureArray.setFilter(GL_NEAREST, GL_NEAREST);
-    textureArray.setWrap(GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER);
-    textureArray.setBorderColor(1.0f, 1.0f, 1.0f, 1.0f);
+    // --- Configure 2D Texture Array ---
+    textureArray = std::make_unique<BetterTexture>(GL_TEXTURE_2D_ARRAY);
+    textureArray->create2DArray(SHADOW_MAP_RESOLUTION, SHADOW_MAP_RESOLUTION, MAX_2D_SHADOWS, GL_DEPTH_COMPONENT24);
+    textureArray->setFilter(GL_NEAREST, GL_NEAREST);
+    textureArray->setWrap(GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER);
+    textureArray->setBorderColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-    // --- Create Cube Map Array ---
-    auto cubemapArray = BetterTexture(GL_TEXTURE_CUBE_MAP_ARRAY);
-    cubemapArray.createCubemapArray(SHADOW_MAP_RESOLUTION, SHADOW_MAP_RESOLUTION, MAX_POINT_LIGHT_SHADOWS, GL_DEPTH_COMPONENT24);
-    cubemapArray.setFilter(GL_LINEAR, GL_LINEAR);
-    cubemapArray.setWrap(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-    cubemapArray.setBorderColor(1.0f, 1.0f, 1.0f, 1.0f);
-    glTextureParameteri(cubemapArray.getID(), GL_TEXTURE_COMPARE_MODE, GL_NONE);
+    // --- Configure Cube Map Array ---
+    cubemapArray = std::make_unique<BetterTexture>(GL_TEXTURE_CUBE_MAP_ARRAY);
+    cubemapArray->createCubemapArray(SHADOW_MAP_RESOLUTION, SHADOW_MAP_RESOLUTION, MAX_POINT_LIGHT_SHADOWS, GL_DEPTH_COMPONENT24);
+    cubemapArray->setFilter(GL_LINEAR, GL_LINEAR);
+    cubemapArray->setWrap(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+    cubemapArray->setBorderColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glTextureParameteri(cubemapArray->getID(), GL_TEXTURE_COMPARE_MODE, GL_NONE);
 
-    shadow2dFBO.attachDepthArray(textureArray.getID());     // Attach texture array to FBO
-    shadowCubeFBO.attachCubemapArray(cubemapArray.getID()); // Attach cubemap array to FBO
+    shadow2dFBO->attachDepthArray(textureArray->getID());     // Attach texture array to FBO
+    shadowCubeFBO->attachCubemapArray(cubemapArray->getID()); // Attach cubemap array to FBO
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -80,7 +82,7 @@ void Renderer::prepare(){
 void Renderer::shadowCubePass(std::vector<Object>& objects, LightManager& lights, Camera& camera){
 
     RenderContext::setPass(RenderPass::ShadowCube); // Set renderer state
-    shadowCubeFBO.bind();
+    shadowCubeFBO->bind();
     glClear(GL_DEPTH_BUFFER_BIT);
     renderScene(objects, lights, camera);// Render scene (shadow pass)
 }
@@ -90,9 +92,21 @@ void Renderer::shadowCubePass(std::vector<Object>& objects, LightManager& lights
 void Renderer::shadow2dPass(std::vector<Object>& objects, LightManager& lights, Camera& camera) {
 
     RenderContext::setPass(RenderPass::Shadow2D);        // Set renderer state to shadow pass
-    shadow2dFBO.bind();
+    shadow2dFBO->bind();
     // glBindFramebuffer(GL_FRAMEBUFFER, shadow2dFBO); // Set frame-buffer to texture
     renderScene(objects, lights, camera);// Render scene (shadow pass)
+}
+//--------------------------------------------------------------------------------------------
+// MAIN PASS
+void Renderer::mainPass(std::vector<Object>& objects, LightManager& lights, Camera& camera) {
+
+    activeShader = shaderMap["default"];
+    textureArray->bindUnit(4);
+    cubemapArray->bindUnit(5);
+    RenderContext::setPass(RenderPass::Main);             // Set renderer state
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Set frame-buffer to default screen-buffer
+    lights.setAllLightSpaceMatrics();
+    renderScene(objects, lights, camera);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -165,10 +179,6 @@ void Renderer::renderScene(std::vector<Object>& objects,
     // 2.Set Uniform buffer (lighting data)
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(lightData), &lightData);
 
-   // Set Shadow Uniforms
-    textureArray.bindUnit(4);
-    cubemapArray.bindUnit(5);
-
     // 3. Prepare the frame (Clear buffers)
     prepare();
 
@@ -205,3 +215,6 @@ void Renderer::setViewportSize(int width, int height){
     glViewport(0, 0, width, height);
 }
 //----------------------------------------------------------------------------------------------------------------------
+int Renderer::getShadowMapResolution() {
+    return SHADOW_MAP_RESOLUTION;
+}
