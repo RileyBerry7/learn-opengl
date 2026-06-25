@@ -49,10 +49,13 @@ private:
     std::unique_ptr<ShadowFBO>     shadowCubeFBO; // Create cubemap framebuffer
     std::unique_ptr<BetterTexture> textureArray;
     std::unique_ptr<BetterTexture> cubemapArray;
+
+    std::unique_ptr<Mesh> skyboxMesh;
     //----------------------------------------------------------------------------------------------------------------------
 
 public:
     std::map<std::string, Shader*> shaderMap;
+
     Renderer(std::map<std::string, Shader*> shaderMap);  // Constructor
     ~Renderer(); // Destructor
 
@@ -66,6 +69,7 @@ public:
     void shadowCubeDraw(Object& object, LightManager& lights);
     void mainDraw(Object& obj, Camera& camera);
     void renderScene(std::vector<Object>& objects, LightManager& lights, Camera& camera);
+    void drawSkybox(BetterTexture& skybox, Camera& camera);
     //----------------------------------------------------------------------------------------------------------------------
 
     void setWireframe(bool state);

@@ -70,7 +70,6 @@ int main() {
     meshMap["Floor.obj"]      = std::make_unique<Mesh>("Floor.obj",  shaderMap);
     meshMap["brick_wall.obj"] = std::make_unique<Mesh>("brick_wall.obj", shaderMap);
 
-    auto skyboxMesh = Mesh("cube.obj", shaderMap);
 
     // Skybox Initialization
     auto skybox = BetterTexture(GL_TEXTURE_CUBE_MAP);
@@ -166,7 +165,7 @@ int main() {
         window.processInput();          // Window Inputs
         camera.handleInputs(window); // Camera inputs
 
-        // Handle flashlight input
+        // Flashlight input
         lights.spotBucket[0].direction = glm::normalize(camera.Orientation);
         lights.spotBucket[0].position  = camera.Position;
         defaultShader.Activate();
@@ -178,23 +177,10 @@ int main() {
         renderer.shadowCubePass(objects, lights, camera); // Shadow pass: cubeMaps
         window.resetViewportSize();                                // Reset viewport size
         renderer.mainPass(objects, lights, camera);       // Main pass: lighting
-
-        // 3. Skybox Render
-        glDepthFunc(GL_LEQUAL); // Allow drawing at depth 1.0
-        skyboxShader.Activate();
-        skyboxMesh.vao->Bind();
-        glm::mat4 view = glm::mat4(glm::mat3(camera.view)); // Strip movement!
-        skybox.bindUnit(0);
-        skyboxShader.setUniform("projection", camera.projection);
-        skyboxShader.setUniform("view", view);
-        glDrawElements(GL_TRIANGLES, skyboxMesh.index_count,GL_UNSIGNED_INT, 0);
-        glDepthFunc(GL_LESS); // Reset depth
-
-
-        window.swapBuffers();
+        renderer.drawSkybox(skybox, camera);                 // Draw skybox
+        window.swapBuffers();                                      // Swap buffers
     }
     // --------------------------------------------------------------------------------------------------
-
     return 0;
 }
 // =======================================================================================================

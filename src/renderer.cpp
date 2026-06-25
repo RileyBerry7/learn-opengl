@@ -40,6 +40,9 @@ Renderer::Renderer(std::map<std::string, Shader*> shaderMap) :
 
     shadow2dFBO->attachDepthArray(textureArray->getID());     // Attach texture array to FBO
     shadowCubeFBO->attachCubemapArray(cubemapArray->getID()); // Attach cubemap array to FBO
+
+    // Initialize skybox mesh
+    skyboxMesh = std::make_unique<Mesh>("cube.obj", shaderMap);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -198,6 +201,21 @@ void Renderer::renderScene(std::vector<Object>& objects,
     }
 }
 
+//--------------------------------------------------------------------------------------------
+// DRAW SKYBOX
+void Renderer::drawSkybox(BetterTexture& skybox, Camera& camera) {
+
+    glDepthFunc(GL_LEQUAL); // Allow drawing at depth 1.0
+    Shader* skyboxShader = shaderMap["skybox"];
+    skyboxShader->Activate();
+    skyboxMesh->vao->Bind();
+    glm::mat4 view = glm::mat4(glm::mat3(camera.view)); // Strip movement!
+    skybox.bindUnit(0);
+    skyboxShader->setUniform("projection", camera.projection);
+    skyboxShader->setUniform("view", view);
+    glDrawElements(GL_TRIANGLES, skyboxMesh->index_count,GL_UNSIGNED_INT, 0);
+    glDepthFunc(GL_LESS); // Reset depth
+}
 //--------------------------------------------------------------------------------------------
 // CONTROL
 
