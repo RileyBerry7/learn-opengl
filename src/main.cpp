@@ -156,33 +156,6 @@ int main() {
     objects.push_back(object8);
     objects.push_back(object9);
 
-    // ================= SHADOW MAPPING ===========================
-
-    const unsigned int width  = 1024;
-    const unsigned int height = 1024;
-    int shadowCount = 8;   // Max number of 2D shadow maps
-    int maxCubeMaps = 10;  // x * 6 = total 2D textures
-
-    auto shadow2dFBO   = ShadowFBO(width, height); // Create texture framebuffer
-    auto shadowCubeFBO = ShadowFBO(width, height); // Create cubemap framebuffer
-
-    // --- Create 2D Texture Array ---
-    auto textureArray = BetterTexture(GL_TEXTURE_2D_ARRAY);
-    textureArray.create2DArray(width, height, shadowCount, GL_DEPTH_COMPONENT24);
-    textureArray.setFilter(GL_NEAREST, GL_NEAREST);
-    textureArray.setWrap(GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER);
-    textureArray.setBorderColor(1.0f, 1.0f, 1.0f, 1.0f);
-
-    // --- Create Cube Map Array ---
-    auto cubemapArray = BetterTexture(GL_TEXTURE_CUBE_MAP_ARRAY);
-    cubemapArray.createCubemapArray(width, height, maxCubeMaps, GL_DEPTH_COMPONENT24);
-    cubemapArray.setFilter(GL_LINEAR, GL_LINEAR);
-    cubemapArray.setWrap(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-    cubemapArray.setBorderColor(1.0f, 1.0f, 1.0f, 1.0f);
-    glTextureParameteri(cubemapArray.getID(), GL_TEXTURE_COMPARE_MODE, GL_NONE);
-
-    shadow2dFBO.attachDepthArray(textureArray.getID());     // Attach texture array to FBO
-    shadowCubeFBO.attachCubemapArray(cubemapArray.getID()); // Attach cubemap array to FBO
 
     //===================================================================================================
     // Render Loop
@@ -193,20 +166,13 @@ int main() {
         window.processInput();          // Window Inputs
         camera.handleInputs(window); // Camera inputs
 
-        window.setViewportSize(width, height); // Set viewport size to shadow-map resolution
+        window.setViewportSize(1024, 1024); // Set viewport size to shadow-map resolution
 
         // Render Shadow 2D Textures
-        RenderContext::setPass(RenderPass::Shadow2D);        // Set renderer state to shadow pass
-        shadow2dFBO.bind();
-        // glBindFramebuffer(GL_FRAMEBUFFER, shadow2dFBO); // Set frame-buffer to texture
-        renderer.renderScene(objects, lights, camera);// Render scene (shadow pass)
-
+        renderer.shadow2dPass(objects, lights, camera);
 
         // Render Shadow CubeMaps (Reduce performance by ~1/6)
-        RenderContext::setPass(RenderPass::ShadowCube); // Set renderer state
-        shadowCubeFBO.bind();
-        glClear(GL_DEPTH_BUFFER_BIT);
-        renderer.renderScene(objects, lights, camera);// Render scene (shadow pass)
+        renderer.shadowCubePass(objects, lights, camera);
 
         // Reset renderer settings
         RenderContext::setPass(RenderPass::Main);             // Reset renderer state
@@ -221,10 +187,6 @@ int main() {
         defaultShader.Activate();
         defaultShader.setUniform("toggleF", window.f_toggle);
         lights.setAllLightSpaceMatrics();
-        textureArray.bindUnit(4);
-        cubemapArray.bindUnit(5);
-
-        // Main render pass
         renderer.renderScene(objects, lights, camera);
 
         // 3. Skybox Render

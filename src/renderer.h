@@ -10,6 +10,7 @@
 #include "light.h"
 #include "ubo.h"
 #include "renderContext.h"
+#include "fbo.h"
 
 // STD
 #include <vector>
@@ -26,15 +27,24 @@ or OpenGL state. It handles:
     Uniform Injection: Passing Global data (like the Camera's View/Projection matrices) into the shader.
 */
 
+
+
 //----------------------------------------------------------------------------------------------------------------------
 class Renderer {
 //----------------------------------------------------------------------------------------------------------------------
 private:
+    // CONSTANTS
+    static constexpr unsigned int SHADOW_MAP_RESOLUTION   = 1024;
+    static constexpr          int MAX_2D_SHADOWS          = 8;   // Max number of 2D shadow maps
+    static constexpr          int MAX_POINT_LIGHT_SHADOWS = 10;  // x * 6 = total 2D textures
+
     // ATTRIBUTES
     glm::vec4 clearColor{};
     bool      wireFrameMode;
     Shader*   activeShader;
     UBO*      uboLights;
+    ShadowFBO shadow2dFBO{SHADOW_MAP_RESOLUTION, SHADOW_MAP_RESOLUTION}; // Create texture framebuffer
+    ShadowFBO shadowCubeFBO{SHADOW_MAP_RESOLUTION, SHADOW_MAP_RESOLUTION}; // Create cubemap framebuffer
     //----------------------------------------------------------------------------------------------------------------------
 
 public:
@@ -45,12 +55,12 @@ public:
     // METHODS
     int  initOpenGL();
     void prepare();
+    void shadow2dPass(std::vector<Object>& objects, LightManager& lights, Camera& camera);
+    void shadowCubePass(std::vector<Object>& objects, LightManager& lights, Camera& camera);
     void shadow2dDraw(Object& object, LightManager& lights);
     void shadowCubeDraw(Object& object, LightManager& lights);
     void mainDraw(Object& obj, Camera& camera);
-    void renderScene(std::vector<Object>& objects,
-                            LightManager& lights,
-                                  Camera& camera);
+    void renderScene(std::vector<Object>& objects, LightManager& lights, Camera& camera);
     //----------------------------------------------------------------------------------------------------------------------
 
     void setWireframe(bool state);
