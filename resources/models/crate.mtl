@@ -2,9 +2,10 @@ newmtl side
 Ka 0.2 0.2 0.2
 Kd 0.45 0.45 0.45
 Ks 0.77 0.77 0.77
-Ns 77.0
+Ns 90.0
 # Specular exponent (sharpness of highlight)
 illum 2
 # Enables Phong specular highlights
 map_Kd wood_crate.png
 map_Ks crate_border.png
+map_bump crate_normal.png
