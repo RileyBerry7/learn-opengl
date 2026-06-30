@@ -1,0 +1,87 @@
+{
+  "scene_objects": [
+    {
+      "comment": "object0 - Cube",
+      "mesh": "cube.obj",
+      "shader": "defaultShader",
+      "position": [0.0, 0.0, 0.0],
+      "rotation": [0.0, -44.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "comment": "object1 - Cube copied from object0 + offset",
+      "mesh": "cube.obj",
+      "shader": "defaultShader",
+      "position": [1.8, 0.3, -1.3],
+      "rotation": [0.0, -44.0, 10.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "comment": "object2 - Cube",
+      "mesh": "cube.obj",
+      "shader": "defaultShader",
+      "position": [5.0, 0.7, 0.3],
+      "rotation": [8.0, -44.0, 15.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "comment": "object3 - Cube",
+      "mesh": "cube.obj",
+      "shader": "defaultShader",
+      "position": [3.0, 0.1, -1.0],
+      "rotation": [0.0, -44.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "comment": "object4 - Sphere tracking light0",
+      "mesh": "sphere.obj",
+      "shader": "emissiveShader",
+      "bind_to_light": "light0",
+      "offset_position": [0.0, 0.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [0.4, 0.4, 0.4]
+    },
+    {
+      "comment": "object5 - Sphere tracking light1",
+      "mesh": "sphere.obj",
+      "shader": "emissiveShader",
+      "bind_to_light": "light1",
+      "offset_position": [0.0, 0.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [0.4, 0.4, 0.4]
+    },
+    {
+      "comment": "object6 - Floor",
+      "mesh": "Floor.obj",
+      "shader": "defaultShader",
+      "position": [0.0, -1.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [0.1, 0.1, 0.1]
+    },
+    {
+      "comment": "object7 - Cube",
+      "mesh": "cube.obj",
+      "shader": "defaultShader",
+      "position": [7.5, 0.5, 0.7],
+      "rotation": [0.0, -44.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "comment": "object8 - Sphere tracking light4 + 1.0y offset",
+      "mesh": "sphere.obj",
+      "shader": "emissiveShader",
+      "bind_to_light": "light4",
+      "offset_position": [0.0, 1.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [0.4, 0.4, 0.4]
+    },
+    {
+      "comment": "object9 - Brick Wall",
+      "mesh": "brick_wall.obj",
+      "shader": "defaultShader",
+      "position": [9.0, 1.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [5.0, 5.0, 5.0]
+    }
+  ]
+}

@@ -97,7 +97,7 @@ int main() {
     auto light3 = DirLight{}; // Moon
     light3.color = glm::vec3(1.0f);
     light3.direction = glm::vec3(0.4f, -10.0f, -3.0f);
-    light3.intensity = 0.85f;
+    light3.intensity = 0.0f;
     auto light4 = SpotLight(light2); // Static Spot light
     light4.position = glm::vec3(-3.0f, 3.0f, 5.0f);
     light4.direction = -light4.position;
@@ -177,7 +177,7 @@ int main() {
         renderer.shadowCubePass(objects, lights, camera); // Shadow pass: cubeMaps
         window.resetViewportSize();                                // Reset viewport size
         renderer.mainPass(objects, lights, camera);       // Main pass: lighting
-        renderer.drawSkybox(skybox, camera);                 // Draw skybox
+        renderer.drawSkybox(skybox, camera);                       // Draw skybox
         window.swapBuffers();                                      // Swap buffers
     }
     // --------------------------------------------------------------------------------------------------
