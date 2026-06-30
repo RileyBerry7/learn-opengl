@@ -302,7 +302,6 @@ public:
                 defMat->diffuse   = glm::vec3(mat.diffuse[0], mat.diffuse[1], mat.diffuse[2]);
                 defMat->specular  = glm::vec3(mat.specular[0], mat.specular[1], mat.specular[2]);
                 defMat->shininess = mat.shininess;
-                std::cout << "\nDIFFUSE: " << defMat->diffuse.x << std::endl;
 
                 // 4.Map texture maps
                 std::string texDir = "resources/textures/";
@@ -317,9 +316,9 @@ public:
                     defMat->specMap->load2D(texDir + mat.specular_texname);
                 }
 
-                if (!mat.bump_texname.empty()) {
+                if (!mat.normal_texname.empty()) {
                     defMat->normalMap = new BetterTexture(GL_TEXTURE_2D);
-                    defMat->normalMap->load2D(texDir + mat.bump_texname);
+                    defMat->normalMap->load2D(texDir + mat.normal_texname);
                     defMat->hasNormalMap = true;
                 }
 

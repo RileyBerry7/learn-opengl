@@ -8,4 +8,5 @@ illum 2
 # Enables Phong specular highlights
 map_Kd wall-9-brick-DIFFUSE.jpg
 map_Ks wall-9-brick-SPECULAR.jpg
-map_bump wall-9-brick-NORM.jpg
+norm wall-9-brick-NORM.jpg
+disp wall-9-brick-DISP.jpg
