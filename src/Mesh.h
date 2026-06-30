@@ -322,6 +322,12 @@ public:
                     defMat->hasNormalMap = true;
                 }
 
+                if (!mat.displacement_texname.empty()) {
+                    defMat->dispMap = new BetterTexture(GL_TEXTURE_2D);
+                    defMat->dispMap->load2D(texDir + mat.displacement_texname);
+                    defMat->hasDispMap = true;
+                }
+
                 material = std::move(defMat);
             }
             materialList.push_back(std::move(material));

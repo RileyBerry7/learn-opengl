@@ -53,21 +53,25 @@ public:
     BetterTexture* specMap;
     BetterTexture* diffuseMap;
     BetterTexture* normalMap;
+    BetterTexture* dispMap;
 
-    bool      hasNormalMap;
+    bool hasNormalMap;
+    bool hasDispMap;
 
-    DefaultMaterial(Shader& shader, BetterTexture* diffMap = nullptr, BetterTexture* specMap = nullptr, BetterTexture* normMap = nullptr) :
+    DefaultMaterial(Shader& shader, BetterTexture* diffMap = nullptr, BetterTexture* specMap = nullptr, BetterTexture* normMap = nullptr, BetterTexture* dispMap = nullptr) :
         Material(shader),
         diffuseMap(diffMap),
         specMap(specMap),
         normalMap(normMap),
+        dispMap(dispMap),
         hasNormalMap(false),
+        hasDispMap(false),
 
         // Default material // Pretty sure this is redundant but default
         ambient( glm::vec3(0.25f, 0.25f, 0.25f)),
         diffuse( glm::vec3(0.4f, 0.4f, 0.4f)),
         specular(glm::vec3(0.77f, 0.77f, 0.77f)),
-        shininess(76.8f){}
+        shininess(76.8f) {}
 
     void apply() override {
 
@@ -87,12 +91,19 @@ public:
             specMap->bindUnit(1);
             shader->setUniform("material.specularMap", 1);
         }
+        // Set normal map
         if (normalMap != nullptr) {
             normalMap->bindUnit(2);
             shader->setUniform("material.normalMap", 2);
         }
-
         shader->setUniform("material.hasNormalMap", hasNormalMap);
+
+        // Set displacement map
+        if (dispMap != nullptr) {
+            dispMap->bindUnit(3);
+            shader->setUniform("material.dispMap", 3);
+        }
+        shader->setUniform("material.hasDispMap", hasDispMap);
     }
 
 

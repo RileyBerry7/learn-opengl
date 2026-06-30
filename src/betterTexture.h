@@ -10,6 +10,7 @@
 #include <iostream>
 #include "stb/stb_image.h"
 #include <filesystem>
+#include <cmath>
 namespace fs = std::filesystem;
 //======================================================================================================================
 class BetterTexture {

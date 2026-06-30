@@ -22,7 +22,6 @@ BetterTexture::BetterTexture(GLenum target) {
 
 //======================================================================================================================
 void BetterTexture::load2D(const std::string& path) {
-
     setFilter(GL_NEAREST, GL_NEAREST_MIPMAP_NEAREST);
     setWrap(GL_REPEAT, GL_REPEAT);
 
@@ -31,15 +30,33 @@ void BetterTexture::load2D(const std::string& path) {
 
         // Crucial check: Only proceed if the image actually loaded successfully
         if (image != nullptr) {
-            GLenum internalFormat = (numColorCh == 4) ? GL_RGBA8 : GL_RGB8;
-            GLenum uploadFormat   = (numColorCh == 4) ? GL_RGBA  : GL_RGB;
-            GLsizei levels = 4;
+            GLenum internalFormat = GL_RGB8;
+            GLenum uploadFormat = GL_RGB;
 
-            // fix?
-            // glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, uploadFormat, GL_UNSIGNED_BYTE, image);
+            // Automatically deduce the correct channel configuration
+            if (numColorCh == 1) {
+                internalFormat = GL_R8;    // 1-channel grayscale (Displacement maps)
+                uploadFormat = GL_RED;
+            } else if (numColorCh == 3) {
+                internalFormat = GL_RGB8;  // 3-channel color (Normal maps / standard JPEGs)
+                uploadFormat = GL_RGB;
+            } else if (numColorCh == 4) {
+                internalFormat = GL_RGBA8; // 4-channel color (PNGs with transparency)
+                uploadFormat = GL_RGBA;
+            }
 
+            // Calculate standard mipmap levels safely based on texture dimensions
+            GLsizei levels = 1 + std::floor(std::log2(std::max(width, height)));
+
+            // Prevent driver crashes if image width/height rows are not perfectly aligned to 4 bytes
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+            // Allocate immutable storage using DSA
             glTextureStorage2D(id, levels, internalFormat, width, height);
+
+            // Safely upload data using the matched color channel counts
             glTextureSubImage2D(id, 0, 0, 0, width, height, uploadFormat, GL_UNSIGNED_BYTE, image);
+
             glGenerateTextureMipmap(id);
             stbi_image_free(image);
         }

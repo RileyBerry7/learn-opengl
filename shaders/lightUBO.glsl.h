@@ -4,7 +4,9 @@ struct Material {
     sampler2D diffuseMap;   // Diffuse map  (texture)
     sampler2D specularMap;  // Specular map (texture)
     sampler2D normalMap;    // Normal map   (texture)
+    sampler2D dispMap;      // Displacement map (texture)
     bool      hasNormalMap;
+    bool      hasDispMap;
     vec3     ambient;   // Ambient light scalar
     vec3     diffuse;   // Diffuse light scalar
     vec3     specular;  // Specular light scalar
