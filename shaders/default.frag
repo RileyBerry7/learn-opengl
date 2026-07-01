@@ -35,6 +35,8 @@ void main()
     vec3 totalLight = vec3(0.0); // Light color accumulator
 
     // Calculate loop invariants
+
+    // NORMAL MAPPING
     vec3 norm;
     if (material.hasNormalMap){
         vec3 normalMap = texture(material.normalMap, texCoord).rgb;
@@ -44,9 +46,49 @@ void main()
     } else {
         norm      = normalize(normal);
     }
+
+    // PARALLAX MAPPING
     vec3 viewDir  = normalize(viewPos -fragPos);
-    vec3 albedo   = pow(texture(material.diffuseMap, texCoord).rgb, vec3(2.2));//remove gamma from texture
-    vec3 specMap  = texture(material.specularMap, texCoord).rgb;
+    vec2 UVs = texCoord;
+    if (material.hasDispMap) {
+
+        vec3 viewDirTS = normalize(transpose(TBN) * viewDir);
+
+        // Parallax occlusion mapping quality
+        float heightScale = 0.05;
+        const float minLayers = 8.0;
+        const float maxLayers = 64.0;
+        float numLayers  = mix(maxLayers, minLayers, abs(dot(vec3(0.0, 0.0, 1.0), viewDirTS)));
+        float layerDepth = 1 / numLayers;
+        float currLayerDepth = 0.0;
+
+        // Remove z division
+        vec2 S = viewDirTS.xy / viewDirTS.z * heightScale;
+        vec2 deltaUVs = S / numLayers;
+
+        float currDepthMapValue = 1.0 - texture(material.dispMap, UVs).r;
+
+        // Loop point on the heightmap is hit
+        while (currLayerDepth < currDepthMapValue){
+            UVs -= deltaUVs;
+            currDepthMapValue = 1.0 - texture(material.dispMap, UVs).r;
+            currLayerDepth += layerDepth;
+        }
+        // Apply occlusion (interpolation with prev value)
+        vec2 prevTexCoords = UVs + deltaUVs;
+        float afterDepth   = currDepthMapValue - currLayerDepth;
+        float beforeDepth  = 1.0 - texture(material.dispMap, prevTexCoords).r - currLayerDepth + layerDepth;
+        float weight = afterDepth / (afterDepth - beforeDepth);
+        UVs =   prevTexCoords * weight + UVs * (1.0 - weight);
+
+        // Discard fragments outside of texture range
+        if (UVs.x > 1.0 || UVs.y > 1.0 || UVs.x < 0.0 || UVs.y < 0.0){
+            discard;
+        }
+    }
+
+    vec3 albedo   = pow(texture(material.diffuseMap, UVs).rgb, vec3(2.2));//remove gamma from texture
+    vec3 specMap  = texture(material.specularMap, UVs).rgb;
     vec3 ambient  = albedo * 0.05;
 
     // Calculate total light
